@@ -81,39 +81,135 @@ struct Outset: ParsableCommand {
     func run() {
         
         prefs = load_outset_preferences()
-        print("network timeout is \(prefs.network_timeout)")
+        print(prefs)
+        logger("network timeout is \(prefs.network_timeout)") //testing - delete this line
         
         if boot {
             ensure_working_folders()
-            ensure_outset_preferences()
+            if !check_file_exists(path: outset_preferences) {
+                dump_outset_preferences(prefs: prefs)
+            }
+            
+            if !list_folder(path: boot_once_dir).isEmpty {
+                if network_wait {
+                    loginwindow = false
+                    disable_loginwindow()
+                    continue_firstboot = wait_for_network(timeout: floor(Double(network_timeout) / 10))
+                }
+                if continue_firstboot {
+                    sys_report()
+                    process_items(boot_once_dir, delete_items: true)
+                } else {
+                    logger("Unable to connect to network. Skipping boot-once scripts...", status: "error")
+                }
+                if !loginwindow {
+                    enable_loginwindow()
+                }
+            }
+            
+            if !list_folder(path: boot_every_dir).isEmpty {
+                process_items(boot_every_dir)
+            }
+            
+            logger("Boot processing complete")
         }
         
         if login {
+            if !ignored_users.contains(console_user) {
+                if !list_folder(path: login_once_dir).isEmpty {
+                    process_items(login_once_dir, once: true, override: override_login_once)
+                }
+                if !list_folder(path: login_every_dir).isEmpty {
+                    process_items(login_every_dir)
+                }
+                if !list_folder(path: login_privileged_once_dir).isEmpty || !list_folder(path: login_privileged_every_dir).isEmpty {
+                    FileManager.default.createFile(atPath: login_privileged_trigger, contents: nil)
+                }
+            }
             
         }
         
         if loginPrivileged {
-            
+            if check_file_exists(path: login_privileged_trigger) {
+                path_cleanup(pathname: login_privileged_trigger)
+            }
+            if !ignored_users.contains(console_user) {
+                if !list_folder(path: login_privileged_once_dir).isEmpty {
+                    process_items(login_privileged_once_dir, once: true, override: override_login_once)
+                }
+                if !list_folder(path: login_privileged_every_dir).isEmpty {
+                    process_items(login_privileged_every_dir)
+                }
+            } else {
+                logger("Skipping login scripts for user \(console_user)")
+            }
         }
         
         if onDemand {
-            
+            if !list_folder(path: on_demand_dir).isEmpty {
+                if !["root", "loginwindow"].contains(console_user) {
+                    let current_user = NSUserName()
+                    if console_user == current_user {
+                        process_items(on_demand_dir)
+                    } else {
+                        logger("User \(current_user) is not the current console user. Skipping on-demand run.")
+                    }
+                } else {
+                    logger("No current user session. Skipping on-demand run.")
+                }
+                FileManager.default.createFile(atPath: cleanup_trigger, contents: nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if check_file_exists(path: cleanup_trigger) {
+                        path_cleanup(pathname: cleanup_trigger)
+                    }
+                }
+            }
         }
         
         if loginEvery {
-            
+            if !ignored_users.contains(console_user) {
+                if !list_folder(path: login_every_dir).isEmpty {
+                    process_items(login_every_dir)
+                }
+            }
         }
         
         if loginOnce {
-            
+            if !ignored_users.contains(console_user) {
+                if !list_folder(path: login_once_dir).isEmpty {
+                    process_items(login_once_dir, once: true)
+                }
+            }
         }
         
         if cleanup {
-            
+            logger("Cleaning up on-demand directory.")
+            if check_file_exists(path: on_demand_trigger) {
+                    path_cleanup(pathname: on_demand_trigger)
+            }
+            if !list_folder(path: on_demand_dir).isEmpty {
+                path_cleanup(pathname: on_demand_dir)
+            }
         }
         
         if !addIgnoredUser.isEmpty {
-            
+            if NSUserName() != "root" {
+                logger("Must be root to add users to ignored_users", status: "error")
+                Outset.exit(withError: ExitCode(1))
+            }
+            if !check_file_exists(path: share_dir) {
+                logger("\(share_dir) does not exist, creating now.")
+                do {
+                    try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
+                } catch {
+                    logger("Something went wrong. \(share_dir) could not be created.")
+                }
+            }
+            for username in addIgnoredUser {
+                logger("Adding \(username) to ignored users list")
+                prefs.ignored_users.append(username)
+            }
+            dump_outset_preferences(prefs: prefs)
         }
         
         if !removeIgnoredUser.isEmpty {

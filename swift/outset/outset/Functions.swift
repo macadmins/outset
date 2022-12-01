@@ -15,7 +15,6 @@ struct OutsetPreferences: Codable {
 }
 
 func ensure_working_folders() {
-    var isDir:ObjCBool = true
     let working_directories = [
         boot_every_dir,
         boot_once_dir,
@@ -28,7 +27,7 @@ func ensure_working_folders() {
     ]
     
     for directory in working_directories {
-        if !FileManager.default.fileExists(atPath: directory, isDirectory: &isDir) {
+        if !check_file_exists(path: directory, isDir: true) {
             //logging.info("%s does not exist, creating now.", directory)
             do {
                 try FileManager.default.createDirectory(at: URL(filePath: directory), withIntermediateDirectories: true)
@@ -39,41 +38,59 @@ func ensure_working_folders() {
     }
 }
 
-func ensure_outset_preferences() {
-    if !FileManager.default.fileExists(atPath: outset_preferences) {
+func dump_outset_preferences(prefs: OutsetPreferences) {
+    //if check_file_exists(path: outset_preferences) {
         //logging.info("Initiating preference file: %s" % outset_preferences)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         do {
-            let data = try encoder.encode(OutsetPreferences())
+            let data = try encoder.encode(prefs)
             try data.write(to: URL(filePath: outset_preferences))
         } catch {
             print("encoding plist failed")
         }
-    }
-
+    //}
 }
 
+func check_file_exists(path: String, isDir : ObjCBool = false) -> Bool {
+    var checkIsDir : ObjCBool = isDir
+    return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
+}
+
+func list_folder(path: String) -> [String] {
+    do {
+        return try FileManager.default.contentsOfDirectory(atPath: path)
+    } catch {
+        return []
+    }
+}
+
+func logger(_ log: String, status : String = "info") {
+    print(log)
+}
+    
 func load_outset_preferences() -> OutsetPreferences {
-    let outsetPrefs = OutsetPreferences() // don't forget to change to var when you refactor this function
-    if !FileManager.default.fileExists(atPath: outset_preferences) {
-        ensure_outset_preferences()
+    var outsetPrefs = OutsetPreferences() // don't forget to change to var when you refactor this function
+    if !check_file_exists(path: outset_preferences) {
+        dump_outset_preferences(prefs: OutsetPreferences())
     }
     
     //let importedPrefs = NSDictionary(contentsOfFile: outset_preferences)
     
     //let userPrefs = PropertyListSerialization.propertyList(from: importedPrefs, format: OutsetPreferences) as! OutsetPreferences
-    /*
+    
     let url = URL(filePath: outset_preferences)
     do {
         let data = try Data(contentsOf: url)
-        let importedPrefs = try PropertyListSerialization.propertyList(from: data, format: nil)
-        importedPrefs
-        outsetPrefs = importedPrefs as! OutsetPreferences
+        //let importedPrefs = try PropertyListSerialization.propertyList(from: data, format: nil)
+        outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
+        //outsetPrefs = data.withUnsafeBytes { buffer in
+        //    buffer.load(as: OutsetPreferences.self)
+        //}
     } catch {
         print("plist import failed")
     }
-    */
+    
     return outsetPrefs
 }
 
@@ -81,8 +98,8 @@ func network_up() {
     
 }
 
-func wait_for_network(timeout : Int) {
-    
+func wait_for_network(timeout : Double) -> Bool {
+    return true
 }
 
 func disable_loginwindow() {
@@ -113,8 +130,8 @@ func sys_report() {
     
 }
 
-func cleanup(pathname : String) {
-    
+func path_cleanup(pathname : String) {
+    // check if folder and clean all files in that folder
 }
 
 func mount_dmg(dmg : String) {
@@ -141,6 +158,6 @@ func run_script(pathname : String) {
     
 }
 
-func process_items(path: String, delete_items : Bool=false, once : Bool=false, override : Array<Any>=[]) {
+func process_items(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
     
 }
