@@ -28,11 +28,11 @@ let cleanup_trigger = "/private/tmp/.com.github.outset.cleanup.launchd"
 
 // Set some variables
 var loginwindow : Bool = true
-var console_user : String = "" //pwd.getpwuid(os.getuid())[0]
+var console_user : String = NSUserName() 
 var network_wait : Bool = true
 var network_timeout : Int = 180
 var ignored_users : [String] = []
-var override_login_once : Dictionary = [String: Date]()
+var override_login_once : [String: Date] = [String: Date]()
 var continue_firstboot : Bool = true
 var prefs : OutsetPreferences = OutsetPreferences(wait_for_network: network_wait, network_timeout: network_timeout, ignored_users: ignored_users, override_login_once: override_login_once)
 
@@ -78,11 +78,8 @@ struct Outset: ParsableCommand {
     @Flag(help: "Show version number")
     var version = false
     
-    func run() {
-        
+    func run() {        
         prefs = load_outset_preferences()
-        print(prefs)
-        logger("network timeout is \(prefs.network_timeout)") //testing - delete this line
         
         if boot {
             ensure_working_folders()
@@ -193,18 +190,8 @@ struct Outset: ParsableCommand {
         }
         
         if !addIgnoredUser.isEmpty {
-            if NSUserName() != "root" {
-                logger("Must be root to add users to ignored_users", status: "error")
-                Outset.exit(withError: ExitCode(1))
-            }
-            if !check_file_exists(path: share_dir) {
-                logger("\(share_dir) does not exist, creating now.")
-                do {
-                    try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
-                } catch {
-                    logger("Something went wrong. \(share_dir) could not be created.")
-                }
-            }
+            ensure_root("add to ignored users")
+            ensure_shared_folder()
             for username in addIgnoredUser {
                 logger("Adding \(username) to ignored users list")
                 prefs.ignored_users.append(username)
@@ -213,15 +200,33 @@ struct Outset: ParsableCommand {
         }
         
         if !removeIgnoredUser.isEmpty {
-            
+            ensure_root("remove ignored users")
+            for username in removeIgnoredUser {
+                if let index = prefs.ignored_users.firstIndex(of: username) {
+                    prefs.ignored_users.remove(at: index)
+                }
+            }
+            dump_outset_preferences(prefs: prefs)
         }
         
         if !addOveride.isEmpty {
+            ensure_root("add scripts to override list")
+            ensure_shared_folder()
             
+            for overide in addOveride {
+                logger("Adding \(overide) to overide list")
+                //let value : [String:Date] = [overide:.now]
+                prefs.override_login_once[overide] = .now
+            }
+            dump_outset_preferences(prefs: prefs)
         }
         
         if !removeOveride.isEmpty {
-            
+            ensure_root("remove scripts to override list")
+            for overide in removeOveride {
+                prefs.override_login_once.removeValue(forKey: overide)
+            }
+            dump_outset_preferences(prefs: prefs)
         }
         
         if version {

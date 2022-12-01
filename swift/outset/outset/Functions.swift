@@ -6,12 +6,30 @@
 //
 
 import Foundation
+import SystemConfiguration
+
 
 struct OutsetPreferences: Codable {
     var wait_for_network : Bool = false
     var network_timeout : Int = 180
     var ignored_users : [String] = []
-    var override_login_once : [String : Date] = [:]
+    var override_login_once : [String:Date] = [String:Date]()
+}
+
+func shell(_ command: String) -> String {
+    let task = Process()
+    let pipe = Pipe()
+    
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.arguments = ["-c", command]
+    task.launchPath = "/bin/zsh"
+    task.launch()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8)!
+    
+    return output
 }
 
 func ensure_working_folders() {
@@ -35,6 +53,24 @@ func ensure_working_folders() {
                 print("could not create path at \(directory)")
             }
         }
+    }
+}
+
+func ensure_shared_folder() {
+    if !check_file_exists(path: share_dir) {
+        logger("\(share_dir) does not exist, creating now.")
+        do {
+            try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
+        } catch {
+            logger("Something went wrong. \(share_dir) could not be created.")
+        }
+    }
+}
+
+func ensure_root(_ reason : String) {
+    if NSUserName() != "root" {
+        logger("Must be root to \(reason)", status: "error")
+        exit(1)
     }
 }
 
@@ -70,23 +106,15 @@ func logger(_ log: String, status : String = "info") {
 }
     
 func load_outset_preferences() -> OutsetPreferences {
-    var outsetPrefs = OutsetPreferences() // don't forget to change to var when you refactor this function
+    var outsetPrefs = OutsetPreferences()
     if !check_file_exists(path: outset_preferences) {
         dump_outset_preferences(prefs: OutsetPreferences())
     }
     
-    //let importedPrefs = NSDictionary(contentsOfFile: outset_preferences)
-    
-    //let userPrefs = PropertyListSerialization.propertyList(from: importedPrefs, format: OutsetPreferences) as! OutsetPreferences
-    
     let url = URL(filePath: outset_preferences)
     do {
         let data = try Data(contentsOf: url)
-        //let importedPrefs = try PropertyListSerialization.propertyList(from: data, format: nil)
         outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-        //outsetPrefs = data.withUnsafeBytes { buffer in
-        //    buffer.load(as: OutsetPreferences.self)
-        //}
     } catch {
         print("plist import failed")
     }
@@ -94,70 +122,182 @@ func load_outset_preferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func network_up() {
+func network_up() -> Bool {
+    // https://stackoverflow.com/a/39782859/17584669
     
+    var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
+    zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
+    zeroAddress.sin_family = sa_family_t(AF_INET)
+
+    let defaultRouteReachability = withUnsafePointer(to: &zeroAddress) {
+        $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {zeroSockAddress in
+            SCNetworkReachabilityCreateWithAddress(nil, zeroSockAddress)
+        }
+    }
+
+    var flags: SCNetworkReachabilityFlags = SCNetworkReachabilityFlags(rawValue: 0)
+    if SCNetworkReachabilityGetFlags(defaultRouteReachability!, &flags) == false {
+        return false
+    }
+
+    let isReachable = (flags.rawValue & UInt32(kSCNetworkFlagsReachable)) != 0
+    let needsConnection = (flags.rawValue & UInt32(kSCNetworkFlagsConnectionRequired)) != 0
+    let ret = (isReachable && !needsConnection)
+
+    return ret
 }
 
 func wait_for_network(timeout : Double) -> Bool {
-    return true
+    var networkUp : Bool = false
+    var networkCheck : DispatchWorkItem?
+    for _ in 0..<Int(timeout) {
+        networkCheck = DispatchWorkItem {}
+        if network_up() {
+            networkUp = true
+            networkCheck?.cancel()
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(10), execute: networkCheck!)
+        }
+    }
+    return networkUp
 }
 
 func disable_loginwindow() {
-    
+    // Disables the loginwindow process
+    logger("Disabling loginwindow process")
+    let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    _ = shell(cmd)
 }
 
 func enable_loginwindow() {
-    
+    // Enables the loginwindow process
+    logger("Disabling loginwindow process")
+    let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    _ = shell(cmd)
 }
 
-func get_hardwaremodel() {
-    
+func get_hardwaremodel() -> String {
+    // Returns the hardware model of the Mac
+    let cmd = "/usr/sbin/sysctl -n hw.model"
+    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func get_serialnumber() {
-    
+func get_serialnumber() -> String {
+    // Returns the serial number of the Mac
+    let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
+      guard platformExpert > 0 else {
+        return "Serial Unknown"
+      }
+      guard let serialNumber = (IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformSerialNumberKey as CFString, kCFAllocatorDefault, 0).takeUnretainedValue() as? String)?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) else {
+        return "Serial Unknown"
+      }
+      IOObjectRelease(platformExpert)
+      return serialNumber
 }
 
-func get_buildversion() {
-    
+func get_buildversion() -> String {
+    let cmd = "/usr/sbin/sysctl -n kern.osversion"
+    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func get_osversion() {
-    
+func get_osversion() -> String {
+    let version = [String(ProcessInfo().operatingSystemVersion.majorVersion),
+                   String(ProcessInfo().operatingSystemVersion.minorVersion),
+                   String(ProcessInfo().operatingSystemVersion.patchVersion)]
+    return version.joined(separator: ".")
 }
 
 func sys_report() {
-    
+    // Logs system information to log file
+    logger("Model: \(get_hardwaremodel())", status: "debug")
+    logger("Serial: \(get_serialnumber())", status: "debug")
+    logger("OS: \(get_osversion())", status: "debug")
+    logger("Build: \(get_buildversion())", status: "debug")
 }
 
 func path_cleanup(pathname : String) {
     // check if folder and clean all files in that folder
+    // Deletes given script or cleans folder
+    if check_file_exists(path: pathname, isDir: true) {
+        for fileItem in list_folder(path: pathname) {
+            delete_file(fileItem)
+        }
+    } else if check_file_exists(path: pathname) {
+        delete_file(pathname)
+    } else {
+        logger("\(pathname) doesn't seem to exist", status: "error")
+    }
 }
 
-func mount_dmg(dmg : String) {
-    
+func delete_file(_ path : String) {
+    do {
+        try FileManager.default.removeItem(atPath: path)
+    } catch {
+        logger("\(path) could not be removed", status: "error")
+    }
 }
 
-func detach_dmg(dmg_mount : String) {
-    
+func mount_dmg(dmg : String) -> String {
+    // Attaches dmg
+    let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
+    logger("Attaching \(dmg)")
+    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func check_perms(pathname : String) {
-    
+func detach_dmg(dmg_mount : String) -> String {
+    // Detaches dmg
+    logger("Detaching \(dmg_mount)")
+    let cmd = "/usr/bin/hdiutil detach -force \(dmg_mount)"
+    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func install_package(pkg : String) {
-    
+func check_perms(pathname : String) -> Bool {
+    return true
 }
 
-func install_profile(pathname : String) {
+func install_package(pkg : String) -> Bool {
+    // Installs pkg onto boot drive
+    var pkg_to_install : String = ""
+    var dmg_mount : String = ""
     
+    if pkg.lowercased().hasSuffix("dmg") {
+        dmg_mount = mount_dmg(dmg: pkg)
+        for files in list_folder(path: dmg_mount) {
+            if ["pkg", "mpkg"].contains(files.lowercased().suffix(3)) {
+                pkg_to_install = dmg_mount
+            }
+        }
+    } else if ["pkg", "mpkg"].contains(pkg.lowercased().suffix(3)) {
+        pkg_to_install = pkg
+    }
+    logger("Installing \(pkg_to_install)")
+    let cmd = "/usr/sbin/installer -pkg \(pkg_to_install) -target /"
+    logger(shell(cmd))
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
+        if !dmg_mount.isEmpty {
+            logger(detach_dmg(dmg_mount: dmg_mount))
+        }
+    }
+    return true
 }
 
-func run_script(pathname : String) {
-    
+func install_profile(pathname : String) -> Bool {
+    return true
 }
+
 
 func process_items(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
+    // Processes scripts/packages to run
+    if !check_file_exists(path: path) {
+        logger("\(path) does not exist. Exiting")
+        exit(1)
+    }
+    
+    var items_to_process : [String]
+    var packages : [String]
+    var scripts : [String]
+    var profiles : [String]
+    //var dict : Dictionary
     
 }
