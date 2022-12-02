@@ -35,7 +35,28 @@ var ignored_users : [String] = []
 var override_login_once : [String: Date] = [String: Date]()
 var continue_firstboot : Bool = true
 var prefs : OutsetPreferences = OutsetPreferences(wait_for_network: network_wait, network_timeout: network_timeout, ignored_users: ignored_users, override_login_once: override_login_once)
+var run_once_plist : String = ""
 
+var log_file = "/var/log/outset.log"
+
+if  is_root() {
+    log_file = "/var/log/outset.log"
+    var (console_uid, _, _) = shell("id -u $(who | grep 'console' | awk '{print $1}')")
+    console_uid = console_uid.trimmingCharacters(in: .whitespacesAndNewlines)
+    run_once_plist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
+} else {
+    let userLogsPath = FileManager.default.homeDirectoryForCurrentUser.absoluteString+"/Library/Logs"
+    if !check_file_exists(path: userLogsPath, isDir: true) {
+        do {
+            try FileManager.default.createDirectory(at: URL(filePath: userLogsPath), withIntermediateDirectories: true)
+        } catch {
+            logger("Could not create \(userLogsPath)", status: "error")
+            exit(1)
+        }
+    }
+    log_file = userLogsPath+"/Library/Logs/outset.log"
+    run_once_plist = userLogsPath+"/Library/Preferences/com.github.outset.once.plist"
+}
 
 struct Outset: ParsableCommand {
     static let configuration = CommandConfiguration(

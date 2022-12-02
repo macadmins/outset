@@ -16,21 +16,36 @@ struct OutsetPreferences: Codable {
     var override_login_once : [String:Date] = [String:Date]()
 }
 
-func shell(_ command: String) -> String {
+struct RunOncePlist: Codable {
+    var override_login_once : [String:Date] = [String:Date]()
+}
+
+func shell(_ command: String) -> (output: String, error: String, exitCode: Int32) {
     let task = Process()
     let pipe = Pipe()
+    let errorpipe = Pipe()
+    
+    var output : String = ""
+    var error : String = ""
     
     task.standardOutput = pipe
-    task.standardError = pipe
+    task.standardError = errorpipe
     task.arguments = ["-c", command]
     task.launchPath = "/bin/zsh"
     task.launch()
     
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    let output = String(data: data, encoding: .utf8)!
+    let errordata = errorpipe.fileHandleForReading.readDataToEndOfFile()
     
-    return output
+    output.append(String(data: data, encoding: .utf8)!)
+    error.append(String(data: errordata, encoding: .utf8)!)
+    
+    task.waitUntilExit()
+    let status = task.terminationStatus
+    
+    return (output, error, status)
 }
+
 
 func ensure_working_folders() {
     let working_directories = [
@@ -68,24 +83,14 @@ func ensure_shared_folder() {
 }
 
 func ensure_root(_ reason : String) {
-    if NSUserName() != "root" {
+    if !is_root() {
         logger("Must be root to \(reason)", status: "error")
         exit(1)
     }
 }
 
-func dump_outset_preferences(prefs: OutsetPreferences) {
-    //if check_file_exists(path: outset_preferences) {
-        //logging.info("Initiating preference file: %s" % outset_preferences)
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-        do {
-            let data = try encoder.encode(prefs)
-            try data.write(to: URL(filePath: outset_preferences))
-        } catch {
-            print("encoding plist failed")
-        }
-    //}
+func is_root() -> Bool {
+    return NSUserName() == "root"
 }
 
 func check_file_exists(path: String, isDir : ObjCBool = false) -> Bool {
@@ -94,17 +99,34 @@ func check_file_exists(path: String, isDir : ObjCBool = false) -> Bool {
 }
 
 func list_folder(path: String) -> [String] {
+    var filelist : [String] = []
     do {
-        return try FileManager.default.contentsOfDirectory(atPath: path)
+        let files = try FileManager.default.contentsOfDirectory(atPath: path)
+        for file in files {
+            filelist.append("\(path)/\(file)")
+        }
     } catch {
         return []
     }
+    return filelist
 }
 
 func logger(_ log: String, status : String = "info") {
     print(log)
 }
-    
+
+func dump_outset_preferences(prefs: OutsetPreferences) {
+    logger("Initiating preference file: \(outset_preferences)")
+    let encoder = PropertyListEncoder()
+    encoder.outputFormat = .xml
+    do {
+        let data = try encoder.encode(prefs)
+        try data.write(to: URL(filePath: outset_preferences))
+    } catch {
+        print("encoding plist failed")
+    }
+}
+
 func load_outset_preferences() -> OutsetPreferences {
     var outsetPrefs = OutsetPreferences()
     if !check_file_exists(path: outset_preferences) {
@@ -120,6 +142,20 @@ func load_outset_preferences() -> OutsetPreferences {
     }
     
     return outsetPrefs
+}
+
+func load_runonce(plist: String) -> RunOncePlist {
+    var runOncePlist = RunOncePlist()
+    if check_file_exists(path: plist) {
+        let url = URL(filePath: plist)
+        do {
+            let data = try Data(contentsOf: url)
+            runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
+        } catch {
+            print("plist import failed")
+        }
+    }
+    return runOncePlist
 }
 
 func network_up() -> Bool {
@@ -179,7 +215,11 @@ func enable_loginwindow() {
 func get_hardwaremodel() -> String {
     // Returns the hardware model of the Mac
     let cmd = "/usr/sbin/sysctl -n hw.model"
-    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
+    let (output, error, status) = shell(cmd)
+    if status != 0 {
+        return error
+    }
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 func get_serialnumber() -> String {
@@ -197,7 +237,11 @@ func get_serialnumber() -> String {
 
 func get_buildversion() -> String {
     let cmd = "/usr/sbin/sysctl -n kern.osversion"
-    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
+    let (output, error, status) = shell(cmd)
+    if status != 0 {
+        return error
+    }
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 func get_osversion() -> String {
@@ -241,14 +285,22 @@ func mount_dmg(dmg : String) -> String {
     // Attaches dmg
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
     logger("Attaching \(dmg)")
-    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
+    let (output, error, status) = shell(cmd)
+    if status != 0 {
+        return error
+    }
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 func detach_dmg(dmg_mount : String) -> String {
     // Detaches dmg
     logger("Detaching \(dmg_mount)")
     let cmd = "/usr/bin/hdiutil detach -force \(dmg_mount)"
-    return shell(cmd).trimmingCharacters(in: .whitespacesAndNewlines)
+    let (output, error, status) = shell(cmd)
+    if status != 0 {
+        return error
+    }
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 func check_perms(pathname : String) -> Bool {
@@ -272,7 +324,13 @@ func install_package(pkg : String) -> Bool {
     }
     logger("Installing \(pkg_to_install)")
     let cmd = "/usr/sbin/installer -pkg \(pkg_to_install) -target /"
-    logger(shell(cmd))
+    let (output, error, status) = shell(cmd)
+    if status != 0 {
+        logger(error, status: "error")
+    } else {
+        logger(output)
+    }
+    
     
     DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
         if !dmg_mount.isEmpty {
@@ -294,10 +352,93 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         exit(1)
     }
     
-    var items_to_process : [String]
-    var packages : [String]
-    var scripts : [String]
-    var profiles : [String]
-    //var dict : Dictionary
+    var items_to_process : [String] = []
+    var packages : [String] = []
+    var scripts : [String] = []
+    var profiles : [String] = []
+    var runOnceDict : RunOncePlist = RunOncePlist()
     
+    items_to_process = list_folder(path: path)
+    print(items_to_process)
+    
+    for pathname in items_to_process {
+        if check_perms(pathname: pathname) {
+            if ["pkg", "mpkg", "dmg"].contains(pathname.lowercased().suffix(3)) {
+                packages.append(pathname)
+            } else if pathname.lowercased().hasSuffix("mobileconfig") {
+                profiles.append(pathname)
+            } else {
+                scripts.append(pathname)
+            }
+        } else {
+            logger("Bad permissions: \(pathname)", status: "error")
+        }
+    }
+    
+    if once {
+        runOnceDict = load_runonce(plist: run_once_plist)
+    }
+    
+    for package in packages {
+        if once {
+            if !runOnceDict.override_login_once.contains(where: {$0.key == package}) {
+                if install_package(pkg: package) {
+                    runOnceDict.override_login_once.updateValue(.now, forKey: package)
+                }
+            } else {
+                if override.contains(where: {$0.key == package}) {
+                    if override[package]! > runOnceDict.override_login_once[package]! {
+                        if install_package(pkg: package) {
+                            runOnceDict.override_login_once.updateValue(.now, forKey: package)
+                        }
+                    }
+                }
+            }
+        } else {
+            _ = install_package(pkg: package)
+        }
+        if delete_items {
+            path_cleanup(pathname: package)
+        }
+    }
+    
+    /*
+    for profile in profiles {
+        // NO PROFILE SUPPORT
+    }
+     */
+    
+    for script in scripts {
+        if once {
+            if !runOnceDict.override_login_once.contains(where: {$0.key == script}) {
+                let (output, error, status) = shell(script)
+                if status != 0 {
+                    logger(error, status: "error")
+                } else {
+                    runOnceDict.override_login_once.updateValue(.now, forKey: script)
+                    logger(output)
+                }
+            } else {
+                if override.contains(where: {$0.key == script}) {
+                    if override[script]! > runOnceDict.override_login_once[script]! {
+                        let (output, error, status) = shell(script)
+                        if status != 0 {
+                            logger(error, status: "error")
+                        } else {
+                            runOnceDict.override_login_once.updateValue(.now, forKey: script)
+                            logger(output)
+                        }
+                    }
+                }
+            }
+        } else {
+            let (_, error, status) = shell(script)
+            if status != 0 {
+                logger(error, status: "error")
+            }
+        }
+        if delete_items {
+            path_cleanup(pathname: script)
+        }
+    }
 }
