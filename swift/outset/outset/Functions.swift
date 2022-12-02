@@ -441,4 +441,17 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
             path_cleanup(pathname: script)
         }
     }
+    
+    if !runOnceDict.override_login_once.isEmpty {
+        logger("Initiating preference file: \(run_once_plist)", status: "debug")
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        do {
+            let data = try encoder.encode(runOnceDict)
+            try data.write(to: URL(filePath: run_once_plist))
+        } catch {
+            logger("Writing to \(run_once_plist) failed", status: "error")
+        }
+    }
+    
 }

@@ -45,7 +45,8 @@ if  is_root() {
     console_uid = console_uid.trimmingCharacters(in: .whitespacesAndNewlines)
     run_once_plist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
 } else {
-    let userLogsPath = FileManager.default.homeDirectoryForCurrentUser.absoluteString+"/Library/Logs"
+    let userHomePath = FileManager.default.homeDirectoryForCurrentUser.absoluteString
+    let userLogsPath = userHomePath+"Library/Logs"
     if !check_file_exists(path: userLogsPath, isDir: true) {
         do {
             try FileManager.default.createDirectory(at: URL(filePath: userLogsPath), withIntermediateDirectories: true)
@@ -54,8 +55,8 @@ if  is_root() {
             exit(1)
         }
     }
-    log_file = userLogsPath+"/Library/Logs/outset.log"
-    run_once_plist = userLogsPath+"/Library/Preferences/com.github.outset.once.plist"
+    log_file = userLogsPath+"/outset.log"
+    run_once_plist = userHomePath+"Library/Preferences/com.github.outset.once.plist"
 }
 
 struct Outset: ParsableCommand {
