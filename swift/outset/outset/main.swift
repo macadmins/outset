@@ -45,7 +45,7 @@ if  is_root() {
     console_uid = console_uid.trimmingCharacters(in: .whitespacesAndNewlines)
     run_once_plist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
 } else {
-    let userHomePath = FileManager.default.homeDirectoryForCurrentUser.absoluteString
+    let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
     let userLogsPath = userHomePath+"Library/Logs"
     if !check_file_exists(path: userLogsPath, isDir: true) {
         do {
