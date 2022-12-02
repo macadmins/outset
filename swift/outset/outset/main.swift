@@ -9,7 +9,7 @@
 import Foundation
 import ArgumentParser
 
-
+let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
 let outsetVersion = "4.0"
 
 // Set some Constants TODO: leave these as defaults but maybe make them configurable from a plist
@@ -28,6 +28,7 @@ let login_privileged_trigger = "/private/tmp/.com.github.outset.login-privileged
 let cleanup_trigger = "/private/tmp/.com.github.outset.cleanup.launchd"
 
 // Set some variables
+var debugMode : Bool = false
 var loginwindow : Bool = true
 var console_user : String = NSUserName() 
 var network_wait : Bool = true
@@ -64,6 +65,9 @@ struct Outset: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "outset",
         abstract: "This script automatically processes packages, profiles, and/or scripts at boot, on demand, and/or login.")
+    
+    @Flag(help: .hidden)
+    var debug = false
     
     @Flag(help: "Used by launchd for scheduled runs at boot")
     var boot = false
@@ -103,6 +107,10 @@ struct Outset: ParsableCommand {
     
     mutating func run() throws {
         prefs = load_outset_preferences()
+        
+        if debug {
+            debugMode = true
+        }
         
         if boot {
             ensure_working_folders()

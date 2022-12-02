@@ -118,14 +118,16 @@ func logger(_ log: String, status : String = "info") {
     case "error":
         print("ERROR: \(log)")
     case "debug":
-        print("DEBUG: \(log)")
+        if debugMode {
+            print("DEBUG: \(log)")
+        }
     default:
         print(log)
     }
 }
 
 func dump_outset_preferences(prefs: OutsetPreferences) {
-    logger("Initiating preference file: \(outset_preferences)")
+    logger("Writing preference file: \(outset_preferences)", status: "debug")
     let encoder = PropertyListEncoder()
     encoder.outputFormat = .xml
     do {
@@ -313,7 +315,33 @@ func detach_dmg(dmg_mount : String) -> String {
 }
 
 func check_perms(pathname : String) -> Bool {
-    return true
+    
+    var fileAttributes : [FileAttributeKey:Any]
+    
+    do {
+        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
+    } catch {
+        logger("Could not read file at path \(pathname)")
+        return false
+    }
+    
+    let ownerID = fileAttributes[.ownerAccountID] as! Int
+    let mode = fileAttributes[.posixPermissions] as! NSNumber
+    let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
+    
+    logger("ownerID for \(pathname) : \(String(describing: ownerID))", status: "debug")
+    logger("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", status: "debug")
+    
+    if ["pkg", "mpkg", "dmg","mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
+        if ownerID == 0 && posixPermissions == "644" {
+            return true
+        }
+    } else {
+        if ownerID == 0 && posixPermissions == "755" {
+            return true
+        }
+    }
+    return false
 }
 
 func install_package(pkg : String) -> Bool {
@@ -350,7 +378,7 @@ func install_package(pkg : String) -> Bool {
 }
 
 func install_profile(pathname : String) -> Bool {
-    return true
+    return false
 }
 
 
@@ -451,7 +479,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
     
     if !runOnceDict.override_login_once.isEmpty {
-        logger("Initiating preference file: \(run_once_plist)", status: "debug")
+        logger("Writing login-once preference file: \(run_once_plist)", status: "debug")
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         do {
