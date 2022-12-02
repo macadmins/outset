@@ -65,7 +65,7 @@ func ensure_working_folders() {
             do {
                 try FileManager.default.createDirectory(at: URL(filePath: directory), withIntermediateDirectories: true)
             } catch {
-                print("could not create path at \(directory)")
+                logger("could not create path at \(directory)", status: "error")
             }
         }
     }
@@ -112,7 +112,16 @@ func list_folder(path: String) -> [String] {
 }
 
 func logger(_ log: String, status : String = "info") {
-    print(log)
+    switch status {
+    case "info":
+        print("INFO: \(log)")
+    case "error":
+        print("ERROR: \(log)")
+    case "debug":
+        print("DEBUG: \(log)")
+    default:
+        print(log)
+    }
 }
 
 func dump_outset_preferences(prefs: OutsetPreferences) {
@@ -123,7 +132,7 @@ func dump_outset_preferences(prefs: OutsetPreferences) {
         let data = try encoder.encode(prefs)
         try data.write(to: URL(filePath: outset_preferences))
     } catch {
-        print("encoding plist failed")
+        logger("encoding plist failed", status: "error")
     }
 }
 
@@ -138,7 +147,7 @@ func load_outset_preferences() -> OutsetPreferences {
         let data = try Data(contentsOf: url)
         outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
     } catch {
-        print("plist import failed")
+        logger("plist import failed", status: "error")
     }
     
     return outsetPrefs
@@ -152,7 +161,7 @@ func load_runonce(plist: String) -> RunOncePlist {
             let data = try Data(contentsOf: url)
             runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
         } catch {
-            print("plist import failed")
+            logger("plist import failed", status: "error")
         }
     }
     return runOncePlist
@@ -359,7 +368,6 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     var runOnceDict : RunOncePlist = RunOncePlist()
     
     items_to_process = list_folder(path: path)
-    print(items_to_process)
     
     for pathname in items_to_process {
         if check_perms(pathname: pathname) {

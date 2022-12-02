@@ -9,7 +9,8 @@
 import Foundation
 import ArgumentParser
 
-let outsetVersion = "0.1"
+
+let outsetVersion = "4.0"
 
 // Set some Constants TODO: leave these as defaults but maybe make them configurable from a plist
 let outset_dir = "/usr/local/outset/"
@@ -100,7 +101,7 @@ struct Outset: ParsableCommand {
     @Flag(help: "Show version number")
     var version = false
     
-    func run() {        
+    mutating func run() throws {
         prefs = load_outset_preferences()
         
         if boot {
@@ -256,7 +257,5 @@ struct Outset: ParsableCommand {
         }
     }
 }
-
-
 
 Outset.main()
