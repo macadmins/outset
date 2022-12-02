@@ -63,7 +63,7 @@ func ensure_working_folders() {
         if !check_file_exists(path: directory, isDir: true) {
             //logging.info("%s does not exist, creating now.", directory)
             do {
-                try FileManager.default.createDirectory(at: URL(filePath: directory), withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
             } catch {
                 logger("could not create path at \(directory)", status: "error")
             }
@@ -132,7 +132,7 @@ func dump_outset_preferences(prefs: OutsetPreferences) {
     encoder.outputFormat = .xml
     do {
         let data = try encoder.encode(prefs)
-        try data.write(to: URL(filePath: outset_preferences))
+        try data.write(to: URL(fileURLWithPath: outset_preferences))
     } catch {
         logger("encoding plist failed", status: "error")
     }
@@ -144,7 +144,7 @@ func load_outset_preferences() -> OutsetPreferences {
         dump_outset_preferences(prefs: OutsetPreferences())
     }
     
-    let url = URL(filePath: outset_preferences)
+    let url = URL(fileURLWithPath: outset_preferences)
     do {
         let data = try Data(contentsOf: url)
         outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
@@ -158,7 +158,7 @@ func load_outset_preferences() -> OutsetPreferences {
 func load_runonce(plist: String) -> RunOncePlist {
     var runOncePlist = RunOncePlist()
     if check_file_exists(path: plist) {
-        let url = URL(filePath: plist)
+        let url = URL(fileURLWithPath: plist)
         do {
             let data = try Data(contentsOf: url)
             runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
@@ -235,7 +235,7 @@ func get_hardwaremodel() -> String {
 
 func get_serialnumber() -> String {
     // Returns the serial number of the Mac
-    let platformExpert = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
+    let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
       guard platformExpert > 0 else {
         return "Serial Unknown"
       }
@@ -419,13 +419,13 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         if once {
             if !runOnceDict.override_login_once.contains(where: {$0.key == package}) {
                 if install_package(pkg: package) {
-                    runOnceDict.override_login_once.updateValue(.now, forKey: package)
+                    runOnceDict.override_login_once.updateValue(Date(), forKey: package)
                 }
             } else {
                 if override.contains(where: {$0.key == package}) {
                     if override[package]! > runOnceDict.override_login_once[package]! {
                         if install_package(pkg: package) {
-                            runOnceDict.override_login_once.updateValue(.now, forKey: package)
+                            runOnceDict.override_login_once.updateValue(Date(), forKey: package)
                         }
                     }
                 }
@@ -451,7 +451,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                 if status != 0 {
                     logger(error, status: "error")
                 } else {
-                    runOnceDict.override_login_once.updateValue(.now, forKey: script)
+                    runOnceDict.override_login_once.updateValue(Date(), forKey: script)
                     logger(output)
                 }
             } else {
@@ -461,7 +461,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                         if status != 0 {
                             logger(error, status: "error")
                         } else {
-                            runOnceDict.override_login_once.updateValue(.now, forKey: script)
+                            runOnceDict.override_login_once.updateValue(Date(), forKey: script)
                             logger(output)
                         }
                     }
@@ -484,7 +484,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         encoder.outputFormat = .xml
         do {
             let data = try encoder.encode(runOnceDict)
-            try data.write(to: URL(filePath: run_once_plist))
+            try data.write(to: URL(fileURLWithPath: run_once_plist))
         } catch {
             logger("Writing to \(run_once_plist) failed", status: "error")
         }

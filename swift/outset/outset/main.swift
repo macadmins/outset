@@ -51,7 +51,7 @@ if  is_root() {
     let userLogsPath = userHomePath+"Library/Logs"
     if !check_file_exists(path: userLogsPath, isDir: true) {
         do {
-            try FileManager.default.createDirectory(at: URL(filePath: userLogsPath), withIntermediateDirectories: true)
+            try FileManager.default.createDirectory(atPath: userLogsPath, withIntermediateDirectories: true)
         } catch {
             logger("Could not create \(userLogsPath)", status: "error")
             exit(1)
@@ -110,6 +110,8 @@ struct Outset: ParsableCommand {
         
         if debug {
             debugMode = true
+            version = true
+            sys_report()
         }
         
         if boot {
@@ -247,7 +249,7 @@ struct Outset: ParsableCommand {
             for overide in addOveride {
                 logger("Adding \(overide) to overide list")
                 //let value : [String:Date] = [overide:.now]
-                prefs.override_login_once[overide] = .now
+                prefs.override_login_once[overide] = Date()
             }
             dump_outset_preferences(prefs: prefs)
         }
