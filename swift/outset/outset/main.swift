@@ -10,7 +10,7 @@ import Foundation
 import ArgumentParser
 
 let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
-let outsetVersion = "4.0"
+let outsetVersion = "4.0 alpha"
 
 // Set some Constants TODO: leave these as defaults but maybe make them configurable from a plist
 let outset_dir = "/usr/local/outset/"
