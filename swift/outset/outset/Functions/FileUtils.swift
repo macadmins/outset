@@ -8,6 +8,7 @@
 import Foundation
 
 func shell(_ command: String) -> (output: String, error: String, exitCode: Int32) {
+    logger("Running task \(command)", status: "debug")
     let task = Process()
     let pipe = Pipe()
     let errorpipe = Pipe()
@@ -29,7 +30,7 @@ func shell(_ command: String) -> (output: String, error: String, exitCode: Int32
     
     task.waitUntilExit()
     let status = task.terminationStatus
-    
+    logger("Completed task \(command) with status \(status)", status: "debug")
     return (output, error, status)
 }
 
