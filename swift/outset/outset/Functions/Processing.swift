@@ -147,7 +147,7 @@ func install_package(pkg : String) -> Bool {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
             if !dmg_mount.isEmpty {
-                logger(detach_dmg(dmg_mount: dmg_mount))
+                logger(detach_dmg(dmgMount: dmg_mount))
             }
         }
         return true

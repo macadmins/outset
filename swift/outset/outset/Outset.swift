@@ -85,9 +85,7 @@ struct Outset: ParsableCommand {
     var version = false
     
     mutating func run() throws {
-        
-        set_run_once_params()
-        
+                
         if debug {
             debugMode = true
             version = true
