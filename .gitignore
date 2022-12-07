@@ -4,6 +4,6 @@ sample*
 *.dmg
 *.pyc
 outset.wiki
-swift/outset/outset.xcodeproj/project.xcworkspace/xcuserdata/rea094.xcuserdatad/UserInterfaceState.xcuserstate
-swift/outset/outset.xcodeproj/xcshareddata/
+swift/outset/outset.xcodeproj/project.xcworkspace/*
 swift/outset/outset.xcodeproj/xcshareddata/*
+swift/outset/outset.xcodeproj/xcuserdata/*
