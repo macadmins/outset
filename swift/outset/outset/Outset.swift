@@ -204,8 +204,12 @@ struct Outset: ParsableCommand {
             ensure_root("add to ignored users")
             ensure_shared_folder()
             for username in addIgnoredUser {
-                logger("Adding \(username) to ignored users list")
-                prefs.ignored_users.append(username)
+                if prefs.ignored_users.contains(username) {
+                    logger("User \"\(username)\" is already in the ignored users list", status: "info")
+                } else {
+                    logger("Adding \(username) to ignored users list", status: "info")
+                    prefs.ignored_users.append(username)
+                }
             }
             dump_outset_preferences(prefs: prefs)
         }
