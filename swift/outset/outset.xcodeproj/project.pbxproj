@@ -14,12 +14,27 @@
 		4124EFA5293B304B003B00F4 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
 		4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB329414A5E003B00F4 /* Assets.xcassets */; };
 		4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */; };
-		4124EFBC29414A99003B00F4 /* Outset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF90293822F4003B00F4 /* Outset.swift */; };
-		4124EFBD29414A99003B00F4 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA2293B2F9B003B00F4 /* FileUtils.swift */; };
-		4124EFBE29414A99003B00F4 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
-		4124EFBF29414A99003B00F4 /* SystemUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF99293824C8003B00F4 /* SystemUtils.swift */; };
-		4124EFC229414AD1003B00F4 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 4124EFC129414AD1003B00F4 /* ArgumentParser */; };
+		4124EFC529446AE9003B00F4 /* outset in Resources */ = {isa = PBXBuildFile; fileRef = 4124EF8D293822F4003B00F4 /* outset */; };
+		4124EFCB29446C2C003B00F4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFCA29446C2C003B00F4 /* main.swift */; };
+		4124EFD029447150003B00F4 /* Library in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4124EFCD29446FDE003B00F4 /* Library */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		41A67A0D296BAE0F000BFFCE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4124EF85293822F3003B00F4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4124EFAC29414A5D003B00F4;
+			remoteInfo = Outset;
+		};
+		41A67A11296BAF89000BFFCE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4124EF85293822F3003B00F4 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4124EF8C293822F4003B00F4;
+			remoteInfo = outset;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		4124EF8B293822F4003B00F4 /* CopyFiles */ = {
@@ -30,6 +45,16 @@
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 1;
+		};
+		4124EFCF2944713B003B00F4 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Library;
+			dstSubfolderSpec = 7;
+			files = (
+				4124EFD029447150003B00F4 /* Library in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -44,6 +69,11 @@
 		4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4124EFB829414A5E003B00F4 /* Outset.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Outset.entitlements; sourceTree = "<group>"; };
 		4124EFC329414DA4003B00F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4124EFCA29446C2C003B00F4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = outset/main.swift; sourceTree = SOURCE_ROOT; };
+		4124EFCD29446FDE003B00F4 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
+		41A679FE2966479E000BFFCE /* generatePackage.zsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
+		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
+		41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OutsetPackage (App Bundle).app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,7 +89,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4124EFC229414AD1003B00F4 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,6 +98,7 @@
 		4124EF84293822F3003B00F4 = {
 			isa = PBXGroup;
 			children = (
+				41A679EA29659F4E000BFFCE /* Package */,
 				4124EF8F293822F4003B00F4 /* outset */,
 				4124EFAE29414A5D003B00F4 /* Outset */,
 				4124EF8E293822F4003B00F4 /* Products */,
@@ -81,6 +111,7 @@
 			children = (
 				4124EF8D293822F4003B00F4 /* outset */,
 				4124EFAD29414A5D003B00F4 /* Outset.app */,
+				41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,6 +142,7 @@
 				4124EFB329414A5E003B00F4 /* Assets.xcassets */,
 				4124EFB829414A5E003B00F4 /* Outset.entitlements */,
 				4124EFB529414A5E003B00F4 /* Preview Content */,
+				4124EFCA29446C2C003B00F4 /* main.swift */,
 			);
 			path = Outset;
 			sourceTree = "<group>";
@@ -128,6 +160,24 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		41A679EA29659F4E000BFFCE /* Package */ = {
+			isa = PBXGroup;
+			children = (
+				41A67A03296B93D1000BFFCE /* Scripts */,
+				41A679FE2966479E000BFFCE /* generatePackage.zsh */,
+				4124EFCD29446FDE003B00F4 /* Library */,
+			);
+			path = Package;
+			sourceTree = "<group>";
+		};
+		41A67A03296B93D1000BFFCE /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				41A67A04296B9711000BFFCE /* postinstall */,
+			);
+			path = Scripts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,6 +210,7 @@
 				4124EFA929414A5D003B00F4 /* Sources */,
 				4124EFAA29414A5D003B00F4 /* Frameworks */,
 				4124EFAB29414A5D003B00F4 /* Resources */,
+				4124EFCF2944713B003B00F4 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -167,10 +218,26 @@
 			);
 			name = Outset;
 			packageProductDependencies = (
-				4124EFC129414AD1003B00F4 /* ArgumentParser */,
 			);
 			productName = Outset;
 			productReference = 4124EFAD29414A5D003B00F4 /* Outset.app */;
+			productType = "com.apple.product-type.application";
+		};
+		41A67A05296BADFE000BFFCE /* OutsetPackage (App Bundle) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "OutsetPackage (App Bundle)" */;
+			buildPhases = (
+				41A67A08296BADFE000BFFCE /* Generate Package */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				41A67A12296BAF89000BFFCE /* PBXTargetDependency */,
+				41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */,
+			);
+			name = "OutsetPackage (App Bundle)";
+			productName = OutsetInstaller;
+			productReference = 41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -180,7 +247,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1410;
+				LastSwiftUpdateCheck = 1420;
 				LastUpgradeCheck = 1410;
 				TargetAttributes = {
 					4124EF8C293822F4003B00F4 = {
@@ -188,6 +255,7 @@
 					};
 					4124EFAC29414A5D003B00F4 = {
 						CreatedOnToolsVersion = 14.1;
+						LastSwiftMigration = 1410;
 					};
 				};
 			};
@@ -209,6 +277,7 @@
 			targets = (
 				4124EF8C293822F4003B00F4 /* outset */,
 				4124EFAC29414A5D003B00F4 /* Outset */,
+				41A67A05296BADFE000BFFCE /* OutsetPackage (App Bundle) */,
 			);
 		};
 /* End PBXProject section */
@@ -218,12 +287,38 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4124EFC529446AE9003B00F4 /* outset in Resources */,
 				4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */,
 				4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		41A67A08296BADFE000BFFCE /* Generate Package */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Package/generatePackage.zsh",
+				"$(SRCROOT)/Package/Library",
+				"$(SRCROOT)/Package/Scripts",
+			);
+			name = "Generate Package";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(BUILT_PRODUCTS_DIR)/Outset.pkg",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = ". \"${SCRIPT_INPUT_FILE_0}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4124EF89293822F4003B00F4 /* Sources */ = {
@@ -241,14 +336,24 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4124EFBC29414A99003B00F4 /* Outset.swift in Sources */,
-				4124EFBD29414A99003B00F4 /* FileUtils.swift in Sources */,
-				4124EFBE29414A99003B00F4 /* Processing.swift in Sources */,
-				4124EFBF29414A99003B00F4 /* SystemUtils.swift in Sources */,
+				4124EFCB29446C2C003B00F4 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4124EFAC29414A5D003B00F4 /* Outset */;
+			targetProxy = 41A67A0D296BAE0F000BFFCE /* PBXContainerItemProxy */;
+		};
+		41A67A12296BAF89000BFFCE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4124EF8C293822F4003B00F4 /* outset */;
+			targetProxy = 41A67A11296BAF89000BFFCE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4124EF92293822F4003B00F4 /* Debug */ = {
@@ -395,6 +500,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Outset/Outset.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -411,11 +517,12 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -425,6 +532,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Outset/Outset.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -441,10 +549,92 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		41A67A0A296BADFE000BFFCE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OutsetInstaller/OutsetInstaller.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = N8GJ2Y5Z9T;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.outset.OutsetInstaller;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		41A67A0B296BADFE000BFFCE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OutsetInstaller/OutsetInstaller.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = N8GJ2Y5Z9T;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.outset.OutsetInstaller;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = macosx;
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -480,6 +670,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "OutsetPackage (App Bundle)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41A67A0A296BADFE000BFFCE /* Debug */,
+				41A67A0B296BADFE000BFFCE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -495,11 +694,6 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		4124EF9E293828E0003B00F4 /* ArgumentParser */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4124EF9D293828E0003B00F4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
-			productName = ArgumentParser;
-		};
-		4124EFC129414AD1003B00F4 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4124EF9D293828E0003B00F4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
 			productName = ArgumentParser;

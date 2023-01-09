@@ -2,22 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.github.Outset</string>
 	<key>KeepAlive</key>
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/private/tmp/.com.github.outset.ondemand.launchd</key>
+			<key>/private/tmp/.com.github.outset.cleanup.launchd</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.github.outset.on-demand</string>
+	<string>com.github.outset.cleanup</string>
 	<key>OnDemand</key>
 	<true/>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/outset</string>
-		<string>--on-demand</string>
+		<string>--cleanup</string>
 	</array>
 </dict>
 </plist>

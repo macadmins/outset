@@ -4,6 +4,8 @@
 <dict>
 	<key>Label</key>
 	<string>com.github.outset.login</string>
+	<key>AssociatedBundleIdentifiers</key>
+	<string>com.github.Outset</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/outset</string>

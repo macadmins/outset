@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+#  Postinstall script for outset CLI
+#
+#  Created by Bart Reardon on 9/1/2023.
+#  
+
+
+## LaunchDaemons
+LD_ROOT="/Library/LaunchDaemons"
+DAEMONS=(
+  "${LD_ROOT}/com.github.outset.boot.plist"
+  "${LD_ROOT}/com.github.outset.cleanup.plist"
+  "${LD_ROOT}/com.github.outset.login-privileged.plist"
+)
+
+## LaunchAgents
+LA_ROOT="/Library/LaunchAgents"
+AGENTS=(
+  "${LA_ROOT}/com.github.outset.login.plist"
+  "${LA_ROOT}/com.github.outset.on-demand.plist"
+)
+
+for daemon in ${DAEMONS}; do
+    if [ -e "${daemon}" ]; then
+        /bin/launchctl bootstrap system "${daemon}"
+    fi
+done
+
+for agent in ${AGENTS}; do
+    echo ${agent}
+done

@@ -1,61 +1,61 @@
 {
   "images" : [
     {
-      "filename" : "outset.png_16x16.png",
+      "filename" : "Outset.png_16x16.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "16x16"
     },
     {
-      "filename" : "outset.png_16x16@2x.png",
+      "filename" : "Outset.png_16x16@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "16x16"
     },
     {
-      "filename" : "outset.png_32x32.png",
+      "filename" : "Outset.png_32x32.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "32x32"
     },
     {
-      "filename" : "outset.png_32x32@2x.png",
+      "filename" : "Outset.png_32x32@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "32x32"
     },
     {
-      "filename" : "outset.png_128x128.png",
+      "filename" : "Outset.png_128x128.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "128x128"
     },
     {
-      "filename" : "outset.png_128x128@2x.png",
+      "filename" : "Outset.png_128x128@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "128x128"
     },
     {
-      "filename" : "outset.png_256x256.png",
+      "filename" : "Outset.png_256x256.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "256x256"
     },
     {
-      "filename" : "outset.png_512x512 1.png",
+      "filename" : "Outset.png_256x256@2x.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "256x256"
     },
     {
-      "filename" : "outset.png_512x512.png",
+      "filename" : "Outset.png_512x512.png",
       "idiom" : "mac",
       "scale" : "1x",
       "size" : "512x512"
     },
     {
-      "filename" : "outset.png",
+      "filename" : "Outset.png",
       "idiom" : "mac",
       "scale" : "2x",
       "size" : "512x512"
