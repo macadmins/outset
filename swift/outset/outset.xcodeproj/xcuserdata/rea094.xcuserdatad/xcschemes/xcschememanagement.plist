@@ -9,20 +9,10 @@
 			<key>orderHint</key>
 			<integer>3</integer>
 		</dict>
-		<key>Outset Package (cli).xcscheme_^#shared#^_</key>
+		<key>Outset Installer Package.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>2</integer>
-		</dict>
-		<key>OutsetPackage (App Bundle).xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>4</integer>
-		</dict>
-		<key>OutsetPackage copy.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>5</integer>
 		</dict>
 		<key>login-once (testing).xcscheme</key>
 		<dict>
@@ -42,7 +32,17 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>4124EFAC29414A5D003B00F4</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>41A679EE2965A03D000BFFCE</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>41A67A05296BADFE000BFFCE</key>
 		<dict>
 			<key>primary</key>
 			<true/>

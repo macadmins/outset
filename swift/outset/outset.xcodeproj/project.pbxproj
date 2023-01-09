@@ -64,7 +64,7 @@
 		4124EF99293824C8003B00F4 /* SystemUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemUtils.swift; sourceTree = "<group>"; };
 		4124EFA2293B2F9B003B00F4 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		4124EFA4293B304B003B00F4 /* Processing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processing.swift; sourceTree = "<group>"; };
-		4124EFAD29414A5D003B00F4 /* Outset.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Outset.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset App Bundle.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4124EFB329414A5E003B00F4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4124EFB829414A5E003B00F4 /* Outset.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Outset.entitlements; sourceTree = "<group>"; };
@@ -73,7 +73,8 @@
 		4124EFCD29446FDE003B00F4 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
 		41A679FE2966479E000BFFCE /* generatePackage.zsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
 		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
-		41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "OutsetPackage (App Bundle).app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		41A67A13296BF35F000BFFCE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +99,7 @@
 		4124EF84293822F3003B00F4 = {
 			isa = PBXGroup;
 			children = (
+				41A67A13296BF35F000BFFCE /* README.md */,
 				41A679EA29659F4E000BFFCE /* Package */,
 				4124EF8F293822F4003B00F4 /* outset */,
 				4124EFAE29414A5D003B00F4 /* Outset */,
@@ -110,8 +112,8 @@
 			isa = PBXGroup;
 			children = (
 				4124EF8D293822F4003B00F4 /* outset */,
-				4124EFAD29414A5D003B00F4 /* Outset.app */,
-				41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */,
+				4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */,
+				41A67A0C296BADFE000BFFCE /* Outset Install Package.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -203,9 +205,9 @@
 			productReference = 4124EF8D293822F4003B00F4 /* outset */;
 			productType = "com.apple.product-type.tool";
 		};
-		4124EFAC29414A5D003B00F4 /* Outset */ = {
+		4124EFAC29414A5D003B00F4 /* Outset App Bundle */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset" */;
+			buildConfigurationList = 4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset App Bundle" */;
 			buildPhases = (
 				4124EFA929414A5D003B00F4 /* Sources */,
 				4124EFAA29414A5D003B00F4 /* Frameworks */,
@@ -216,16 +218,16 @@
 			);
 			dependencies = (
 			);
-			name = Outset;
+			name = "Outset App Bundle";
 			packageProductDependencies = (
 			);
 			productName = Outset;
-			productReference = 4124EFAD29414A5D003B00F4 /* Outset.app */;
+			productReference = 4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */;
 			productType = "com.apple.product-type.application";
 		};
-		41A67A05296BADFE000BFFCE /* OutsetPackage (App Bundle) */ = {
+		41A67A05296BADFE000BFFCE /* Outset Install Package */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "OutsetPackage (App Bundle)" */;
+			buildConfigurationList = 41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "Outset Install Package" */;
 			buildPhases = (
 				41A67A08296BADFE000BFFCE /* Generate Package */,
 			);
@@ -235,9 +237,9 @@
 				41A67A12296BAF89000BFFCE /* PBXTargetDependency */,
 				41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */,
 			);
-			name = "OutsetPackage (App Bundle)";
+			name = "Outset Install Package";
 			productName = OutsetInstaller;
-			productReference = 41A67A0C296BADFE000BFFCE /* OutsetPackage (App Bundle).app */;
+			productReference = 41A67A0C296BADFE000BFFCE /* Outset Install Package.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -276,8 +278,8 @@
 			projectRoot = "";
 			targets = (
 				4124EF8C293822F4003B00F4 /* outset */,
-				4124EFAC29414A5D003B00F4 /* Outset */,
-				41A67A05296BADFE000BFFCE /* OutsetPackage (App Bundle) */,
+				4124EFAC29414A5D003B00F4 /* Outset App Bundle */,
+				41A67A05296BADFE000BFFCE /* Outset Install Package */,
 			);
 		};
 /* End PBXProject section */
@@ -345,7 +347,7 @@
 /* Begin PBXTargetDependency section */
 		41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4124EFAC29414A5D003B00F4 /* Outset */;
+			target = 4124EFAC29414A5D003B00F4 /* Outset App Bundle */;
 			targetProxy = 41A67A0D296BAE0F000BFFCE /* PBXContainerItemProxy */;
 		};
 		41A67A12296BAF89000BFFCE /* PBXTargetDependency */ = {
@@ -661,7 +663,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset" */ = {
+		4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset App Bundle" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4124EFBA29414A5E003B00F4 /* Debug */,
@@ -670,7 +672,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "OutsetPackage (App Bundle)" */ = {
+		41A67A09296BADFE000BFFCE /* Build configuration list for PBXNativeTarget "Outset Install Package" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				41A67A0A296BADFE000BFFCE /* Debug */,
