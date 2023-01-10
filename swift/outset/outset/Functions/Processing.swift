@@ -24,11 +24,12 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     
     for pathname in items_to_process {
         if check_permissions(pathname: pathname) {
-            if ["pkg", "mpkg", "dmg"].contains(pathname.lowercased().suffix(3)) {
+            switch pathname.split(separator: ".").last {
+            case "pkg", "mpkg", "dmg":
                 packages.append(pathname)
-            } else if pathname.lowercased().hasSuffix("mobileconfig") {
+            case "mobileconfig":
                 profiles.append(pathname)
-            } else {
+            default:
                 scripts.append(pathname)
             }
         } else {
