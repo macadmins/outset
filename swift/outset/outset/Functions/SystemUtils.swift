@@ -7,6 +7,7 @@
 
 import Foundation
 import SystemConfiguration
+import OSLog
 
 struct OutsetPreferences: Codable {
     var wait_for_network : Bool = false
@@ -31,11 +32,22 @@ func is_root() -> Bool {
 }
 
 func logger(_ log: String, status : String = "info") {
-    if status.lowercased() == "debug" {
-        if debugMode {
-            print("DEBUG: \(log)")
+    if #available(macOS 11.0, *) {
+        let logger = Logger(subsystem: "com.github.outset", category: "main")
+        switch status.lowercased() {
+        case "debug":
+            logger.debug("\(log, privacy: .public)")
+        case "info":
+            logger.info("\(log, privacy: .public)")
+        case "error":
+            logger.error("\(log, privacy: .public)")
+        case "warning":
+            logger.warning("\(log, privacy: .public)")
+        default:
+            logger.info("\(log, privacy: .public)")
         }
     } else {
+        // Fallback on earlier versions...aka print to stdout
         print("\(status.uppercased()): \(log)")
     }
 }
