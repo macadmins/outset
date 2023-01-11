@@ -22,7 +22,7 @@ struct RunOncePlist: Codable {
 
 func ensure_root(_ reason : String) {
     if !is_root() {
-        logger("Must be root to \(reason)", status: "error")
+        writeLog("Must be root to \(reason)", status: .error)
         exit(1)
     }
 }
@@ -31,24 +31,25 @@ func is_root() -> Bool {
     return NSUserName() == "root"
 }
 
-func logger(_ log: String, status : String = "info") {
-    if #available(macOS 11.0, *) {
-        let logger = Logger(subsystem: "com.github.outset", category: "main")
-        switch status.lowercased() {
-        case "debug":
-            logger.debug("\(log, privacy: .public)")
-        case "info":
-            logger.info("\(log, privacy: .public)")
-        case "error":
-            logger.error("\(log, privacy: .public)")
-        case "warning":
-            logger.warning("\(log, privacy: .public)")
-        default:
-            logger.info("\(log, privacy: .public)")
-        }
-    } else {
-        // Fallback on earlier versions...aka print to stdout
-        print("\(status.uppercased()): \(log)")
+func writeLog(_ message: String, status: OSLogType = .info) {
+
+    let logMessage = "\(message)"
+    let log = OSLog(subsystem: "com.github.outset", category: "main")
+    os_log("%{public}@", log: log, type: status, logMessage)
+    if status == .error || status == .debug {
+        // also print errors to stdout
+        print("\(oslogTypeToString(status).uppercased()): \(message)")
+    }
+}
+
+func oslogTypeToString(_ type: OSLogType) -> String {
+    switch type {
+        case OSLogType.default: return "default"
+        case OSLogType.info: return "info"
+        case OSLogType.debug: return "debug"
+        case OSLogType.error: return "error"
+        case OSLogType.fault: return "fault"
+        default: return "unknown"
     }
 }
 
@@ -57,7 +58,7 @@ func set_run_once_params() ->(logFile: String, runOncePlist: String) {
     var runOncePlist: String = ""
     if  is_root() {
         logFile = "/var/log/outset.log"
-        var (console_uid, _, _) = shell("id -u $(who | grep 'console' | awk '{print $1}')")
+        var (console_uid, _, _) = runShellCommand("id -u $(who | grep 'console' | awk '{print $1}')")
         console_uid = console_uid.trimmingCharacters(in: .whitespacesAndNewlines)
         runOncePlist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
     } else {
@@ -67,7 +68,7 @@ func set_run_once_params() ->(logFile: String, runOncePlist: String) {
             do {
                 try FileManager.default.createDirectory(atPath: userLogsPath, withIntermediateDirectories: true)
             } catch {
-                logger("Could not create \(userLogsPath)", status: "error")
+                writeLog("Could not create \(userLogsPath)", status: .error)
                 exit(1)
             }
         }
@@ -78,14 +79,14 @@ func set_run_once_params() ->(logFile: String, runOncePlist: String) {
 }
 
 func dump_outset_preferences(prefs: OutsetPreferences) {
-    logger("Writing preference file: \(outset_preferences)", status: "debug")
+    writeLog("Writing preference file: \(outset_preferences)", status: .debug)
     let encoder = PropertyListEncoder()
     encoder.outputFormat = .xml
     do {
         let data = try encoder.encode(prefs)
         try data.write(to: URL(fileURLWithPath: outset_preferences))
     } catch {
-        logger("encoding plist failed", status: "error")
+        writeLog("encoding plist failed", status: .error)
     }
 }
 
@@ -100,7 +101,7 @@ func load_outset_preferences() -> OutsetPreferences {
         let data = try Data(contentsOf: url)
         outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
     } catch {
-        logger("plist import failed", status: "error")
+        writeLog("plist import failed", status: .error)
     }
     
     return outsetPrefs
@@ -114,7 +115,7 @@ func load_runonce(plist: String) -> RunOncePlist {
             let data = try Data(contentsOf: url)
             runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
         } catch {
-            logger("plist import failed", status: "error")
+            writeLog("plist import failed", status: .error)
         }
     }
     return runOncePlist
@@ -162,26 +163,24 @@ func wait_for_network(timeout : Double) -> Bool {
 
 func disable_loginwindow() {
     // Disables the loginwindow process
-    logger("Disabling loginwindow process")
+    writeLog("Disabling loginwindow process")
     let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = shell(cmd)
+    _ = runShellCommand(cmd)
 }
 
 func enable_loginwindow() {
     // Enables the loginwindow process
-    logger("Disabling loginwindow process")
+    writeLog("Disabling loginwindow process")
     let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = shell(cmd)
+    _ = runShellCommand(cmd)
 }
 
 func get_hardwaremodel() -> String {
-    // Returns the hardware model of the Mac
-    let cmd = "/usr/sbin/sysctl -n hw.model"
-    let (output, error, status) = shell(cmd)
-    if status != 0 {
-        return error
-    }
-    return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    var size = 0
+    sysctlbyname("hw.model", nil, &size, nil, 0)
+    var model = [CChar](repeating: 0, count: size)
+    sysctlbyname("hw.model", &model, &size, nil, 0)
+    return String(cString: model)
 }
 
 func get_serialnumber() -> String {
@@ -198,25 +197,24 @@ func get_serialnumber() -> String {
 }
 
 func get_buildversion() -> String {
-    let cmd = "/usr/sbin/sysctl -n kern.osversion"
-    let (output, error, status) = shell(cmd)
-    if status != 0 {
-        return error
-    }
-    return output.trimmingCharacters(in: .whitespacesAndNewlines)
+    var size = 0
+    sysctlbyname("kern.osversion", nil, &size, nil, 0)
+    var osversion = [CChar](repeating: 0, count: size)
+    sysctlbyname("kern.osversion", &osversion, &size, nil, 0)
+    return String(cString: osversion)
+
 }
 
 func get_osversion() -> String {
-    let version = [String(ProcessInfo().operatingSystemVersion.majorVersion),
-                   String(ProcessInfo().operatingSystemVersion.minorVersion),
-                   String(ProcessInfo().operatingSystemVersion.patchVersion)]
-    return version.joined(separator: ".")
+    let osVersion = ProcessInfo().operatingSystemVersion
+    let version = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
+    return version
 }
 
 func sys_report() {
     // Logs system information to log file
-    logger("Model: \(get_hardwaremodel())", status: "debug")
-    logger("Serial: \(get_serialnumber())", status: "debug")
-    logger("OS: \(get_osversion())", status: "debug")
-    logger("Build: \(get_buildversion())", status: "debug")
+    writeLog("Model: \(get_hardwaremodel())", status: .debug)
+    writeLog("Serial: \(get_serialnumber())", status: .debug)
+    writeLog("OS: \(get_osversion())", status: .debug)
+    writeLog("Build: \(get_buildversion())", status: .debug)
 }

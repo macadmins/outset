@@ -10,7 +10,7 @@ import Foundation
 func process_items(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
     // Processes scripts/packages to run
     if !check_file_exists(path: path) {
-        logger("\(path) does not exist. Exiting")
+        writeLog("\(path) does not exist. Exiting")
         exit(1)
     }
     
@@ -33,7 +33,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                 scripts.append(pathname)
             }
         } else {
-            logger("Bad permissions: \(pathname)", status: "error")
+            writeLog("Bad permissions: \(pathname)", status: .error)
         }
     }
     
@@ -73,32 +73,32 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     for script in scripts {
         if once {
             if !runOnceDict.override_login_once.contains(where: {$0.key == script}) {
-                let (output, error, status) = shell(script)
+                let (output, error, status) = runShellCommand(script)
                 if status != 0 {
-                    logger(error, status: "error")
+                    writeLog(error, status: .error)
                 } else {
                     runOnceDict.override_login_once.updateValue(Date(), forKey: script)
-                    logger(output)
+                    writeLog(output)
                 }
             } else {
                 if override.contains(where: {$0.key == script}) {
                     if override[script]! > runOnceDict.override_login_once[script]! {
-                        let (output, error, status) = shell(script)
+                        let (output, error, status) = runShellCommand(script)
                         if status != 0 {
-                            logger(error, status: "error")
+                            writeLog(error, status: .error)
                         } else {
                             runOnceDict.override_login_once.updateValue(Date(), forKey: script)
                             if !output.isEmpty {
-                                logger(output, status: "debug")
+                                writeLog(output, status: .debug)
                             }
                         }
                     }
                 }
             }
         } else {
-            let (_, error, status) = shell(script)
+            let (_, error, status) = runShellCommand(script)
             if status != 0 {
-                logger(error, status: "error")
+                writeLog(error, status: .error)
             }
         }
         if delete_items {
@@ -107,14 +107,14 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
     
     if !runOnceDict.override_login_once.isEmpty {
-        logger("Writing login-once preference file: \(run_once_plist)", status: "debug")
+        writeLog("Writing login-once preference file: \(run_once_plist)", status: .debug)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         do {
             let data = try encoder.encode(runOnceDict)
             try data.write(to: URL(fileURLWithPath: run_once_plist))
         } catch {
-            logger("Writing to \(run_once_plist) failed", status: "error")
+            writeLog("Writing to \(run_once_plist) failed", status: .error)
         }
     }
     
@@ -137,24 +137,24 @@ func install_package(pkg : String) -> Bool {
         } else if ["pkg", "mpkg"].contains(pkg.lowercased().suffix(3)) {
             pkg_to_install = pkg
         }
-        logger("Installing \(pkg_to_install)")
+        writeLog("Installing \(pkg_to_install)")
         let cmd = "/usr/sbin/installer -pkg \(pkg_to_install) -target /"
-        let (output, error, status) = shell(cmd)
+        let (output, error, status) = runShellCommand(cmd)
         if status != 0 {
-            logger(error, status: "error")
+            writeLog(error, status: .error)
         } else {
-            logger(output)
+            writeLog(output)
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
             if !dmg_mount.isEmpty {
-                logger(detach_dmg(dmgMount: dmg_mount))
+                writeLog(detach_dmg(dmgMount: dmg_mount))
             }
         }
         return true
     } else {
-        logger("Unable to process \(pkg)", status: "warning")
-        logger("Must be root to install packages", status: "warning")
+        writeLog("Unable to process \(pkg)", status: .error)
+        writeLog("Must be root to install packages", status: .error)
     }
     return false
 }

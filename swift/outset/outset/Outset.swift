@@ -108,7 +108,7 @@ struct Outset: ParsableCommand {
                     sys_report()
                     process_items(boot_once_dir, delete_items: true)
                 } else {
-                    logger("Unable to connect to network. Skipping boot-once scripts...", status: "error")
+                    writeLog("Unable to connect to network. Skipping boot-once scripts...", status: .error)
                 }
                 if !loginwindow {
                     enable_loginwindow()
@@ -119,7 +119,7 @@ struct Outset: ParsableCommand {
                 process_items(boot_every_dir)
             }
             
-            logger("Boot processing complete")
+            writeLog("Boot processing complete")
         }
         
         if login {
@@ -149,7 +149,7 @@ struct Outset: ParsableCommand {
                     process_items(login_privileged_every_dir)
                 }
             } else {
-                logger("Skipping login scripts for user \(console_user)")
+                writeLog("Skipping login scripts for user \(console_user)")
             }
         }
         
@@ -160,10 +160,10 @@ struct Outset: ParsableCommand {
                     if console_user == current_user {
                         process_items(on_demand_dir)
                     } else {
-                        logger("User \(current_user) is not the current console user. Skipping on-demand run.")
+                        writeLog("User \(current_user) is not the current console user. Skipping on-demand run.")
                     }
                 } else {
-                    logger("No current user session. Skipping on-demand run.")
+                    writeLog("No current user session. Skipping on-demand run.")
                 }
                 FileManager.default.createFile(atPath: cleanup_trigger, contents: nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -191,7 +191,7 @@ struct Outset: ParsableCommand {
         }
         
         if cleanup {
-            logger("Cleaning up on-demand directory.")
+            writeLog("Cleaning up on-demand directory.")
             if check_file_exists(path: on_demand_trigger) {
                     path_cleanup(pathname: on_demand_trigger)
             }
@@ -205,9 +205,9 @@ struct Outset: ParsableCommand {
             ensure_shared_folder()
             for username in addIgnoredUser {
                 if prefs.ignored_users.contains(username) {
-                    logger("User \"\(username)\" is already in the ignored users list", status: "info")
+                    writeLog("User \"\(username)\" is already in the ignored users list", status: .info)
                 } else {
-                    logger("Adding \(username) to ignored users list", status: "info")
+                    writeLog("Adding \(username) to ignored users list", status: .info)
                     prefs.ignored_users.append(username)
                 }
             }
@@ -229,7 +229,7 @@ struct Outset: ParsableCommand {
             ensure_shared_folder()
             
             for overide in addOveride {
-                logger("Adding \(overide) to overide list")
+                writeLog("Adding \(overide) to overide list")
                 //let value : [String:Date] = [overide:.now]
                 prefs.override_login_once[overide] = Date()
             }

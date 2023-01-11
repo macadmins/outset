@@ -7,8 +7,8 @@
 
 import Foundation
 
-func shell(_ command: String) -> (output: String, error: String, exitCode: Int32) {
-    logger("Running task \(command)", status: "debug")
+func runShellCommand(_ command: String) -> (output: String, error: String, exitCode: Int32) {
+    writeLog("Running task \(command)", status: .debug)
     let task = Process()
     let pipe = Pipe()
     let errorpipe = Pipe()
@@ -30,7 +30,7 @@ func shell(_ command: String) -> (output: String, error: String, exitCode: Int32
 
     task.waitUntilExit()
     let status = task.terminationStatus
-    logger("Completed task \(command) with status \(status)", status: "debug")
+    writeLog("Completed task \(command) with status \(status)", status: .debug)
     return (output, error, status)
 }
 
@@ -52,7 +52,7 @@ func ensure_working_folders() {
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
             } catch {
-                logger("could not create path at \(directory)", status: "error")
+                writeLog("could not create path at \(directory)", status: .error)
             }
         }
     }
@@ -60,11 +60,11 @@ func ensure_working_folders() {
 
 func ensure_shared_folder() {
     if !check_file_exists(path: share_dir) {
-        logger("\(share_dir) does not exist, creating now.")
+        writeLog("\(share_dir) does not exist, creating now.")
         do {
             try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
         } catch {
-            logger("Something went wrong. \(share_dir) could not be created.")
+            writeLog("Something went wrong. \(share_dir) could not be created.")
         }
     }
 }
@@ -94,7 +94,7 @@ func check_permissions(pathname :String) -> Bool {
     do {
         fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
     } catch {
-        logger("Could not read file at path \(pathname)")
+        writeLog("Could not read file at path \(pathname)")
         return false
     }
 
@@ -102,8 +102,8 @@ func check_permissions(pathname :String) -> Bool {
     let mode = fileAttributes[.posixPermissions] as! NSNumber
     let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
 
-    logger("ownerID for \(pathname) : \(String(describing: ownerID))", status: "debug")
-    logger("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", status: "debug")
+    writeLog("ownerID for \(pathname) : \(String(describing: ownerID))", status: .debug)
+    writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", status: .debug)
 
     if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
         if ownerID == 0 && posixPermissions == "644" {
@@ -127,7 +127,7 @@ func path_cleanup(pathname: String) {
     } else if check_file_exists(path: pathname) {
         delete_file(pathname)
     } else {
-        logger("\(pathname) doesn't seem to exist", status: "error")
+        writeLog("\(pathname) doesn't seem to exist", status: .error)
     }
 }
 
@@ -135,15 +135,15 @@ func delete_file(_ path: String) {
     do {
         try FileManager.default.removeItem(atPath: path)
     } catch {
-        logger("\(path) could not be removed", status: "error")
+        writeLog("\(path) could not be removed", status: .error)
     }
 }
 
 func mount_dmg(dmg: String) -> String {
     // Attaches dmg
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
-    logger("Attaching \(dmg)")
-    let (output, error, status) = shell(cmd)
+    writeLog("Attaching \(dmg)")
+    let (output, error, status) = runShellCommand(cmd)
     if status != 0 {
         return error
     }
@@ -152,9 +152,9 @@ func mount_dmg(dmg: String) -> String {
 
 func detach_dmg(dmgMount: String) -> String {
     // Detaches dmg
-    logger("Detaching \(dmgMount)")
+    writeLog("Detaching \(dmgMount)")
     let cmd = "/usr/bin/hdiutil detach -force \(dmgMount)"
-    let (output, error, status) = shell(cmd)
+    let (output, error, status) = runShellCommand(cmd)
     if status != 0 {
         return error
     }
