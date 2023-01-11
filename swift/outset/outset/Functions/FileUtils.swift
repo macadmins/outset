@@ -7,8 +7,10 @@
 
 import Foundation
 
-func runShellCommand(_ command: String) -> (output: String, error: String, exitCode: Int32) {
-    writeLog("Running task \(command)", status: .debug)
+func runShellCommand(_ command: String, verbose : Bool = false) -> (output: String, error: String, exitCode: Int32) {
+    if verbose {
+        writeLog("Running task \(command)", status: .debug)
+    }
     let task = Process()
     let pipe = Pipe()
     let errorpipe = Pipe()
@@ -30,7 +32,9 @@ func runShellCommand(_ command: String) -> (output: String, error: String, exitC
 
     task.waitUntilExit()
     let status = task.terminationStatus
-    writeLog("Completed task \(command) with status \(status)", status: .debug)
+    if verbose {
+        writeLog("Completed task \(command) with status \(status)", status: .debug)
+    }
     return (output, error, status)
 }
 

@@ -53,13 +53,19 @@ func oslogTypeToString(_ type: OSLogType) -> String {
     }
 }
 
+func getConsoleUserInfo() -> (username: String, userID: String) {
+    let consoleUserName = runShellCommand("who | grep 'console' | awk '{print $1}'").output
+    let consoleUserID = runShellCommand("id -u \(consoleUserName)").output
+    return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
+}
+
+
 func set_run_once_params() ->(logFile: String, runOncePlist: String) {
     var logFile: String = ""
     var runOncePlist: String = ""
     if  is_root() {
         logFile = "/var/log/outset.log"
-        var (console_uid, _, _) = runShellCommand("id -u $(who | grep 'console' | awk '{print $1}')")
-        console_uid = console_uid.trimmingCharacters(in: .whitespacesAndNewlines)
+        let console_uid = getConsoleUserInfo().userID
         runOncePlist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
     } else {
         let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
@@ -213,6 +219,7 @@ func get_osversion() -> String {
 
 func sys_report() {
     // Logs system information to log file
+    writeLog("User: \(getConsoleUserInfo())", status: .debug)
     writeLog("Model: \(get_hardwaremodel())", status: .debug)
     writeLog("Serial: \(get_serialnumber())", status: .debug)
     writeLog("OS: \(get_osversion())", status: .debug)

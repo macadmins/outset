@@ -73,7 +73,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     for script in scripts {
         if once {
             if !runOnceDict.override_login_once.contains(where: {$0.key == script}) {
-                let (output, error, status) = runShellCommand(script)
+                let (output, error, status) = runShellCommand(script, verbose: true)
                 if status != 0 {
                     writeLog(error, status: .error)
                 } else {
@@ -83,7 +83,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
             } else {
                 if override.contains(where: {$0.key == script}) {
                     if override[script]! > runOnceDict.override_login_once[script]! {
-                        let (output, error, status) = runShellCommand(script)
+                        let (output, error, status) = runShellCommand(script, verbose: true)
                         if status != 0 {
                             writeLog(error, status: .error)
                         } else {
@@ -96,7 +96,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                 }
             }
         } else {
-            let (_, error, status) = runShellCommand(script)
+            let (_, error, status) = runShellCommand(script, verbose: true)
             if status != 0 {
                 writeLog(error, status: .error)
             }
@@ -139,7 +139,7 @@ func install_package(pkg : String) -> Bool {
         }
         writeLog("Installing \(pkg_to_install)")
         let cmd = "/usr/sbin/installer -pkg \(pkg_to_install) -target /"
-        let (output, error, status) = runShellCommand(cmd)
+        let (output, error, status) = runShellCommand(cmd, verbose: true)
         if status != 0 {
             writeLog(error, status: .error)
         } else {
