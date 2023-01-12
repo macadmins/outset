@@ -88,11 +88,12 @@ struct Outset: ParsableCommand {
                 
         if debug {
             debugMode = true
-            version = true
+            writeLog("Outset version \(outsetVersion)", status: .debug)
             sys_report()
         }
         
         if boot {
+            writeLog("Processing scheduled runs for boot", status: .debug)
             ensure_working_folders()
             if !check_file_exists(path: outset_preferences) {
                 dump_outset_preferences(prefs: prefs)
@@ -123,6 +124,7 @@ struct Outset: ParsableCommand {
         }
         
         if login {
+            writeLog("Processing scheduled runs for login", status: .debug)
             if !ignored_users.contains(console_user) {
                 if !list_folder(path: login_once_dir).isEmpty {
                     process_items(login_once_dir, once: true, override: override_login_once)
@@ -138,6 +140,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginPrivileged {
+            writeLog("Processing scheduled runs for privileged login", status: .debug)
             if check_file_exists(path: login_privileged_trigger) {
                 path_cleanup(pathname: login_privileged_trigger)
             }
@@ -154,6 +157,7 @@ struct Outset: ParsableCommand {
         }
         
         if onDemand {
+            writeLog("Processing on-demand", status: .debug)
             if !list_folder(path: on_demand_dir).isEmpty {
                 if !["root", "loginwindow"].contains(console_user) {
                     let current_user = NSUserName()
@@ -175,6 +179,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginEvery {
+            writeLog("Processing scripts in login-every", status: .debug)
             if !ignored_users.contains(console_user) {
                 if !list_folder(path: login_every_dir).isEmpty {
                     process_items(login_every_dir)
@@ -183,6 +188,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginOnce {
+            writeLog("Processing scripts in login-once", status: .debug)
             if !ignored_users.contains(console_user) {
                 if !list_folder(path: login_once_dir).isEmpty {
                     process_items(login_once_dir, once: true)
@@ -191,7 +197,7 @@ struct Outset: ParsableCommand {
         }
         
         if cleanup {
-            writeLog("Cleaning up on-demand directory.")
+            writeLog("Cleaning up on-demand directory.", status: .debug)
             if check_file_exists(path: on_demand_trigger) {
                     path_cleanup(pathname: on_demand_trigger)
             }
@@ -239,13 +245,13 @@ struct Outset: ParsableCommand {
         if !removeOveride.isEmpty {
             ensure_root("remove scripts to override list")
             for overide in removeOveride {
+                writeLog("Removing \(overide) from overide list", status: .debug)
                 prefs.override_login_once.removeValue(forKey: overide)
             }
             dump_outset_preferences(prefs: prefs)
         }
         
         if version {
-            writeLog(outsetVersion, status: .info)
             print(outsetVersion)
         }
     }

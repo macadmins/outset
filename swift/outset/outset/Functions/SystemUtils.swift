@@ -177,6 +177,9 @@ func wait_for_network(timeout: Double) -> Bool {
             Thread.sleep(forTimeInterval: 1)
         }
     }
+    if !networkUp && DispatchTime.now() > deadline {
+        writeLog("No network connectivity detected after \(timeout) seconds", status: .error)
+    }
     return networkUp
 }
 
