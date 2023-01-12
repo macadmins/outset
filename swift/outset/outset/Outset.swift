@@ -229,7 +229,7 @@ struct Outset: ParsableCommand {
             ensure_shared_folder()
             
             for overide in addOveride {
-                writeLog("Adding \(overide) to overide list")
+                writeLog("Adding \(overide) to overide list", status: .debug)
                 //let value : [String:Date] = [overide:.now]
                 prefs.override_login_once[overide] = Date()
             }
@@ -245,6 +245,7 @@ struct Outset: ParsableCommand {
         }
         
         if version {
+            writeLog(outsetVersion, status: .info)
             print(outsetVersion)
         }
     }

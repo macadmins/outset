@@ -32,12 +32,11 @@ func is_root() -> Bool {
 }
 
 func writeLog(_ message: String, status: OSLogType = .info) {
-
     let logMessage = "\(message)"
     let log = OSLog(subsystem: "com.github.outset", category: "main")
     os_log("%{public}@", log: log, type: status, logMessage)
-    if status == .error || status == .debug {
-        // also print errors to stdout
+    if status == .error || status == .info || (debugMode && status == .debug) {
+        // print info, errors and debug to stdout
         print("\(oslogTypeToString(status).uppercased()): \(message)")
     }
 }
@@ -107,7 +106,7 @@ func load_outset_preferences() -> OutsetPreferences {
         let data = try Data(contentsOf: url)
         outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
     } catch {
-        writeLog("plist import failed", status: .error)
+        writeLog("outset preferences plist import failed", status: .error)
     }
     
     return outsetPrefs
@@ -121,7 +120,7 @@ func load_runonce(plist: String) -> RunOncePlist {
             let data = try Data(contentsOf: url)
             runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
         } catch {
-            writeLog("plist import failed", status: .error)
+            writeLog("runonce plist import failed", status: .error)
         }
     }
     return runOncePlist
@@ -152,7 +151,7 @@ func network_up() -> Bool {
     return ret
 }
 
-func wait_for_network(timeout : Double) -> Bool {
+func wait_for_network_old(timeout : Double) -> Bool {
     var networkUp : Bool = false
     var networkCheck : DispatchWorkItem?
     for _ in 0..<Int(timeout) {
@@ -167,16 +166,30 @@ func wait_for_network(timeout : Double) -> Bool {
     return networkUp
 }
 
+func wait_for_network(timeout: Double) -> Bool {
+    var networkUp = false
+    let deadline = DispatchTime.now() + timeout
+    while !networkUp && DispatchTime.now() < deadline {
+        writeLog("Waiting for network: \(timeout) seconds", status: .debug)
+        networkUp = network_up()
+        if !networkUp {
+            writeLog("Waiting...", status: .debug)
+            Thread.sleep(forTimeInterval: 1)
+        }
+    }
+    return networkUp
+}
+
 func disable_loginwindow() {
     // Disables the loginwindow process
-    writeLog("Disabling loginwindow process")
+    writeLog("Disabling loginwindow process", status: .debug)
     let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }
 
 func enable_loginwindow() {
     // Enables the loginwindow process
-    writeLog("Disabling loginwindow process")
+    writeLog("Enabling loginwindow process", status: .debug)
     let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }

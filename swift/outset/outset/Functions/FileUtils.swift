@@ -8,6 +8,10 @@
 import Foundation
 
 func runShellCommand(_ command: String, verbose : Bool = false) -> (output: String, error: String, exitCode: Int32) {
+    // runs a shell command passed as an argument
+    // If the verbose parameter is set to true, will log the command being run and its status when completed.
+    // returns the output, error and exit code as a tuple.
+    
     if verbose {
         writeLog("Running task \(command)", status: .debug)
     }
@@ -52,7 +56,7 @@ func ensure_working_folders() {
 
     for directory in working_directories {
         if !check_file_exists(path: directory, isDir: true) {
-            // logging.info("%s does not exist, creating now.", directory)
+            writeLog("\(directory) does not exist, creating now.", status: .debug)
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
             } catch {
@@ -64,11 +68,11 @@ func ensure_working_folders() {
 
 func ensure_shared_folder() {
     if !check_file_exists(path: share_dir) {
-        writeLog("\(share_dir) does not exist, creating now.")
+        writeLog("\(share_dir) does not exist, creating now.", status: .debug)
         do {
             try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
         } catch {
-            writeLog("Something went wrong. \(share_dir) could not be created.")
+            writeLog("Something went wrong. \(share_dir) could not be created.", status: .error)
         }
     }
 }
@@ -98,7 +102,7 @@ func check_permissions(pathname :String) -> Bool {
     do {
         fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
     } catch {
-        writeLog("Could not read file at path \(pathname)")
+        writeLog("Could not read file at path \(pathname)", status: .error)
         return false
     }
 
@@ -112,10 +116,14 @@ func check_permissions(pathname :String) -> Bool {
     if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
         if ownerID == 0 && posixPermissions == "644" {
             return true
+        } else {
+            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x644", status: .debug)
         }
     } else {
         if ownerID == 0 && posixPermissions == "755" {
             return true
+        } else {
+            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x755", status: .debug)
         }
     }
     return false
@@ -138,6 +146,7 @@ func path_cleanup(pathname: String) {
 func delete_file(_ path: String) {
     do {
         try FileManager.default.removeItem(atPath: path)
+        writeLog("\(path) deleted", status: .debug)
     } catch {
         writeLog("\(path) could not be removed", status: .error)
     }
@@ -146,9 +155,10 @@ func delete_file(_ path: String) {
 func mount_dmg(dmg: String) -> String {
     // Attaches dmg
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
-    writeLog("Attaching \(dmg)")
+    writeLog("Attaching \(dmg)", status: .debug)
     let (output, error, status) = runShellCommand(cmd)
     if status != 0 {
+        writeLog("Failed attaching \(dmg) with error \(error)", status: .error)
         return error
     }
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -156,10 +166,11 @@ func mount_dmg(dmg: String) -> String {
 
 func detach_dmg(dmgMount: String) -> String {
     // Detaches dmg
-    writeLog("Detaching \(dmgMount)")
+    writeLog("Detaching \(dmgMount)", status: .debug)
     let cmd = "/usr/bin/hdiutil detach -force \(dmgMount)"
     let (output, error, status) = runShellCommand(cmd)
     if status != 0 {
+        writeLog("Failed detaching \(dmgMount) with error \(error)", status: .error)
         return error
     }
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
