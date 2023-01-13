@@ -16,9 +16,6 @@ struct OutsetPreferences: Codable {
     var override_login_once : [String:Date] = [String:Date]()
 }
 
-struct RunOncePlist: Codable {
-    var override_login_once : [String:Date] = [String:Date]()
-}
 
 func ensure_root(_ reason : String) {
     if !is_root() {
@@ -112,13 +109,13 @@ func load_outset_preferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func load_runonce(plist: String) -> RunOncePlist {
-    var runOncePlist = RunOncePlist()
+func load_runonce(plist: String) -> [String:Date] {
+    var runOncePlist = [String:Date]()
     if check_file_exists(path: plist) {
         let url = URL(fileURLWithPath: plist)
         do {
             let data = try Data(contentsOf: url)
-            runOncePlist = try PropertyListDecoder().decode(RunOncePlist.self, from: data)
+            runOncePlist = try PropertyListDecoder().decode([String:Date].self, from: data)
         } catch {
             writeLog("runonce plist import failed", status: .error)
         }

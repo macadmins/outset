@@ -26,11 +26,13 @@ let outset_preferences = share_dir+"com.chilcote.outset.plist"
 let on_demand_trigger = "/private/tmp/.com.github.outset.ondemand.launchd"
 let login_privileged_trigger = "/private/tmp/.com.github.outset.login-privileged.launchd"
 let cleanup_trigger = "/private/tmp/.com.github.outset.cleanup.launchd"
+let filePermissions: NSNumber = 0o644
+let executablePermissions: NSNumber = 0o755
 
 // Set some variables
 var debugMode : Bool = false
 var loginwindow : Bool = true
-var console_user : String = NSUserName() 
+var console_user : String = getConsoleUserInfo().username
 var network_wait : Bool = true
 var network_timeout : Int = 180
 var ignored_users : [String] = []
@@ -95,6 +97,7 @@ struct Outset: ParsableCommand {
         if boot {
             writeLog("Processing scheduled runs for boot", status: .debug)
             ensure_working_folders()
+            ensure_shared_folder()
             if !check_file_exists(path: outset_preferences) {
                 dump_outset_preferences(prefs: prefs)
             }
@@ -127,7 +130,7 @@ struct Outset: ParsableCommand {
             writeLog("Processing scheduled runs for login", status: .debug)
             if !ignored_users.contains(console_user) {
                 if !list_folder(path: login_once_dir).isEmpty {
-                    process_items(login_once_dir, once: true, override: override_login_once)
+                    process_items(login_once_dir, once: true, override: prefs.override_login_once)
                 }
                 if !list_folder(path: login_every_dir).isEmpty {
                     process_items(login_every_dir)
@@ -146,7 +149,7 @@ struct Outset: ParsableCommand {
             }
             if !ignored_users.contains(console_user) {
                 if !list_folder(path: login_privileged_once_dir).isEmpty {
-                    process_items(login_privileged_once_dir, once: true, override: override_login_once)
+                    process_items(login_privileged_once_dir, once: true, override: prefs.override_login_once)
                 }
                 if !list_folder(path: login_privileged_every_dir).isEmpty {
                     process_items(login_privileged_every_dir)
@@ -234,9 +237,11 @@ struct Outset: ParsableCommand {
             ensure_root("add scripts to override list")
             ensure_shared_folder()
             
-            for overide in addOveride {
+            for var overide in addOveride {
+                if !overide.contains(login_once_dir) {
+                    overide = "\(login_once_dir)/\(overide)"
+                }
                 writeLog("Adding \(overide) to overide list", status: .debug)
-                //let value : [String:Date] = [overide:.now]
                 prefs.override_login_once[overide] = Date()
             }
             dump_outset_preferences(prefs: prefs)
@@ -244,7 +249,10 @@ struct Outset: ParsableCommand {
         
         if !removeOveride.isEmpty {
             ensure_root("remove scripts to override list")
-            for overide in removeOveride {
+            for var overide in removeOveride {
+                if !overide.contains(login_once_dir) {
+                    overide = "\(login_once_dir)/\(overide)"
+                }
                 writeLog("Removing \(overide) from overide list", status: .debug)
                 prefs.override_login_once.removeValue(forKey: overide)
             }

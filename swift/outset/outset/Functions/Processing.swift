@@ -18,7 +18,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     var packages : [String] = []
     var scripts : [String] = []
     var profiles : [String] = []
-    var runOnceDict : RunOncePlist = RunOncePlist()
+    var runOnceDict : [String:Date] = [:]
     
     items_to_process = list_folder(path: path)
     
@@ -43,15 +43,17 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     
     for package in packages {
         if once {
-            if !runOnceDict.override_login_once.contains(where: {$0.key == package}) {
+            if !runOnceDict.contains(where: {$0.key == package}) {
                 if install_package(pkg: package) {
-                    runOnceDict.override_login_once.updateValue(Date(), forKey: package)
+                    runOnceDict.updateValue(Date(), forKey: package)
                 }
             } else {
                 if override.contains(where: {$0.key == package}) {
-                    if override[package]! > runOnceDict.override_login_once[package]! {
+                    writeLog("override for \(package) dated \(override[package]!)", status: .debug)
+                    if override[package]! > runOnceDict[package]! {
+                        writeLog("Actioning package override", status: .debug)
                         if install_package(pkg: package) {
-                            runOnceDict.override_login_once.updateValue(Date(), forKey: package)
+                            runOnceDict.updateValue(Date(), forKey: package)
                         }
                     }
                 }
@@ -72,22 +74,24 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     
     for script in scripts {
         if once {
-            if !runOnceDict.override_login_once.contains(where: {$0.key == script}) {
+            if !runOnceDict.contains(where: {$0.key == script}) {
                 let (output, error, status) = runShellCommand(script, verbose: true)
                 if status != 0 {
                     writeLog(error, status: .error)
                 } else {
-                    runOnceDict.override_login_once.updateValue(Date(), forKey: script)
+                    runOnceDict.updateValue(Date(), forKey: script)
                     writeLog(output)
                 }
             } else {
                 if override.contains(where: {$0.key == script}) {
-                    if override[script]! > runOnceDict.override_login_once[script]! {
+                    writeLog("override for \(script) dated \(override[script]!)", status: .debug)
+                    if override[script]! > runOnceDict[script]! {
+                        writeLog("Actioning script override", status: .debug)
                         let (output, error, status) = runShellCommand(script, verbose: true)
                         if status != 0 {
                             writeLog(error, status: .error)
                         } else {
-                            runOnceDict.override_login_once.updateValue(Date(), forKey: script)
+                            runOnceDict.updateValue(Date(), forKey: script)
                             if !output.isEmpty {
                                 writeLog(output, status: .debug)
                             }
@@ -106,7 +110,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         }
     }
     
-    if !runOnceDict.override_login_once.isEmpty {
+    if !runOnceDict.isEmpty {
         writeLog("Writing login-once preference file: \(run_once_plist)", status: .debug)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml

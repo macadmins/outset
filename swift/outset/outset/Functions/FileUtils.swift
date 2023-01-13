@@ -75,6 +75,22 @@ func ensure_shared_folder() {
             writeLog("Something went wrong. \(share_dir) could not be created.", status: .error)
         }
     }
+    
+    // Update permissions on files in share folder
+    let share_files = list_folder(path: share_dir)
+    
+    for filename in share_files {
+        if get_file_owner_and_permissions(pathname: filename).permissions != filePermissions {
+            let attributes = [FileAttributeKey.posixPermissions: filePermissions]
+            do {
+                writeLog("Updating permissions of \(filename) to \(String(filePermissions.intValue, radix: 8, uppercase: false))", status: .debug)
+                try FileManager.default.setAttributes(attributes, ofItemAtPath: filename)
+            } catch {
+                writeLog("Failed to update permissions of \(filename) with error: \(error)", status: .error)
+            }
+        }
+    }
+
 }
 
 func check_file_exists(path: String, isDir: ObjCBool = false) -> Bool {
@@ -97,41 +113,46 @@ func list_folder(path: String) -> [String] {
 
 func check_permissions(pathname :String) -> Bool {
 
-    var fileAttributes : [FileAttributeKey:Any]
-
-    do {
-        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
-    } catch {
-        writeLog("Could not read file at path \(pathname)", status: .error)
-        return false
-    }
-
-    let ownerID = fileAttributes[.ownerAccountID] as! Int
-    let mode = fileAttributes[.posixPermissions] as! NSNumber
+    let (ownerID, mode) = get_file_owner_and_permissions(pathname: pathname) //fileAttributes[.ownerAccountID] as! Int
     let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
 
     writeLog("ownerID for \(pathname) : \(String(describing: ownerID))", status: .debug)
     writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", status: .debug)
 
     if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
-        if ownerID == 0 && posixPermissions == "644" {
+        if ownerID == 0 && mode == filePermissions {
             return true
         } else {
-            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x644", status: .debug)
+            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x644", status: .error)
         }
     } else {
-        if ownerID == 0 && posixPermissions == "755" {
+        if ownerID == 0 && mode == executablePermissions {
             return true
         } else {
-            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x755", status: .debug)
+            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x755", status: .error)
         }
     }
     return false
 }
 
+func get_file_owner_and_permissions(pathname: String) -> (ownerID : Int, permissions : NSNumber) {
+    var fileAttributes : [FileAttributeKey:Any]
+    var ownerID : Int = 0
+    var mode : NSNumber = 0
+    do {
+        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
+        ownerID = fileAttributes[.ownerAccountID] as! Int
+        mode = fileAttributes[.posixPermissions] as! NSNumber
+    } catch {
+        writeLog("Could not read file at path \(pathname)", status: .error)
+    }
+    return (ownerID,mode)
+}
+
 func path_cleanup(pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
+    writeLog("Cleaning up \(pathname)", status: .debug)
     if check_file_exists(path: pathname, isDir: true) {
         for fileItem in list_folder(path: pathname) {
             delete_file(fileItem)
@@ -144,6 +165,7 @@ func path_cleanup(pathname: String) {
 }
 
 func delete_file(_ path: String) {
+    writeLog("Deleting \(path)", status: .debug)
     do {
         try FileManager.default.removeItem(atPath: path)
         writeLog("\(path) deleted", status: .debug)
