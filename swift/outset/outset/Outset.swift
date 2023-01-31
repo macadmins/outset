@@ -83,6 +83,9 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Remove one or more scripts from override list", valueName: "script"), completion: .file())
     var removeOveride : [String] = []
     
+    @Option(help: ArgumentHelp("Compute the SHA1 hash of the given file", valueName: "file"), completion: .file())
+    var computeSHA : [String] = []
+    
     @Flag(help: "Show version number")
     var version = false
     
@@ -257,6 +260,15 @@ struct Outset: ParsableCommand {
                 prefs.override_login_once.removeValue(forKey: overide)
             }
             dump_outset_preferences(prefs: prefs)
+        }
+        
+        if !computeSHA.isEmpty {
+            for fileToHash in computeSHA {
+                let url = URL(fileURLWithPath: fileToHash)
+                if let hash = sha256(for: url) {
+                    print("SHA256 for file \(fileToHash): \(hash)")
+                }
+            }
         }
         
         if version {

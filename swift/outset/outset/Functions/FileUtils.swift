@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CommonCrypto
 
 func runShellCommand(_ command: String, verbose : Bool = false) -> (output: String, error: String, exitCode: Int32) {
     // runs a shell command passed as an argument
@@ -196,4 +197,29 @@ func detach_dmg(dmgMount: String) -> String {
         return error
     }
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+
+func sha256(for url: URL) -> String? {
+    do {
+        let fileData = try Data(contentsOf: url)
+        let sha256 = fileData.sha256()
+        return sha256.hexEncodedString()
+    } catch {
+        return nil
+    }
+}
+
+extension Data {
+    func sha256() -> Data {
+        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+        self.withUnsafeBytes {
+            _ = CC_SHA256($0.baseAddress, CC_LONG(count), &hash)
+        }
+        return Data(hash)
+    }
+
+    func hexEncodedString() -> String {
+        return map { String(format: "%02hhx", $0) }.joined()
+    }
 }
