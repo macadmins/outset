@@ -73,6 +73,24 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
      */
     
     for script in scripts {
+        if hashes_available {
+            var proceed = false
+            writeLog("checking hash for \(script)", status: .debug)
+            if let storedHash = getValueForKey(script, inArray: file_hashes) {
+                writeLog("stored hash : \(storedHash)", status: .debug)
+                let url = URL(fileURLWithPath: script)
+                if let fileHash = sha256(for: url) {
+                    writeLog("file hash : \(fileHash)", status: .debug)
+                    if storedHash == fileHash {
+                        proceed = true
+                    }
+                }
+            }
+            if !proceed {
+                writeLog("file hash mismatch for: \(script). Skipping", status: .error)
+                continue
+            }
+        }
         if once {
             if !runOnceDict.contains(where: {$0.key == script}) {
                 let (output, error, status) = runShellCommand(script, verbose: true)

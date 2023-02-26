@@ -210,6 +210,41 @@ func sha256(for url: URL) -> String? {
     }
 }
 
+func shaAllFiles() {
+    let url = URL(fileURLWithPath: outset_dir)
+    writeLog("SHASUM", status: .info)
+    var shasum_plist = FileHashes()
+    if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
+        for case let fileURL as URL in enumerator {
+            do {
+                let fileAttributes = try fileURL.resourceValues(forKeys:[.isRegularFileKey])
+                if fileAttributes.isRegularFile! && fileURL.pathExtension != "plist" && fileURL.lastPathComponent != "outset" {
+                    if let shasum = sha256(for: fileURL) {
+                        print("\(fileURL.relativePath) : \(shasum)")
+                        shasum_plist.sha256sum[fileURL.relativePath] = shasum
+                    }
+                }
+            } catch { print(error, fileURL) }
+        }
+        
+        writeLog("PLIST", status: .info)
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .xml
+        do {
+            let data = try encoder.encode(shasum_plist)
+            if let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] {
+                let formatted = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                if let string = String(data: formatted, encoding: .utf8) {
+                    print(string)
+                }
+            }
+        } catch {
+            writeLog("plist encoding failed", status: .error)
+        }
+    }
+}
+
+
 extension Data {
     func sha256() -> Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))

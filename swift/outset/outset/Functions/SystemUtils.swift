@@ -16,6 +16,9 @@ struct OutsetPreferences: Codable {
     var override_login_once : [String:Date] = [String:Date]()
 }
 
+struct FileHashes: Codable {
+    var sha256sum : [String:String] = [String:String]()
+}
 
 func ensure_root(_ reason : String) {
     if !is_root() {
@@ -26,6 +29,10 @@ func ensure_root(_ reason : String) {
 
 func is_root() -> Bool {
     return NSUserName() == "root"
+}
+
+func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
+    return array[key]
 }
 
 func writeLog(_ message: String, status: OSLogType = .info) {
@@ -121,6 +128,24 @@ func load_runonce(plist: String) -> [String:Date] {
         }
     }
     return runOncePlist
+}
+
+func load_hashes(plist: String) -> [String:String] {
+    var outset_file_hash_list = FileHashes()
+    
+    if check_file_exists(path: plist) {
+        writeLog("reading hash file \(plist)", status: .debug)
+        
+        let url = URL(fileURLWithPath: plist)
+        do {
+            let data = try Data(contentsOf: url)
+            outset_file_hash_list = try PropertyListDecoder().decode(FileHashes.self, from: data)
+        } catch {
+            writeLog("outset file hash plist import failed", status: .error)
+        }
+    }
+    return outset_file_hash_list.sha256sum
+    
 }
 
 func network_up() -> Bool {

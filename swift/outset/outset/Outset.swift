@@ -22,6 +22,8 @@ let login_privileged_every_dir = outset_dir+"login-privileged-every"
 let login_privileged_once_dir = outset_dir+"login-privileged-once"
 let on_demand_dir = outset_dir+"on-demand"
 let share_dir = outset_dir+"share/"
+let managed_preferences_dir = "/Library/Managed Preferences"
+let managed_preference_plist = managed_preferences_dir+"/com.github.outset.plist"
 let outset_preferences = share_dir+"com.chilcote.outset.plist"
 let on_demand_trigger = "/private/tmp/.com.github.outset.ondemand.launchd"
 let login_privileged_trigger = "/private/tmp/.com.github.outset.login-privileged.launchd"
@@ -40,6 +42,8 @@ var override_login_once : [String: Date] = [String: Date]()
 var continue_firstboot : Bool = true
 var (log_file, run_once_plist) = set_run_once_params()
 var prefs = load_outset_preferences()
+var file_hashes = load_hashes(plist: managed_preference_plist)
+var hashes_available = !file_hashes.isEmpty
 
 @main
 struct Outset: ParsableCommand {
@@ -86,6 +90,9 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Compute the SHA1 hash of the given file", valueName: "file"), completion: .file())
     var computeSHA : [String] = []
     
+    @Flag(help: "Output managed SHA")
+    var readSHAPrefrences = false
+    
     @Flag(help: "Show version number")
     var version = false
     
@@ -95,6 +102,10 @@ struct Outset: ParsableCommand {
             debugMode = true
             writeLog("Outset version \(outsetVersion)", status: .debug)
             sys_report()
+        }
+        
+        if readSHAPrefrences {
+            print(load_hashes(plist: managed_preference_plist))
         }
         
         if boot {
@@ -263,10 +274,14 @@ struct Outset: ParsableCommand {
         }
         
         if !computeSHA.isEmpty {
-            for fileToHash in computeSHA {
-                let url = URL(fileURLWithPath: fileToHash)
-                if let hash = sha256(for: url) {
-                    print("SHA256 for file \(fileToHash): \(hash)")
+            if computeSHA[0].lowercased() == "all" {
+                shaAllFiles()
+            } else {
+                for fileToHash in computeSHA {
+                    let url = URL(fileURLWithPath: fileToHash)
+                    if let hash = sha256(for: url) {
+                        print("SHA256 for file \(fileToHash): \(hash)")
+                    }
                 }
             }
         }
