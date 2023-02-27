@@ -15,8 +15,11 @@
 		4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB329414A5E003B00F4 /* Assets.xcassets */; };
 		4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */; };
 		4124EFC529446AE9003B00F4 /* outset in Resources */ = {isa = PBXBuildFile; fileRef = 4124EF8D293822F4003B00F4 /* outset */; };
-		4124EFCB29446C2C003B00F4 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFCA29446C2C003B00F4 /* main.swift */; };
-		4124EFD029447150003B00F4 /* Library in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4124EFCD29446FDE003B00F4 /* Library */; };
+		41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF90293822F4003B00F4 /* Outset.swift */; };
+		41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA2293B2F9B003B00F4 /* FileUtils.swift */; };
+		41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
+		41E28EA529ACDCE3002ADBE5 /* SystemUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF99293824C8003B00F4 /* SystemUtils.swift */; };
+		41E28EA729ACDD1F002ADBE5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 41E28EA629ACDD1F002ADBE5 /* ArgumentParser */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,16 +49,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		4124EFCF2944713B003B00F4 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = Library;
-			dstSubfolderSpec = 7;
-			files = (
-				4124EFD029447150003B00F4 /* Library in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -64,7 +57,7 @@
 		4124EF99293824C8003B00F4 /* SystemUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemUtils.swift; sourceTree = "<group>"; };
 		4124EFA2293B2F9B003B00F4 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		4124EFA4293B304B003B00F4 /* Processing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Processing.swift; sourceTree = "<group>"; };
-		4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset App Bundle.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4124EFAD29414A5D003B00F4 /* Outset.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Outset.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4124EFB329414A5E003B00F4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4124EFB829414A5E003B00F4 /* Outset.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Outset.entitlements; sourceTree = "<group>"; };
@@ -90,6 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				41E28EA729ACDD1F002ADBE5 /* ArgumentParser in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,7 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				4124EF8D293822F4003B00F4 /* outset */,
-				4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */,
+				4124EFAD29414A5D003B00F4 /* Outset.app */,
 				41A67A0C296BADFE000BFFCE /* Outset Install Package.app */,
 			);
 			name = Products;
@@ -205,24 +199,24 @@
 			productReference = 4124EF8D293822F4003B00F4 /* outset */;
 			productType = "com.apple.product-type.tool";
 		};
-		4124EFAC29414A5D003B00F4 /* Outset App Bundle */ = {
+		4124EFAC29414A5D003B00F4 /* Outset */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset App Bundle" */;
+			buildConfigurationList = 4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset" */;
 			buildPhases = (
 				4124EFA929414A5D003B00F4 /* Sources */,
 				4124EFAA29414A5D003B00F4 /* Frameworks */,
 				4124EFAB29414A5D003B00F4 /* Resources */,
-				4124EFCF2944713B003B00F4 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = "Outset App Bundle";
+			name = Outset;
 			packageProductDependencies = (
+				41E28EA629ACDD1F002ADBE5 /* ArgumentParser */,
 			);
 			productName = Outset;
-			productReference = 4124EFAD29414A5D003B00F4 /* Outset App Bundle.app */;
+			productReference = 4124EFAD29414A5D003B00F4 /* Outset.app */;
 			productType = "com.apple.product-type.application";
 		};
 		41A67A05296BADFE000BFFCE /* Outset Install Package */ = {
@@ -278,7 +272,7 @@
 			projectRoot = "";
 			targets = (
 				4124EF8C293822F4003B00F4 /* outset */,
-				4124EFAC29414A5D003B00F4 /* Outset App Bundle */,
+				4124EFAC29414A5D003B00F4 /* Outset */,
 				41A67A05296BADFE000BFFCE /* Outset Install Package */,
 			);
 		};
@@ -338,7 +332,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4124EFCB29446C2C003B00F4 /* main.swift in Sources */,
+				41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */,
+				41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */,
+				41E28EA529ACDCE3002ADBE5 /* SystemUtils.swift in Sources */,
+				41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -347,7 +344,7 @@
 /* Begin PBXTargetDependency section */
 		41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4124EFAC29414A5D003B00F4 /* Outset App Bundle */;
+			target = 4124EFAC29414A5D003B00F4 /* Outset */;
 			targetProxy = 41A67A0D296BAE0F000BFFCE /* PBXContainerItemProxy */;
 		};
 		41A67A12296BAF89000BFFCE /* PBXTargetDependency */ = {
@@ -513,6 +510,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Outset/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -520,8 +518,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.Outset;
+				MARKETING_VERSION = 4.0a;
+				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -545,6 +543,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Outset/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -552,8 +551,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.Outset;
+				MARKETING_VERSION = 4.0a;
+				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -663,7 +662,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset App Bundle" */ = {
+		4124EFB929414A5E003B00F4 /* Build configuration list for PBXNativeTarget "Outset" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4124EFBA29414A5E003B00F4 /* Debug */,
@@ -696,6 +695,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		4124EF9E293828E0003B00F4 /* ArgumentParser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4124EF9D293828E0003B00F4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
+			productName = ArgumentParser;
+		};
+		41E28EA629ACDD1F002ADBE5 /* ArgumentParser */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4124EF9D293828E0003B00F4 /* XCRemoteSwiftPackageReference "swift-argument-parser" */;
 			productName = ArgumentParser;

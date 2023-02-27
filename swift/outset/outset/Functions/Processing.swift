@@ -8,20 +8,24 @@
 import Foundation
 
 func process_items(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
-    // Processes scripts/packages to run
+    // Main processing logic
+    // TODO: should be able to break this into seperate functions if it helps readability or if seperate components are needed elsewhere individually
     if !check_file_exists(path: path) {
         writeLog("\(path) does not exist. Exiting")
         exit(1)
     }
-    
-    var items_to_process : [String] = []
-    var packages : [String] = []
-    var scripts : [String] = []
-    var profiles : [String] = []
+
+    // TODO: There's been some discussion that in modern macOS, supporting package installs should not be required as well as profiles
+    var items_to_process : [String] = []    // raw list of files
+    var packages : [String] = []            // array of packages once they have passed checks
+    var scripts : [String] = []             // array of scripts once they have passed checks
+    var profiles : [String] = []            // profiles aren't supported anyway so we could delete this
     var runOnceDict : [String:Date] = [:]
     
+    // Get a list of all the files to process
     items_to_process = list_folder(path: path)
     
+    // iterate over the list and check the
     for pathname in items_to_process {
         if check_permissions(pathname: pathname) {
             switch pathname.split(separator: ".").last {
@@ -37,10 +41,14 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         }
     }
     
+    // load the runonce plist if needed
+    // TODO: could load this anyway and perform runonce logic based on the bool. this dict is only used if once is true
     if once {
         runOnceDict = load_runonce(plist: run_once_plist)
     }
     
+    // loop through the packages list and process installs.
+    // TODO: add in hash comparison for processing packages presuming package installs as a feature is maintained.
     for package in packages {
         if once {
             if !runOnceDict.contains(where: {$0.key == package}) {
@@ -72,8 +80,13 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
      */
     
+    // loop through the scripts list and process.
     for script in scripts {
         if hashes_available {
+            // check user defaults for a list of sha256 hashes.
+            // This block will run if there are _any_ hashes available so it's all or nothing (by design)
+            // If there is no hash or it doesn't match then we skip to the next file
+            
             var proceed = false
             writeLog("checking hash for \(script)", status: .debug)
             if let storedHash = getValueForKey(script, inArray: file_hashes) {
@@ -91,7 +104,10 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                 continue
             }
         }
+        
         if once {
+            // If this is supposed to be a runonce item then we want to check to see if has an existing runonce entry
+            // looks for a key with the full script path. Writes the full path and run date when done
             if !runOnceDict.contains(where: {$0.key == script}) {
                 let (output, error, status) = runShellCommand(script, verbose: true)
                 if status != 0 {
@@ -101,6 +117,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                     writeLog(output)
                 }
             } else {
+                // there's a run-once plist entry for this script. Check to see if there's an override
                 if override.contains(where: {$0.key == script}) {
                     writeLog("override for \(script) dated \(override[script]!)", status: .debug)
                     if override[script]! > runOnceDict[script]! {
@@ -129,6 +146,10 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
     
     if !runOnceDict.isEmpty {
+        // write the results of runonce processing
+        // if running as root, will write to /usr/local/outset/share/com.github.outset.once.<user_id>.plist
+        // if running as the user, will write to ~/Library/Preferences/com.github.outset.once.plist
+        // TODO: Move this logic to use UserDefaults
         writeLog("Writing login-once preference file: \(run_once_plist)", status: .debug)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml

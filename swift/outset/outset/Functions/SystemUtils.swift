@@ -32,6 +32,7 @@ func is_root() -> Bool {
 }
 
 func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
+    // short function that treats a [String: String] as a key value pair.
     return array[key]
 }
 
@@ -57,6 +58,7 @@ func oslogTypeToString(_ type: OSLogType) -> String {
 }
 
 func getConsoleUserInfo() -> (username: String, userID: String) {
+    // We need the console user, not the process owner so NSUserName() won't work for our needs when outset runs as root
     let consoleUserName = runShellCommand("who | grep 'console' | awk '{print $1}'").output
     let consoleUserID = runShellCommand("id -u \(consoleUserName)").output
     return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
@@ -64,6 +66,7 @@ func getConsoleUserInfo() -> (username: String, userID: String) {
 
 
 func set_run_once_params() ->(logFile: String, runOncePlist: String) {
+    // TODO: a lot of processing that can go away once we start using UserDefaults
     var logFile: String = ""
     var runOncePlist: String = ""
     if  is_root() {
@@ -88,6 +91,7 @@ func set_run_once_params() ->(logFile: String, runOncePlist: String) {
 }
 
 func dump_outset_preferences(prefs: OutsetPreferences) {
+    //TODO: UserDefaults
     writeLog("Writing preference file: \(outset_preferences)", status: .debug)
     let encoder = PropertyListEncoder()
     encoder.outputFormat = .xml
@@ -100,6 +104,7 @@ func dump_outset_preferences(prefs: OutsetPreferences) {
 }
 
 func load_outset_preferences() -> OutsetPreferences {
+    //TODO: UserDefaults
     var outsetPrefs = OutsetPreferences()
     if !check_file_exists(path: outset_preferences) {
         dump_outset_preferences(prefs: OutsetPreferences())
@@ -117,6 +122,7 @@ func load_outset_preferences() -> OutsetPreferences {
 }
 
 func load_runonce(plist: String) -> [String:Date] {
+    //TODO: UserDefaults
     var runOncePlist = [String:Date]()
     if check_file_exists(path: plist) {
         let url = URL(fileURLWithPath: plist)
@@ -131,6 +137,8 @@ func load_runonce(plist: String) -> [String:Date] {
 }
 
 func load_hashes(plist: String) -> [String:String] {
+    //TODO: UserDefaults
+    // imports the list of file hashes that are approved to run
     var outset_file_hash_list = FileHashes()
     
     if check_file_exists(path: plist) {
@@ -150,6 +158,7 @@ func load_hashes(plist: String) -> [String:String] {
 
 func network_up() -> Bool {
     // https://stackoverflow.com/a/39782859/17584669
+    // perform a check to see if the network is available.
     
     var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
     zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
@@ -189,6 +198,7 @@ func wait_for_network_old(timeout : Double) -> Bool {
 }
 
 func wait_for_network(timeout: Double) -> Bool {
+    // used during --boot if "wait_for_network" prefrence is true
     var networkUp = false
     let deadline = DispatchTime.now() + timeout
     while !networkUp && DispatchTime.now() < deadline {
@@ -220,6 +230,7 @@ func enable_loginwindow() {
 }
 
 func get_hardwaremodel() -> String {
+    // Returns the current devices hardware model from sysctl
     var size = 0
     sysctlbyname("hw.model", nil, &size, nil, 0)
     var model = [CChar](repeating: 0, count: size)
@@ -228,7 +239,8 @@ func get_hardwaremodel() -> String {
 }
 
 func get_serialnumber() -> String {
-    // Returns the serial number of the Mac
+    // Returns the current devices serial number
+    // TODO: fix warning 'kIOMasterPortDefault' was deprecated in macOS 12.0: renamed to 'kIOMainPortDefault'
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
       guard platformExpert > 0 else {
         return "Serial Unknown"
@@ -241,6 +253,7 @@ func get_serialnumber() -> String {
 }
 
 func get_buildversion() -> String {
+    // Returns the current OS build from sysctl
     var size = 0
     sysctlbyname("kern.osversion", nil, &size, nil, 0)
     var osversion = [CChar](repeating: 0, count: size)
@@ -250,6 +263,7 @@ func get_buildversion() -> String {
 }
 
 func get_osversion() -> String {
+    // Returns the OS version
     let osVersion = ProcessInfo().operatingSystemVersion
     let version = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
     return version

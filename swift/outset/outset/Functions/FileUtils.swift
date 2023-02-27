@@ -44,6 +44,7 @@ func runShellCommand(_ command: String, verbose : Bool = false) -> (output: Stri
 }
 
 func ensure_working_folders() {
+    // Ensures working folders are all present and creates them if necessary
     let working_directories = [
         boot_every_dir,
         boot_once_dir,
@@ -68,6 +69,8 @@ func ensure_working_folders() {
 }
 
 func ensure_shared_folder() {
+    // shared folder should not contain any executable content, iterate and update as required
+    // TODO: could probably be optimised as there is duplication with ensure_working_folders()
     if !check_file_exists(path: share_dir) {
         writeLog("\(share_dir) does not exist, creating now.", status: .debug)
         do {
@@ -95,11 +98,14 @@ func ensure_shared_folder() {
 }
 
 func check_file_exists(path: String, isDir: ObjCBool = false) -> Bool {
+    // What is says on the tin
     var checkIsDir :ObjCBool = isDir
     return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
 }
 
 func list_folder(path: String) -> [String] {
+    // Returns a array of strings containing the folder contents
+    // Does not perform a recursive list
     var filelist : [String] = []
     do {
         let files = try FileManager.default.contentsOfDirectory(atPath: path)
@@ -113,7 +119,11 @@ func list_folder(path: String) -> [String] {
 }
 
 func check_permissions(pathname :String) -> Bool {
-
+    // Files should be owned by root
+    // Files that are not scripts should have permissions 644 (-rw-r--r--)
+    // Files that are scripts should have permissions 755 (-rwxr-xr-x)
+    // If the permission for the request file is not correct then return fals to indicate it should not be processed
+    
     let (ownerID, mode) = get_file_owner_and_permissions(pathname: pathname) //fileAttributes[.ownerAccountID] as! Int
     let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
 
@@ -137,6 +147,7 @@ func check_permissions(pathname :String) -> Bool {
 }
 
 func get_file_owner_and_permissions(pathname: String) -> (ownerID : Int, permissions : NSNumber) {
+    // returns the ID and permissions of the specified file
     var fileAttributes : [FileAttributeKey:Any]
     var ownerID : Int = 0
     var mode : NSNumber = 0
@@ -166,6 +177,7 @@ func path_cleanup(pathname: String) {
 }
 
 func delete_file(_ path: String) {
+    // Deletes the specified file
     writeLog("Deleting \(path)", status: .debug)
     do {
         try FileManager.default.removeItem(atPath: path)
@@ -176,7 +188,7 @@ func delete_file(_ path: String) {
 }
 
 func mount_dmg(dmg: String) -> String {
-    // Attaches dmg
+    // Attaches dmg and returns the path
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
     writeLog("Attaching \(dmg)", status: .debug)
     let (output, error, status) = runShellCommand(cmd)
@@ -201,6 +213,7 @@ func detach_dmg(dmgMount: String) -> String {
 
 
 func sha256(for url: URL) -> String? {
+    // computes a sha256sum for the specified file path and returns a string
     do {
         let fileData = try Data(contentsOf: url)
         let sha256 = fileData.sha256()
@@ -211,6 +224,11 @@ func sha256(for url: URL) -> String? {
 }
 
 func shaAllFiles() {
+    // compute sha256sum for all files in the outset directory
+    // returns data in two formats to stdout:
+    //   plaintext
+    //   as plist format ready for import into an MDM or converting to a .mobileconfig
+    
     let url = URL(fileURLWithPath: outset_dir)
     writeLog("SHASUM", status: .info)
     var shasum_plist = FileHashes()
@@ -246,6 +264,7 @@ func shaAllFiles() {
 
 
 extension Data {
+    // extension to the Data class that lets us compute sha256
     func sha256() -> Data {
         var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
         self.withUnsafeBytes {

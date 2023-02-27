@@ -13,6 +13,8 @@ let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gm
 let outsetVersion = "4.0 alpha"
 
 // Set some Constants TODO: leave these as defaults but maybe make them configurable from a plist
+
+// Outset specific directories
 let outset_dir = "/usr/local/outset/"
 let boot_every_dir = outset_dir+"boot-every"
 let boot_once_dir = outset_dir+"boot-once"
@@ -22,12 +24,20 @@ let login_privileged_every_dir = outset_dir+"login-privileged-every"
 let login_privileged_once_dir = outset_dir+"login-privileged-once"
 let on_demand_dir = outset_dir+"on-demand"
 let share_dir = outset_dir+"share/"
+
+// Prefrence files and locations
+// hard coded managed prefrences TODO: remove and replace with UserDefaults
 let managed_preferences_dir = "/Library/Managed Preferences"
 let managed_preference_plist = managed_preferences_dir+"/com.github.outset.plist"
+
+// TODO: configure these as legacy and migrate to use io.macadmins.Outset
 let outset_preferences = share_dir+"com.chilcote.outset.plist"
 let on_demand_trigger = "/private/tmp/.com.github.outset.ondemand.launchd"
 let login_privileged_trigger = "/private/tmp/.com.github.outset.login-privileged.launchd"
 let cleanup_trigger = "/private/tmp/.com.github.outset.cleanup.launchd"
+
+
+// File permission defaults
 let filePermissions: NSNumber = 0o644
 let executablePermissions: NSNumber = 0o755
 
@@ -45,6 +55,8 @@ var prefs = load_outset_preferences()
 var file_hashes = load_hashes(plist: managed_preference_plist)
 var hashes_available = !file_hashes.isEmpty
 
+
+// Logic insertion point
 @main
 struct Outset: ParsableCommand {
     static let configuration = CommandConfiguration(
