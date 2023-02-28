@@ -42,6 +42,7 @@
 		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
 		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41A67A13296BF35F000BFFCE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		41ADC47C29AECB8B00C5B94C /* outset */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = outset; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +129,7 @@
 			children = (
 				41A67A03296B93D1000BFFCE /* Scripts */,
 				41A679FE2966479E000BFFCE /* generatePackage.zsh */,
+				41ADC47C29AECB8B00C5B94C /* outset */,
 				4124EFCD29446FDE003B00F4 /* Library */,
 			);
 			path = Package;
@@ -242,6 +244,7 @@
 				"$(SRCROOT)/Package/generatePackage.zsh",
 				"$(SRCROOT)/Package/Library",
 				"$(SRCROOT)/Package/Scripts",
+				"$(SRCROOT)/Package/outset",
 			);
 			name = "Generate Package";
 			outputFileListPaths = (
