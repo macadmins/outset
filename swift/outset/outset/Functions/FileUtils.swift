@@ -52,8 +52,7 @@ func ensure_working_folders() {
         login_once_dir,
         login_privileged_every_dir,
         login_privileged_once_dir,
-        on_demand_dir,
-        share_dir
+        on_demand_dir
     ]
 
     for directory in working_directories {
@@ -72,50 +71,66 @@ func migrate_legacy_preferences() {
     // shared folder should not contain any executable content, iterate and update as required
     // TODO: could probably be optimised as there is duplication with ensure_working_folders()
     if check_file_exists(path: share_dir) {
-        writeLog("\(share_dir) exists. Migrating prefernces to user defaults", status: .debug)
+        writeLog("\(share_dir) exists. Migrating prefrences to user defaults", status: .debug)
         
-        let legacyOutsetPreferencesFile = "com.chilcote.outset.plist"
+        let legacyOutsetPreferencesFile = "\(share_dir)com.chilcote.outset.plist"
         let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
         let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
         let legacyUserRunOncePlistFile = userHomePath+"Library/Preferences/com.github.outset.once.plist"
 
-        var share_files = list_folder(path: share_dir)
+        var share_files : [String] = []
+        share_files.append(legacyOutsetPreferencesFile)
         share_files.append(legacyRootRunOncePlistFile)
         share_files.append(legacyUserRunOncePlistFile)
         
         for filename in share_files {
-            let url = URL(fileURLWithPath: filename)
-            do {
-                let data = try Data(contentsOf: url)
-                switch filename {
-                    
+            if check_file_exists(path: filename) {
+                let url = URL(fileURLWithPath: filename)
+                do {
+                    let data = try Data(contentsOf: url)
+                    switch filename {
+                        
                     case legacyOutsetPreferencesFile:
-                        let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-                        write_outset_preferences(prefs: legacyPreferences)
-                        writeLog("Migrated Legacy Outset Preferences", status: .debug)
-                        delete_file(legacyOutsetPreferencesFile)
-                        writeLog("Deleted \(legacyOutsetPreferencesFile)", status: .debug)
+                        do {
+                            let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
+                            write_outset_preferences(prefs: legacyPreferences)
+                            writeLog("Migrated Legacy Outset Preferences", status: .debug)
+                            delete_file(legacyOutsetPreferencesFile)
+                        } catch {
+                            writeLog("legacy Preferences migration failed", status: .error)
+                        }
                         
                     case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
-                        let legacyRunOncePlistData = try PropertyListDecoder().decode([String:Date].self, from: data)
-                        write_runonce(runOnceData: legacyRunOncePlistData)
-                        writeLog("Migrated Legacy Runonce Data", status: .debug)
-                        if is_root() {
-                            delete_file(legacyRootRunOncePlistFile)
-                            writeLog("Deleted \(legacyRootRunOncePlistFile)", status: .debug)
-                        } else {
-                            delete_file(legacyUserRunOncePlistFile)
-                            writeLog("Deleted \(legacyUserRunOncePlistFile)", status: .debug)
+                        do {
+                            let legacyRunOncePlistData = try PropertyListDecoder().decode([String:Date].self, from: data)
+                            write_runonce(runOnceData: legacyRunOncePlistData)
+                            writeLog("Migrated Legacy Runonce Data", status: .debug)
+                            if is_root() {
+                                delete_file(legacyRootRunOncePlistFile)
+                            } else {
+                                delete_file(legacyUserRunOncePlistFile)
+                            }
+                        } catch {
+                            writeLog("legacy Run Once Plist migration failed", status: .error)
                         }
                         
                     default:
                         continue
+                    }
+                } catch {
+                    writeLog("could not load \(filename)", status: .error)
                 }
-                
-            } catch {
-                writeLog("outset preferences plist  migration failed", status: .error)
             }
             
+        }
+        
+        if list_folder(path: share_dir).isEmpty {
+            do {
+                try FileManager.default.removeItem(atPath: share_dir)
+                writeLog("removed \(share_dir)", status: .debug)
+            } catch {
+                writeLog("could not remove \(share_dir)", status: .error)
+            }
         }
     }
 

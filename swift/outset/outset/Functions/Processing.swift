@@ -22,6 +22,9 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     var profiles : [String] = []            // profiles aren't supported anyway so we could delete this
     var runOnceDict : [String:Date] = [:]
     
+    // See if there's any old stuff to migrate
+    migrate_legacy_preferences()
+    
     // Get a list of all the files to process
     items_to_process = list_folder(path: path)
     
