@@ -137,23 +137,19 @@ func load_runonce(plist: String) -> [String:Date] {
 }
 
 func load_hashes(plist: String) -> [String:String] {
-    //TODO: UserDefaults
     // imports the list of file hashes that are approved to run
     var outset_file_hash_list = FileHashes()
     
-    if check_file_exists(path: plist) {
-        writeLog("reading hash file \(plist)", status: .debug)
-        
-        let url = URL(fileURLWithPath: plist)
-        do {
-            let data = try Data(contentsOf: url)
-            outset_file_hash_list = try PropertyListDecoder().decode(FileHashes.self, from: data)
-        } catch {
-            writeLog("outset file hash plist import failed", status: .error)
+    let defaults = UserDefaults.standard
+    let hashes = defaults.object(forKey: "sha256sum")
+
+    if let data = hashes as? [String: String] {
+        for (key, value) in data {
+            outset_file_hash_list.sha256sum[key] = value
         }
     }
+
     return outset_file_hash_list.sha256sum
-    
 }
 
 func network_up() -> Bool {
