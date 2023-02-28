@@ -9,16 +9,16 @@
 ## LaunchDaemons
 LD_ROOT="/Library/LaunchDaemons"
 DAEMONS=(
-  "${LD_ROOT}/com.github.outset.boot.plist"
-  "${LD_ROOT}/com.github.outset.cleanup.plist"
-  "${LD_ROOT}/com.github.outset.login-privileged.plist"
+  "${LD_ROOT}/io.macadmins.outset.boot.plist"
+  "${LD_ROOT}/io.macadmins.outset.cleanup.plist"
+  "${LD_ROOT}/io.macadmins.outset.login-privileged.plist"
 )
 
 ## LaunchAgents
 LA_ROOT="/Library/LaunchAgents"
 AGENTS=(
-  "${LA_ROOT}/com.github.outset.login.plist"
-  "${LA_ROOT}/com.github.outset.on-demand.plist"
+  "${LA_ROOT}/io.macadmins.outset.login.plist"
+  "${LA_ROOT}/io.macadmins.outset.on-demand.plist"
 )
 
 for daemon in ${DAEMONS}; do

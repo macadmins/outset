@@ -41,11 +41,8 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
         }
     }
     
-    // load the runonce plist if needed
-    // TODO: could load this anyway and perform runonce logic based on the bool. this dict is only used if once is true
-    if once {
-        runOnceDict = load_runonce(plist: run_once_plist)
-    }
+    // load runonce data
+    runOnceDict = load_runonce()
     
     // loop through the packages list and process installs.
     // TODO: add in hash comparison for processing packages presuming package installs as a feature is maintained.
@@ -146,19 +143,7 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
     
     if !runOnceDict.isEmpty {
-        // write the results of runonce processing
-        // if running as root, will write to /usr/local/outset/share/com.github.outset.once.<user_id>.plist
-        // if running as the user, will write to ~/Library/Preferences/com.github.outset.once.plist
-        // TODO: Move this logic to use UserDefaults
-        writeLog("Writing login-once preference file: \(run_once_plist)", status: .debug)
-        let encoder = PropertyListEncoder()
-        encoder.outputFormat = .xml
-        do {
-            let data = try encoder.encode(runOnceDict)
-            try data.write(to: URL(fileURLWithPath: run_once_plist))
-        } catch {
-            writeLog("Writing to \(run_once_plist) failed", status: .error)
-        }
+        write_runonce(runOnceData: runOnceDict)
     }
     
 }

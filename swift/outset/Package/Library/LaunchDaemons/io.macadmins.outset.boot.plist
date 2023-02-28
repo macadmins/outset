@@ -3,23 +3,15 @@
 <plist version="1.0">
 <dict>
 	<key>AssociatedBundleIdentifiers</key>
-	<string>com.github.Outset</string>
-	<key>KeepAlive</key>
-	<dict>
-		<key>PathState</key>
-		<dict>
-			<key>/private/tmp/.com.github.outset.ondemand.launchd</key>
-			<true/>
-		</dict>
-	</dict>
+	<string>io.macadmins.Outset</string>
 	<key>Label</key>
-	<string>com.github.outset.on-demand</string>
-	<key>OnDemand</key>
-	<true/>
+	<string>io.macadmins.outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/outset</string>
-		<string>--on-demand</string>
+		<string>--boot</string>
 	</array>
+	<key>RunAtLoad</key>
+	<true/>
 </dict>
 </plist>

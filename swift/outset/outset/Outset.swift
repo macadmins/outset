@@ -25,16 +25,9 @@ let login_privileged_once_dir = outset_dir+"login-privileged-once"
 let on_demand_dir = outset_dir+"on-demand"
 let share_dir = outset_dir+"share/"
 
-// Prefrence files and locations
-// hard coded managed prefrences TODO: remove and replace with UserDefaults
-let managed_preferences_dir = "/Library/Managed Preferences"
-let managed_preference_plist = managed_preferences_dir+"/com.github.outset.plist"
-
-// TODO: configure these as legacy and migrate to use io.macadmins.Outset
-let outset_preferences = share_dir+"com.chilcote.outset.plist"
-let on_demand_trigger = "/private/tmp/.com.github.outset.ondemand.launchd"
-let login_privileged_trigger = "/private/tmp/.com.github.outset.login-privileged.launchd"
-let cleanup_trigger = "/private/tmp/.com.github.outset.cleanup.launchd"
+let on_demand_trigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
+let login_privileged_trigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
+let cleanup_trigger = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
 
 
 // File permission defaults
@@ -50,9 +43,8 @@ var network_timeout : Int = 180
 var ignored_users : [String] = []
 var override_login_once : [String: Date] = [String: Date]()
 var continue_firstboot : Bool = true
-var (log_file, run_once_plist) = set_run_once_params()
 var prefs = load_outset_preferences()
-var file_hashes = load_hashes(plist: managed_preference_plist)
+var file_hashes = load_hashes()
 var hashes_available = !file_hashes.isEmpty
 
 
@@ -102,8 +94,8 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Compute the SHA1 hash of the given file", valueName: "file"), completion: .file())
     var computeSHA : [String] = []
     
-    @Flag(help: "Output managed SHA")
-    var readSHAPrefrences = false
+    @Flag(help: .hidden)
+    var shasumReport = false
     
     @Flag(help: "Show version number")
     var version = false
@@ -116,17 +108,17 @@ struct Outset: ParsableCommand {
             sys_report()
         }
         
-        if readSHAPrefrences {
-            print(load_hashes(plist: managed_preference_plist))
+        if shasumReport {
+            writeLog("sha256sum report", status: .info)
+            for (filename, shasum) in load_hashes() {
+                writeLog("\(filename) : \(shasum)", status: .info)
+            }
         }
         
         if boot {
             writeLog("Processing scheduled runs for boot", status: .debug)
             ensure_working_folders()
-            ensure_shared_folder()
-            if !check_file_exists(path: outset_preferences) {
-                dump_outset_preferences(prefs: prefs)
-            }
+            write_outset_preferences(prefs: prefs)
             
             if !list_folder(path: boot_once_dir).isEmpty {
                 if network_wait {
@@ -237,7 +229,6 @@ struct Outset: ParsableCommand {
         
         if !addIgnoredUser.isEmpty {
             ensure_root("add to ignored users")
-            ensure_shared_folder()
             for username in addIgnoredUser {
                 if prefs.ignored_users.contains(username) {
                     writeLog("User \"\(username)\" is already in the ignored users list", status: .info)
@@ -246,7 +237,7 @@ struct Outset: ParsableCommand {
                     prefs.ignored_users.append(username)
                 }
             }
-            dump_outset_preferences(prefs: prefs)
+            write_outset_preferences(prefs: prefs)
         }
         
         if !removeIgnoredUser.isEmpty {
@@ -256,12 +247,11 @@ struct Outset: ParsableCommand {
                     prefs.ignored_users.remove(at: index)
                 }
             }
-            dump_outset_preferences(prefs: prefs)
+            write_outset_preferences(prefs: prefs)
         }
         
         if !addOveride.isEmpty {
             ensure_root("add scripts to override list")
-            ensure_shared_folder()
             
             for var overide in addOveride {
                 if !overide.contains(login_once_dir) {
@@ -270,7 +260,7 @@ struct Outset: ParsableCommand {
                 writeLog("Adding \(overide) to overide list", status: .debug)
                 prefs.override_login_once[overide] = Date()
             }
-            dump_outset_preferences(prefs: prefs)
+            write_outset_preferences(prefs: prefs)
         }
         
         if !removeOveride.isEmpty {
@@ -282,7 +272,7 @@ struct Outset: ParsableCommand {
                 writeLog("Removing \(overide) from overide list", status: .debug)
                 prefs.override_login_once.removeValue(forKey: overide)
             }
-            dump_outset_preferences(prefs: prefs)
+            write_outset_preferences(prefs: prefs)
         }
         
         if !computeSHA.isEmpty {

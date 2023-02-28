@@ -3,23 +3,23 @@
 <plist version="1.0">
 <dict>
 	<key>AssociatedBundleIdentifiers</key>
-	<string>com.github.Outset</string>
+	<string>io.macadmins.Outset</string>
 	<key>KeepAlive</key>
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/private/tmp/.com.github.outset.login-privileged.launchd</key>
+			<key>/private/tmp/.io.macadmins.outset.cleanup.launchd</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>com.github.outset.login-privileged</string>
+	<string>io.macadmins.outset.cleanup</string>
 	<key>OnDemand</key>
 	<true/>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/outset</string>
-		<string>--login-privileged</string>
+		<string>--cleanup</string>
 	</array>
 </dict>
 </plist>

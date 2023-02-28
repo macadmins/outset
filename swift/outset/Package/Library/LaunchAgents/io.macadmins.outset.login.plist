@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.github.outset.login</string>
+	<string>io.macadmins.outset.login</string>
 	<key>AssociatedBundleIdentifiers</key>
-	<string>com.github.Outset</string>
+	<string>io.macadmins.Outset</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/outset</string>

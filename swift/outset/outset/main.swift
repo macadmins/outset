@@ -19,13 +19,13 @@ func init_daemons() {
 
     if #available(macOS 13.0, *) {
         // LaunchDaemon path: $APP.app/Contents/Library/LaunchDaemons/com.example.daemon.plist
-        let boot_daemon = SMAppService.daemon(plistName: "com.github.outset.boot.plist");
-        let login_privileged_daemon = SMAppService.daemon(plistName: "com.github.outset.login-privileged.plist");
-        let cleanup_daemon = SMAppService.daemon(plistName: "com.github.outset.cleanup.plist");
+        let boot_daemon = SMAppService.daemon(plistName: "io.macadmins.outset.boot.plist");
+        let login_privileged_daemon = SMAppService.daemon(plistName: "io.macadmins.outset.login-privileged.plist");
+        let cleanup_daemon = SMAppService.daemon(plistName: "io.macadmins.outset.cleanup.plist");
 
         // LaunchAgent path: $APP.app/Contents/Library/LaunchAgents/com.example.agent.plist
-        let login_agent = SMAppService.agent(plistName: "com.github.outset.login.plist");
-        let on_demand_agent = SMAppService.agent(plistName: "com.github.outset.on-demand.plist");
+        let login_agent = SMAppService.agent(plistName: "io.macadmins.outset.login.plist");
+        let on_demand_agent = SMAppService.agent(plistName: "io.macadmins.outset.on-demand.plist");
 
         // Retrieving the app reference if the main app itself needs to launch instead of a helper.
         // let mainApp = SMAppService.mainApp

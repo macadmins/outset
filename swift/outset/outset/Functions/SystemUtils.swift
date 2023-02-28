@@ -38,7 +38,8 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
 
 func writeLog(_ message: String, status: OSLogType = .info) {
     let logMessage = "\(message)"
-    let log = OSLog(subsystem: "com.github.outset", category: "main")
+    let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
+    let log = OSLog(subsystem: bundleID, category: "main")
     os_log("%{public}@", log: log, type: status, logMessage)
     if status == .error || status == .info || (debugMode && status == .debug) {
         // print info, errors and debug to stdout
@@ -64,79 +65,57 @@ func getConsoleUserInfo() -> (username: String, userID: String) {
     return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
+func write_outset_preferences(prefs: OutsetPreferences) {
+    let defaults = UserDefaults.standard
+    
+    let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
+    let prefsPath = path[0].appending("/Preferences").appending("/\(Bundle.main.bundleIdentifier!).plist")
 
-func set_run_once_params() ->(logFile: String, runOncePlist: String) {
-    // TODO: a lot of processing that can go away once we start using UserDefaults
-    var logFile: String = ""
-    var runOncePlist: String = ""
-    if  is_root() {
-        logFile = "/var/log/outset.log"
-        let console_uid = getConsoleUserInfo().userID
-        runOncePlist = "\(share_dir)com.github.outset.once.\(console_uid).plist"
-    } else {
-        let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
-        let userLogsPath = userHomePath+"Library/Logs"
-        if !check_file_exists(path: userLogsPath, isDir: true) {
-            do {
-                try FileManager.default.createDirectory(atPath: userLogsPath, withIntermediateDirectories: true)
-            } catch {
-                writeLog("Could not create \(userLogsPath)", status: .error)
-                exit(1)
-            }
+    writeLog("Writing preference file: \(prefsPath)", status: .debug)
+    
+    // Take the OutsetPreferences object and write it to UserDefaults
+    let mirror = Mirror(reflecting: prefs)
+    for child in mirror.children {
+        // Use the name of each property as the key, and save its value to UserDefaults
+        if let propertyName = child.label {
+            defaults.set(child.value, forKey: propertyName)
         }
-        logFile = userLogsPath+"/outset.log"
-        runOncePlist = userHomePath+"Library/Preferences/com.github.outset.once.plist"
-    }
-    return (logFile, runOncePlist)
-}
-
-func dump_outset_preferences(prefs: OutsetPreferences) {
-    //TODO: UserDefaults
-    writeLog("Writing preference file: \(outset_preferences)", status: .debug)
-    let encoder = PropertyListEncoder()
-    encoder.outputFormat = .xml
-    do {
-        let data = try encoder.encode(prefs)
-        try data.write(to: URL(fileURLWithPath: outset_preferences))
-    } catch {
-        writeLog("encoding plist failed", status: .error)
     }
 }
 
 func load_outset_preferences() -> OutsetPreferences {
-    //TODO: UserDefaults
+    let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
-    if !check_file_exists(path: outset_preferences) {
-        dump_outset_preferences(prefs: OutsetPreferences())
-    }
     
-    let url = URL(fileURLWithPath: outset_preferences)
-    do {
-        let data = try Data(contentsOf: url)
-        outsetPrefs = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-    } catch {
-        writeLog("outset preferences plist import failed", status: .error)
-    }
+    outsetPrefs.network_timeout = defaults.integer(forKey: "network_timeout")
+    outsetPrefs.ignored_users = defaults.array(forKey: "ignored_users") as? [String] ?? []
+    outsetPrefs.override_login_once = defaults.object(forKey: "override_login_once") as? [String:Date] ?? [:]
+    outsetPrefs.wait_for_network = defaults.bool(forKey: "wait_for_network")
     
     return outsetPrefs
 }
 
-func load_runonce(plist: String) -> [String:Date] {
-    //TODO: UserDefaults
-    var runOncePlist = [String:Date]()
-    if check_file_exists(path: plist) {
-        let url = URL(fileURLWithPath: plist)
-        do {
-            let data = try Data(contentsOf: url)
-            runOncePlist = try PropertyListDecoder().decode([String:Date].self, from: data)
-        } catch {
-            writeLog("runonce plist import failed", status: .error)
-        }
+func load_runonce() -> [String:Date] {
+    let defaults = UserDefaults.standard
+    var runOnceKey = "run_once"
+    
+    if is_root() {
+        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
     }
-    return runOncePlist
+    return defaults.object(forKey: runOnceKey) as? [String:Date] ?? [:]
 }
 
-func load_hashes(plist: String) -> [String:String] {
+func write_runonce(runOnceData: [String:Date]) {
+    let defaults = UserDefaults.standard
+    var runOnceKey = "run_once"
+    
+    if is_root() {
+        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
+    }
+    defaults.set(runOnceData, forKey: runOnceKey)
+}
+
+func load_hashes() -> [String:String] {
     // imports the list of file hashes that are approved to run
     var outset_file_hash_list = FileHashes()
     

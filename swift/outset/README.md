@@ -35,7 +35,7 @@ Updated with the `AssociatedBundleIdentifiers` key so under macOS 13, Login Item
 
 `/usr/local/outset/Outset.app`
 
-Apart from being an app bundle, this app has the BundleID of `com.github.Outset` which is used to show in macOS 13 Login Items under the same app bundle and with an icon. In addition to this, this app will contain code to create and manage the outset launch items from macOS 13 onwards
+Apart from being an app bundle, this app has the BundleID of `io.macadmins.Outset` which is used to show in macOS 13 Login Items under the same app bundle and with an icon. In addition to this, this app will contain code to create and manage the outset launch items from macOS 13 onwards
 
 (the icon is a green representation of the SF Symbol `folder.fill.badge.gearshape`)
 

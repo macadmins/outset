@@ -68,30 +68,54 @@ func ensure_working_folders() {
     }
 }
 
-func ensure_shared_folder() {
+func migrate_legacy_preferences() {
     // shared folder should not contain any executable content, iterate and update as required
     // TODO: could probably be optimised as there is duplication with ensure_working_folders()
-    if !check_file_exists(path: share_dir) {
-        writeLog("\(share_dir) does not exist, creating now.", status: .debug)
-        do {
-            try FileManager.default.createDirectory(atPath: share_dir, withIntermediateDirectories: true)
-        } catch {
-            writeLog("Something went wrong. \(share_dir) could not be created.", status: .error)
-        }
-    }
-    
-    // Update permissions on files in share folder
-    let share_files = list_folder(path: share_dir)
-    
-    for filename in share_files {
-        if get_file_owner_and_permissions(pathname: filename).permissions != filePermissions {
-            let attributes = [FileAttributeKey.posixPermissions: filePermissions]
+    if check_file_exists(path: share_dir) {
+        writeLog("\(share_dir) exists. Migrating prefernces to user defaults", status: .debug)
+        
+        let legacyOutsetPreferencesFile = "com.chilcote.outset.plist"
+        let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
+        let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
+        let legacyUserRunOncePlistFile = userHomePath+"Library/Preferences/com.github.outset.once.plist"
+
+        var share_files = list_folder(path: share_dir)
+        share_files.append(legacyRootRunOncePlistFile)
+        share_files.append(legacyUserRunOncePlistFile)
+        
+        for filename in share_files {
+            let url = URL(fileURLWithPath: filename)
             do {
-                writeLog("Updating permissions of \(filename) to \(String(filePermissions.intValue, radix: 8, uppercase: false))", status: .debug)
-                try FileManager.default.setAttributes(attributes, ofItemAtPath: filename)
+                let data = try Data(contentsOf: url)
+                switch filename {
+                    
+                    case legacyOutsetPreferencesFile:
+                        let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
+                        write_outset_preferences(prefs: legacyPreferences)
+                        writeLog("Migrated Legacy Outset Preferences", status: .debug)
+                        delete_file(legacyOutsetPreferencesFile)
+                        writeLog("Deleted \(legacyOutsetPreferencesFile)", status: .debug)
+                        
+                    case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
+                        let legacyRunOncePlistData = try PropertyListDecoder().decode([String:Date].self, from: data)
+                        write_runonce(runOnceData: legacyRunOncePlistData)
+                        writeLog("Migrated Legacy Runonce Data", status: .debug)
+                        if is_root() {
+                            delete_file(legacyRootRunOncePlistFile)
+                            writeLog("Deleted \(legacyRootRunOncePlistFile)", status: .debug)
+                        } else {
+                            delete_file(legacyUserRunOncePlistFile)
+                            writeLog("Deleted \(legacyUserRunOncePlistFile)", status: .debug)
+                        }
+                        
+                    default:
+                        continue
+                }
+                
             } catch {
-                writeLog("Failed to update permissions of \(filename) with error: \(error)", status: .error)
+                writeLog("outset preferences plist  migration failed", status: .error)
             }
+            
         }
     }
 
