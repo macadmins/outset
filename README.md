@@ -1,7 +1,7 @@
 Outset
 ======
 
-![Outset Icon](https://github.com/bartreardon/outset/blob/master/swift/outset/outset/Assets.xcassets/AppIcon.appiconset/outset.png_128x128.png?raw=true) 
+![Outset Icon](https://github.com/bartreardon/outset/blob/master/outset/Assets.xcassets/AppIcon.appiconset/Outset.png_128x128.png?raw=true) 
 
 Outset is a utility application which automatically processes scripts and packages during the boot sequence, user logins, or on demand.
 
