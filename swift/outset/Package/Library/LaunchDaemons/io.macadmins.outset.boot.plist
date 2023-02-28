@@ -8,7 +8,7 @@
 	<string>io.macadmins.outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/outset/outset</string>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 		<string>--boot</string>
 	</array>
 	<key>RunAtLoad</key>

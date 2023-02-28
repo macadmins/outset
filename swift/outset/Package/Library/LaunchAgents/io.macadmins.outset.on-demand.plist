@@ -18,7 +18,7 @@
 	<true/>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/outset/outset</string>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 		<string>--on-demand</string>
 	</array>
 </dict>

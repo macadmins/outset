@@ -8,7 +8,7 @@
 	<string>io.macadmins.Outset</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/outset/outset</string>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 		<string>--login</string>
 	</array>
 	<key>RunAtLoad</key>

@@ -14,7 +14,6 @@
 		4124EFA5293B304B003B00F4 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
 		4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB329414A5E003B00F4 /* Assets.xcassets */; };
 		4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */; };
-		4124EFC529446AE9003B00F4 /* outset in Resources */ = {isa = PBXBuildFile; fileRef = 4124EF8D293822F4003B00F4 /* outset */; };
 		41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF90293822F4003B00F4 /* Outset.swift */; };
 		41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA2293B2F9B003B00F4 /* FileUtils.swift */; };
 		41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
@@ -29,13 +28,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 4124EFAC29414A5D003B00F4;
 			remoteInfo = Outset;
-		};
-		41A67A11296BAF89000BFFCE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4124EF85293822F3003B00F4 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 4124EF8C293822F4003B00F4;
-			remoteInfo = outset;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -228,7 +220,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				41A67A12296BAF89000BFFCE /* PBXTargetDependency */,
 				41A67A0E296BAE0F000BFFCE /* PBXTargetDependency */,
 			);
 			name = "Outset Install Package";
@@ -283,7 +274,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4124EFC529446AE9003B00F4 /* outset in Resources */,
 				4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */,
 				4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */,
 			);
@@ -346,11 +336,6 @@
 			isa = PBXTargetDependency;
 			target = 4124EFAC29414A5D003B00F4 /* Outset */;
 			targetProxy = 41A67A0D296BAE0F000BFFCE /* PBXContainerItemProxy */;
-		};
-		41A67A12296BAF89000BFFCE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 4124EF8C293822F4003B00F4 /* outset */;
-			targetProxy = 41A67A11296BAF89000BFFCE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -508,6 +493,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Outset/Outset.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 2;
@@ -543,6 +529,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Outset/Outset.entitlements;
 				CODE_SIGN_IDENTITY = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 2;
@@ -576,7 +563,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OutsetInstaller/OutsetInstaller.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -597,8 +584,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.OutsetInstaller;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -618,7 +605,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = OutsetInstaller/OutsetInstaller.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -639,8 +626,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 1.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.OutsetInstaller;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
