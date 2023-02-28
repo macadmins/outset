@@ -1,61 +1,76 @@
 Outset
 ======
 
-Outset is a script which automatically processes packages, profiles, and scripts during the boot sequence, user logins, or on demand.
+![Outset Icon](https://github.com/bartreardon/outset/blob/master/swift/outset/outset/Assets.xcassets/AppIcon.appiconset/outset.png_128x128.png?raw=true) 
+
+Outset is a utility application which automatically processes scripts and packages during the boot sequence, user logins, or on demand.
 
 Requirements
 ------------
 + macOS 10.15+
-+ python 3.7+
 
-If you need to support 10.14 or lower, stick with the 2.x version.
-
-python3 can be installed from one of these sources:
-- [python.org](https://www.python.org/downloads/)
-- [MacAdmins](https://github.com/macadmins/python)
-- [Munki](https://github.com/munki/munki)
-
-If none of these are on disk, then fall back to Apple's system python3, which can be installed via the Command Line Tools.
-
-Outset no longer supports python 2, which was [sunsetted on Jan 1, 2020](https://www.python.org/doc/sunset-python-2/). If you choose to continue to use python 2, you'll want to create the symlink via other means, with something like:
-
-`/bin/ln -s /usr/bin/python /usr/local/outset/python3`
+Legacy python version can be found here \<insertlink\>
 
 Usage
 -----
 
-	usage: outset [-h]
-				(--boot | --login | --login-privileged | --on-demand | --login-every | --login-once | --cleanup | --version | --add-ignored-user username | --remove-ignored-user username | --add-override scripts | --remove-override scripts)
+	OVERVIEW: This script automatically processes packages, profiles, and/or scripts at boot, on demand, and/or login.
 
-	This script automatically processes packages, profiles, and/or scripts at
-	boot, on demand, and/or login.
+	USAGE: outset <options>
 
-	optional arguments:
-	-h, --help            show this help message and exit
-	--boot                Used by launchd for scheduled runs at boot
-	--login               Used by launchd for scheduled runs at login
-	--login-privileged    Used by launchd for scheduled privileged runs at login
-	--on-demand           Process scripts on demand
-	--login-every         Manually process scripts in login-every
-	--login-once          Manually process scripts in login-once
-	--cleanup             Used by launchd to clean up on-demand dir
-	--version             Show version number
-	--add-ignored-user username
-							Add user to ignored list
-	--remove-ignored-user username
-							Remove user from ignored list
-	--add-override scripts
-							Add scripts to override list
-	--remove-override scripts
-							Remove scripts from override list
+	OPTIONS:
+	--boot                  Used by launchd for scheduled runs at boot
+	--login                 Used by launchd for scheduled runs at login
+	--login-privileged      Used by launchd for scheduled privileged runs at login
+	--on-demand             Process scripts on demand
+	--login-every           Manually process scripts in login-every
+	--login-once            Manually process scripts in login-once
+	--cleanup               Used by launchd to clean up on-demand dir
+	--add-ignored-user <username>
+							Add one or more users to ignored list
+	--remove-ignored-user <username>
+							Remove one or more users from ignored list
+	--add-overide <script>  Add one or more scripts to override list
+	--remove-overide <script>
+							Remove one or more scripts from override list
+	--compute-sha <file>    Compute the SHA1 hash of the given file
+	--version               Show version number
+	-h, --help              Show help information.
+
+
 
 See the [wiki](https://github.com/chilcote/outset/wiki) for info on how to use Outset.
 
 Credits
 -------
-This script was an excuse for me to try to learn python. I learn best when I can pull apart existing scripts. As such, this script is heavily based on the great work by [Nate Walck](https://github.com/natewalck/Scripts/blob/master/scriptRunner.py), [Allister Banks](https://gist.github.com/arubdesu/8271ba29ac5aff8f982c), [Rich Trouton](https://github.com/rtrouton/First-Boot-Package-Install), [Graham Gilbert](https://github.com/grahamgilbert/first-boot-pkg/blob/master/Resources/first-boot), and [Greg Neagle](https://github.com/munki/munki/blob/master/code/client/managedsoftwareupdate#L87).
+The swift port of Outset is a direct feature for feature (almost) replacement for the python version of Outset by Joseph Chilcote.
 
-Special thanks to @homebysix for working on the python3 compatibility release.
+### What Isn't ported
+
+Recent version of macos restrict the installation of `.mobileconfig` files in a useful way outside of MDM and from macOS 11 Big Sur onwards, the `profiles` command can no longer be used to install configuration profiles, so makes no sense to continue support for this feature.
+
+Future releases may also remove the capability to install packages as this also is something that is better served from your MDM or other application management toolkit.
+
+### What's installed
+
+Appart from the `Outset` app, the pkg also includes some other files:
+
+#### Agents
+`/Library/LaunchDaemons/` `/Library/LaunchAgents/`
+
+Updated with the `AssociatedBundleIdentifiers` key so under macOS 13, Login Items show everything under the 'Outset' title
+
+#### Outset.app
+
+![Outset Icon](https://github.com/bartreardon/outset/blob/master/swift/outset/outset/Assets.xcassets/AppIcon.appiconset/outset.png_32x32@2x.png?raw=true) 
+
+`/usr/local/outset/Outset.app`
+
+Apart from being an app bundle, this app has the BundleID of `io.macadmins.Outset` which is used to show in macOS 13 Login Items under the same app bundle and with an icon. 
+
+## Building the project
+
+Add your developer certificate in the signing and capabilities of the "Outset App Bundle" build targets in Xcode. Select the "Outset Installer Package" scheme and build. This should generate an `Outset.pkg` in your `Build/Products/Release` directory.
 
 License
 -------
