@@ -16,6 +16,8 @@ func main() {
 
 func init_daemons() {
     // The identifier must match the CFBundleIdentifier string in Info.plist.
+    
+    //TODO: This code is probably incorrect. This functionality should be re-written from first principles
 
     if #available(macOS 13.0, *) {
         // LaunchDaemon path: $APP.app/Contents/Library/LaunchDaemons/com.example.daemon.plist
