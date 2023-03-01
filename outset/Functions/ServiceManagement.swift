@@ -9,11 +9,6 @@ import Foundation
 import ServiceManagement
 
 
-func main() {
-    init_daemons()
-    //∫exit(0)
-}
-
 func init_daemons() {
     // The identifier must match the CFBundleIdentifier string in Info.plist.
     
