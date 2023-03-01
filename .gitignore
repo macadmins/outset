@@ -4,7 +4,7 @@ sample*
 *.dmg
 *.pyc
 outset.wiki
-swift/outset/outset.xcodeproj/project.xcworkspace/*
-swift/outset/outset.xcodeproj/xcshareddata/*
-swift/outset/outset.xcodeproj/xcuserdata/*
-swift/outset/outset/Preview Content/*
+project.xcworkspace/
+Preview Content/
+xcuserdata/
+xcsharedata/

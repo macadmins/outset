@@ -8,6 +8,7 @@ STAGING_DIRECTORY="${TMPDIR}/staging"
 INSTALL_LOCATION="/usr/local/outset/"
 INSTALL_ASSETS=${SCRIPT_INPUT_FILE_1}
 INSTALL_SCRIPTS=${SCRIPT_INPUT_FILE_2}
+OUTSET_ALIAS=${SCRIPT_INPUT_FILE_3}
 APP_NAME=${PROJECT_NAME}
 IDENTIFIER="${PRODUCT_BUNDLE_IDENTIFIER}"
 VERSION="${MARKETING_VERSION}"
@@ -17,7 +18,8 @@ rm -r "${STAGING_DIRECTORY}"
 
 # Set up a staging directory with the contents to install.
 mkdir -p "${STAGING_DIRECTORY}/${INSTALL_LOCATION}"
-cp "outset" "${STAGING_DIRECTORY}/${INSTALL_LOCATION}"
+chmod 755 "${OUTSET_ALIAS}"
+cp "${OUTSET_ALIAS}" "${STAGING_DIRECTORY}/${INSTALL_LOCATION}"
 cp -r "Outset.app" "${STAGING_DIRECTORY}/${INSTALL_LOCATION}"
 cp -r "${INSTALL_ASSETS}" "${STAGING_DIRECTORY}"
 
@@ -36,3 +38,13 @@ productbuild --synthesize --package tmp-package.pkg --identifier "${IDENTIFIER}"
 
 # Synthesize the final package from the distribution.
 productbuild --distribution Distribution --package-path "${BUILT_PRODUCTS_DIR}" "${SCRIPT_OUTPUT_FILE_0}"
+
+# Get the developer installer identity of possible for signing
+# IDENTITY=$(security find-certificate -p -c "Developer ID Installer" 2>/dev/null) && IDENTITY=$(echo "${IDENTITY}" | openssl x509 -noout -subject | sed -n 's/.*CN=\([^/]*\).*/\1/p')
+#
+# if [[ -z ${IDENTITY} ]]; then
+#     productbuild --distribution Distribution --package-path "${BUILT_PRODUCTS_DIR}" "${SCRIPT_OUTPUT_FILE_0}"
+# else
+#     productbuild --distribution Distribution --package-path "${BUILT_PRODUCTS_DIR}" --sign "${IDENTITY}" "${SCRIPT_OUTPUT_FILE_0}"
+# fi
+

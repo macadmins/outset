@@ -43,20 +43,20 @@ func runShellCommand(_ command: String, verbose : Bool = false) -> (output: Stri
     return (output, error, status)
 }
 
-func ensure_working_folders() {
+func ensureWorkingFolders() {
     // Ensures working folders are all present and creates them if necessary
     let working_directories = [
-        boot_every_dir,
-        boot_once_dir,
-        login_every_dir,
-        login_once_dir,
-        login_privileged_every_dir,
-        login_privileged_once_dir,
-        on_demand_dir
+        bootEveryDir,
+        bootOnceDir,
+        loginEveryDir,
+        loginOnceDir,
+        loginEveryPrivilegedDir,
+        loginOncePrivilegedDir,
+        onDemandDir
     ]
 
     for directory in working_directories {
-        if !check_file_exists(path: directory, isDir: true) {
+        if !checkFileExists(path: directory, isDir: true) {
             writeLog("\(directory) does not exist, creating now.", status: .debug)
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -67,13 +67,13 @@ func ensure_working_folders() {
     }
 }
 
-func migrate_legacy_preferences() {
+func migrateLegacyPreferences() {
     // shared folder should not contain any executable content, iterate and update as required
     // TODO: could probably be optimised as there is duplication with ensure_working_folders()
-    if check_file_exists(path: share_dir) {
-        writeLog("\(share_dir) exists. Migrating prefrences to user defaults", status: .debug)
+    if checkFileExists(path: shareDirectory) {
+        writeLog("\(shareDirectory) exists. Migrating prefrences to user defaults", status: .debug)
         
-        let legacyOutsetPreferencesFile = "\(share_dir)com.chilcote.outset.plist"
+        let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
         let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
         let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
         let legacyUserRunOncePlistFile = userHomePath+"Library/Preferences/com.github.outset.once.plist"
@@ -84,7 +84,7 @@ func migrate_legacy_preferences() {
         share_files.append(legacyUserRunOncePlistFile)
         
         for filename in share_files {
-            if check_file_exists(path: filename) {
+            if checkFileExists(path: filename) {
                 let url = URL(fileURLWithPath: filename)
                 do {
                     let data = try Data(contentsOf: url)
@@ -93,9 +93,9 @@ func migrate_legacy_preferences() {
                     case legacyOutsetPreferencesFile:
                         do {
                             let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-                            write_outset_preferences(prefs: legacyPreferences)
+                            writePreferences(prefs: legacyPreferences)
                             writeLog("Migrated Legacy Outset Preferences", status: .debug)
-                            delete_file(legacyOutsetPreferencesFile)
+                            deleteFile(legacyOutsetPreferencesFile)
                         } catch {
                             writeLog("legacy Preferences migration failed", status: .error)
                         }
@@ -103,12 +103,12 @@ func migrate_legacy_preferences() {
                     case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
                         do {
                             let legacyRunOncePlistData = try PropertyListDecoder().decode([String:Date].self, from: data)
-                            write_runonce(runOnceData: legacyRunOncePlistData)
+                            writeRunOnce(runOnceData: legacyRunOncePlistData)
                             writeLog("Migrated Legacy Runonce Data", status: .debug)
-                            if is_root() {
-                                delete_file(legacyRootRunOncePlistFile)
+                            if isRoot() {
+                                deleteFile(legacyRootRunOncePlistFile)
                             } else {
-                                delete_file(legacyUserRunOncePlistFile)
+                                deleteFile(legacyUserRunOncePlistFile)
                             }
                         } catch {
                             writeLog("legacy Run Once Plist migration failed", status: .error)
@@ -124,25 +124,25 @@ func migrate_legacy_preferences() {
             
         }
         
-        if list_folder(path: share_dir).isEmpty {
+        if folderContents(path: shareDirectory).isEmpty {
             do {
-                try FileManager.default.removeItem(atPath: share_dir)
-                writeLog("removed \(share_dir)", status: .debug)
+                try FileManager.default.removeItem(atPath: shareDirectory)
+                writeLog("removed \(shareDirectory)", status: .debug)
             } catch {
-                writeLog("could not remove \(share_dir)", status: .error)
+                writeLog("could not remove \(shareDirectory)", status: .error)
             }
         }
     }
 
 }
 
-func check_file_exists(path: String, isDir: ObjCBool = false) -> Bool {
+func checkFileExists(path: String, isDir: ObjCBool = false) -> Bool {
     // What is says on the tin
     var checkIsDir :ObjCBool = isDir
     return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
 }
 
-func list_folder(path: String) -> [String] {
+func folderContents(path: String) -> [String] {
     // Returns a array of strings containing the folder contents
     // Does not perform a recursive list
     var filelist : [String] = []
@@ -157,26 +157,26 @@ func list_folder(path: String) -> [String] {
     return filelist
 }
 
-func check_permissions(pathname :String) -> Bool {
+func verifyPermissions(pathname :String) -> Bool {
     // Files should be owned by root
     // Files that are not scripts should have permissions 644 (-rw-r--r--)
     // Files that are scripts should have permissions 755 (-rwxr-xr-x)
     // If the permission for the request file is not correct then return fals to indicate it should not be processed
     
-    let (ownerID, mode) = get_file_owner_and_permissions(pathname: pathname) //fileAttributes[.ownerAccountID] as! Int
+    let (ownerID, mode) = getFileProperties(pathname: pathname) //fileAttributes[.ownerAccountID] as! Int
     let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
 
     writeLog("ownerID for \(pathname) : \(String(describing: ownerID))", status: .debug)
     writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", status: .debug)
 
     if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
-        if ownerID == 0 && mode == filePermissions {
+        if ownerID == 0 && mode == requiredFilePermissions {
             return true
         } else {
             writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x644", status: .error)
         }
     } else {
-        if ownerID == 0 && mode == executablePermissions {
+        if ownerID == 0 && mode == requiredExecutablePermissions {
             return true
         } else {
             writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x755", status: .error)
@@ -185,7 +185,7 @@ func check_permissions(pathname :String) -> Bool {
     return false
 }
 
-func get_file_owner_and_permissions(pathname: String) -> (ownerID : Int, permissions : NSNumber) {
+func getFileProperties(pathname: String) -> (ownerID : Int, permissions : NSNumber) {
     // returns the ID and permissions of the specified file
     var fileAttributes : [FileAttributeKey:Any]
     var ownerID : Int = 0
@@ -200,22 +200,22 @@ func get_file_owner_and_permissions(pathname: String) -> (ownerID : Int, permiss
     return (ownerID,mode)
 }
 
-func path_cleanup(pathname: String) {
+func pathCleanup(pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", status: .debug)
-    if check_file_exists(path: pathname, isDir: true) {
-        for fileItem in list_folder(path: pathname) {
-            delete_file(fileItem)
+    if checkFileExists(path: pathname, isDir: true) {
+        for fileItem in folderContents(path: pathname) {
+            deleteFile(fileItem)
         }
-    } else if check_file_exists(path: pathname) {
-        delete_file(pathname)
+    } else if checkFileExists(path: pathname) {
+        deleteFile(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", status: .error)
     }
 }
 
-func delete_file(_ path: String) {
+func deleteFile(_ path: String) {
     // Deletes the specified file
     writeLog("Deleting \(path)", status: .debug)
     do {
@@ -226,7 +226,7 @@ func delete_file(_ path: String) {
     }
 }
 
-func mount_dmg(dmg: String) -> String {
+func mountDmg(dmg: String) -> String {
     // Attaches dmg and returns the path
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
     writeLog("Attaching \(dmg)", status: .debug)
@@ -238,7 +238,7 @@ func mount_dmg(dmg: String) -> String {
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func detach_dmg(dmgMount: String) -> String {
+func detachDmg(dmgMount: String) -> String {
     // Detaches dmg
     writeLog("Detaching \(dmgMount)", status: .debug)
     let cmd = "/usr/bin/hdiutil detach -force \(dmgMount)"
@@ -250,6 +250,26 @@ func detach_dmg(dmgMount: String) -> String {
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
+func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
+    // Verify that the file
+    var proceed = false
+    writeLog("checking hash for \(filename)", status: .debug)
+    if let storedHash = getValueForKey(filename, inArray: shasumArray) {
+        writeLog("stored hash : \(storedHash)", status: .debug)
+        let url = URL(fileURLWithPath: filename)
+        if let fileHash = sha256(for: url) {
+            writeLog("file hash : \(fileHash)", status: .debug)
+            if storedHash == fileHash {
+                proceed = true
+            }
+        }
+    }
+    if !proceed {
+        writeLog("file hash mismatch for: \(filename). Skipping", status: .error)
+    }
+    
+    return proceed
+}
 
 func sha256(for url: URL) -> String? {
     // computes a sha256sum for the specified file path and returns a string
@@ -268,7 +288,7 @@ func shaAllFiles() {
     //   plaintext
     //   as plist format ready for import into an MDM or converting to a .mobileconfig
     
-    let url = URL(fileURLWithPath: outset_dir)
+    let url = URL(fileURLWithPath: outsetDirectory)
     writeLog("SHASUM", status: .info)
     var shasum_plist = FileHashes()
     if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {

@@ -21,13 +21,13 @@ struct FileHashes: Codable {
 }
 
 func ensure_root(_ reason : String) {
-    if !is_root() {
+    if !isRoot() {
         writeLog("Must be root to \(reason)", status: .error)
         exit(1)
     }
 }
 
-func is_root() -> Bool {
+func isRoot() -> Bool {
     return NSUserName() == "root"
 }
 
@@ -65,7 +65,7 @@ func getConsoleUserInfo() -> (username: String, userID: String) {
     return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
-func write_outset_preferences(prefs: OutsetPreferences) {
+func writePreferences(prefs: OutsetPreferences) {
     let defaults = UserDefaults.standard
     
     let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
@@ -83,7 +83,7 @@ func write_outset_preferences(prefs: OutsetPreferences) {
     }
 }
 
-func load_outset_preferences() -> OutsetPreferences {
+func loadPreferences() -> OutsetPreferences {
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
     
@@ -95,27 +95,27 @@ func load_outset_preferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func load_runonce() -> [String:Date] {
+func loadRunOnce() -> [String:Date] {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
     
-    if is_root() {
+    if isRoot() {
         runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
     }
     return defaults.object(forKey: runOnceKey) as? [String:Date] ?? [:]
 }
 
-func write_runonce(runOnceData: [String:Date]) {
+func writeRunOnce(runOnceData: [String:Date]) {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
     
-    if is_root() {
+    if isRoot() {
         runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
     }
     defaults.set(runOnceData, forKey: runOnceKey)
 }
 
-func load_hashes() -> [String:String] {
+func shasumLoadApprovedFileHashList() -> [String:String] {
     // imports the list of file hashes that are approved to run
     var outset_file_hash_list = FileHashes()
     
@@ -131,7 +131,7 @@ func load_hashes() -> [String:String] {
     return outset_file_hash_list.sha256sum
 }
 
-func network_up() -> Bool {
+func isNetworkUp() -> Bool {
     // https://stackoverflow.com/a/39782859/17584669
     // perform a check to see if the network is available.
     
@@ -157,28 +157,13 @@ func network_up() -> Bool {
     return ret
 }
 
-func wait_for_network_old(timeout : Double) -> Bool {
-    var networkUp : Bool = false
-    var networkCheck : DispatchWorkItem?
-    for _ in 0..<Int(timeout) {
-        networkCheck = DispatchWorkItem {}
-        if network_up() {
-            networkUp = true
-            networkCheck?.cancel()
-        } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(10), execute: networkCheck!)
-        }
-    }
-    return networkUp
-}
-
-func wait_for_network(timeout: Double) -> Bool {
+func waitForNetworkUp(timeout: Double) -> Bool {
     // used during --boot if "wait_for_network" prefrence is true
     var networkUp = false
     let deadline = DispatchTime.now() + timeout
     while !networkUp && DispatchTime.now() < deadline {
         writeLog("Waiting for network: \(timeout) seconds", status: .debug)
-        networkUp = network_up()
+        networkUp = isNetworkUp()
         if !networkUp {
             writeLog("Waiting...", status: .debug)
             Thread.sleep(forTimeInterval: 1)
@@ -190,21 +175,21 @@ func wait_for_network(timeout: Double) -> Bool {
     return networkUp
 }
 
-func disable_loginwindow() {
+func loginWindowDisable() {
     // Disables the loginwindow process
     writeLog("Disabling loginwindow process", status: .debug)
     let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }
 
-func enable_loginwindow() {
+func loginWindowEnable() {
     // Enables the loginwindow process
     writeLog("Enabling loginwindow process", status: .debug)
     let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }
 
-func get_hardwaremodel() -> String {
+func getDeviceHardwareModel() -> String {
     // Returns the current devices hardware model from sysctl
     var size = 0
     sysctlbyname("hw.model", nil, &size, nil, 0)
@@ -213,7 +198,7 @@ func get_hardwaremodel() -> String {
     return String(cString: model)
 }
 
-func get_serialnumber() -> String {
+func getDeviceSerialNumber() -> String {
     // Returns the current devices serial number
     // TODO: fix warning 'kIOMasterPortDefault' was deprecated in macOS 12.0: renamed to 'kIOMainPortDefault'
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
@@ -227,7 +212,7 @@ func get_serialnumber() -> String {
       return serialNumber
 }
 
-func get_buildversion() -> String {
+func getOSBuildVersion() -> String {
     // Returns the current OS build from sysctl
     var size = 0
     sysctlbyname("kern.osversion", nil, &size, nil, 0)
@@ -237,18 +222,18 @@ func get_buildversion() -> String {
 
 }
 
-func get_osversion() -> String {
+func getOSVersion() -> String {
     // Returns the OS version
     let osVersion = ProcessInfo().operatingSystemVersion
     let version = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
     return version
 }
 
-func sys_report() {
+func writeSysReport() {
     // Logs system information to log file
     writeLog("User: \(getConsoleUserInfo())", status: .debug)
-    writeLog("Model: \(get_hardwaremodel())", status: .debug)
-    writeLog("Serial: \(get_serialnumber())", status: .debug)
-    writeLog("OS: \(get_osversion())", status: .debug)
-    writeLog("Build: \(get_buildversion())", status: .debug)
+    writeLog("Model: \(getDeviceHardwareModel())", status: .debug)
+    writeLog("Serial: \(getDeviceSerialNumber())", status: .debug)
+    writeLog("OS: \(getOSVersion())", status: .debug)
+    writeLog("Build: \(getOSBuildVersion())", status: .debug)
 }

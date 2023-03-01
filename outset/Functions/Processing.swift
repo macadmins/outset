@@ -7,10 +7,10 @@
 
 import Foundation
 
-func process_items(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
+func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, override : [String:Date] = [:]) {
     // Main processing logic
     // TODO: should be able to break this into seperate functions if it helps readability or if seperate components are needed elsewhere individually
-    if !check_file_exists(path: path) {
+    if !checkFileExists(path: path) {
         writeLog("\(path) does not exist. Exiting")
         exit(1)
     }
@@ -22,15 +22,18 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     var profiles : [String] = []            // profiles aren't supported anyway so we could delete this
     var runOnceDict : [String:Date] = [:]
     
+    let shasumFileList = shasumLoadApprovedFileHashList()
+    let shasumsAvailable = !shasumFileList.isEmpty
+    
     // See if there's any old stuff to migrate
-    migrate_legacy_preferences()
+    migrateLegacyPreferences()
     
     // Get a list of all the files to process
-    items_to_process = list_folder(path: path)
+    items_to_process = folderContents(path: path)
     
     // iterate over the list and check the
     for pathname in items_to_process {
-        if check_permissions(pathname: pathname) {
+        if verifyPermissions(pathname: pathname) {
             switch pathname.split(separator: ".").last {
             case "pkg", "mpkg", "dmg":
                 packages.append(pathname)
@@ -45,14 +48,18 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     }
     
     // load runonce data
-    runOnceDict = load_runonce()
+    runOnceDict = loadRunOnce()
     
     // loop through the packages list and process installs.
     // TODO: add in hash comparison for processing packages presuming package installs as a feature is maintained.
     for package in packages {
+        if shasumsAvailable && !verifySHASUMForFile(filename: package, shasumArray: shasumFileList) {
+            continue
+        }
+            
         if once {
             if !runOnceDict.contains(where: {$0.key == package}) {
-                if install_package(pkg: package) {
+                if installPackage(pkg: package) {
                     runOnceDict.updateValue(Date(), forKey: package)
                 }
             } else {
@@ -60,17 +67,17 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
                     writeLog("override for \(package) dated \(override[package]!)", status: .debug)
                     if override[package]! > runOnceDict[package]! {
                         writeLog("Actioning package override", status: .debug)
-                        if install_package(pkg: package) {
+                        if installPackage(pkg: package) {
                             runOnceDict.updateValue(Date(), forKey: package)
                         }
                     }
                 }
             }
         } else {
-            _ = install_package(pkg: package)
+            _ = installPackage(pkg: package)
         }
         if delete_items {
-            path_cleanup(pathname: package)
+            pathCleanup(pathname: package)
         }
     }
     
@@ -82,27 +89,8 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
     
     // loop through the scripts list and process.
     for script in scripts {
-        if hashes_available {
-            // check user defaults for a list of sha256 hashes.
-            // This block will run if there are _any_ hashes available so it's all or nothing (by design)
-            // If there is no hash or it doesn't match then we skip to the next file
-            
-            var proceed = false
-            writeLog("checking hash for \(script)", status: .debug)
-            if let storedHash = getValueForKey(script, inArray: file_hashes) {
-                writeLog("stored hash : \(storedHash)", status: .debug)
-                let url = URL(fileURLWithPath: script)
-                if let fileHash = sha256(for: url) {
-                    writeLog("file hash : \(fileHash)", status: .debug)
-                    if storedHash == fileHash {
-                        proceed = true
-                    }
-                }
-            }
-            if !proceed {
-                writeLog("file hash mismatch for: \(script). Skipping", status: .error)
-                continue
-            }
+        if shasumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: shasumFileList) {
+            continue
         }
         
         if once {
@@ -141,26 +129,26 @@ func process_items(_ path: String, delete_items : Bool=false, once : Bool=false,
             }
         }
         if delete_items {
-            path_cleanup(pathname: script)
+            pathCleanup(pathname: script)
         }
     }
     
     if !runOnceDict.isEmpty {
-        write_runonce(runOnceData: runOnceDict)
+        writeRunOnce(runOnceData: runOnceDict)
     }
     
 }
 
 
-func install_package(pkg : String) -> Bool {
+func installPackage(pkg : String) -> Bool {
     // Installs pkg onto boot drive
-    if is_root() {
+    if isRoot() {
         var pkg_to_install : String = ""
         var dmg_mount : String = ""
         
         if pkg.lowercased().hasSuffix("dmg") {
-            dmg_mount = mount_dmg(dmg: pkg)
-            for files in list_folder(path: dmg_mount) {
+            dmg_mount = mountDmg(dmg: pkg)
+            for files in folderContents(path: dmg_mount) {
                 if ["pkg", "mpkg"].contains(files.lowercased().suffix(3)) {
                     pkg_to_install = dmg_mount
                 }
@@ -179,7 +167,7 @@ func install_package(pkg : String) -> Bool {
         
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
             if !dmg_mount.isEmpty {
-                writeLog(detach_dmg(dmgMount: dmg_mount))
+                writeLog(detachDmg(dmgMount: dmg_mount))
             }
         }
         return true
@@ -190,7 +178,7 @@ func install_package(pkg : String) -> Bool {
     return false
 }
 
-func install_profile(pathname : String) -> Bool {
+func installProfile(pathname : String) -> Bool {
     return false
 }
 
