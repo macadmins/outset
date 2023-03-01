@@ -250,6 +250,26 @@ func detachDmg(dmgMount: String) -> String {
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
+func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
+    // Verify that the file
+    var proceed = false
+    writeLog("checking hash for \(filename)", status: .debug)
+    if let storedHash = getValueForKey(filename, inArray: shasumArray) {
+        writeLog("stored hash : \(storedHash)", status: .debug)
+        let url = URL(fileURLWithPath: filename)
+        if let fileHash = sha256(for: url) {
+            writeLog("file hash : \(fileHash)", status: .debug)
+            if storedHash == fileHash {
+                proceed = true
+            }
+        }
+    }
+    if !proceed {
+        writeLog("file hash mismatch for: \(filename). Skipping", status: .error)
+    }
+    
+    return proceed
+}
 
 func sha256(for url: URL) -> String? {
     // computes a sha256sum for the specified file path and returns a string

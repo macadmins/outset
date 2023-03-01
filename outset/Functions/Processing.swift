@@ -22,6 +22,9 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
     var profiles : [String] = []            // profiles aren't supported anyway so we could delete this
     var runOnceDict : [String:Date] = [:]
     
+    let shasumFileList = shasumLoadApprovedFileHashList()
+    let shasumsAvailable = !shasumFileList.isEmpty
+    
     // See if there's any old stuff to migrate
     migrateLegacyPreferences()
     
@@ -50,6 +53,10 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
     // loop through the packages list and process installs.
     // TODO: add in hash comparison for processing packages presuming package installs as a feature is maintained.
     for package in packages {
+        if shasumsAvailable && !verifySHASUMForFile(filename: package, shasumArray: shasumFileList) {
+            continue
+        }
+            
         if once {
             if !runOnceDict.contains(where: {$0.key == package}) {
                 if installPackage(pkg: package) {
@@ -82,27 +89,8 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
     
     // loop through the scripts list and process.
     for script in scripts {
-        if shasumsAvailable {
-            // check user defaults for a list of sha256 hashes.
-            // This block will run if there are _any_ hashes available so it's all or nothing (by design)
-            // If there is no hash or it doesn't match then we skip to the next file
-            
-            var proceed = false
-            writeLog("checking hash for \(script)", status: .debug)
-            if let storedHash = getValueForKey(script, inArray: shasumFileList) {
-                writeLog("stored hash : \(storedHash)", status: .debug)
-                let url = URL(fileURLWithPath: script)
-                if let fileHash = sha256(for: url) {
-                    writeLog("file hash : \(fileHash)", status: .debug)
-                    if storedHash == fileHash {
-                        proceed = true
-                    }
-                }
-            }
-            if !proceed {
-                writeLog("file hash mismatch for: \(script). Skipping", status: .error)
-                continue
-            }
+        if shasumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: shasumFileList) {
+            continue
         }
         
         if once {

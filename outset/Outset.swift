@@ -44,9 +44,6 @@ var ignoredUsers : [String] = []
 var loginOnceOverride : [String: Date] = [String: Date]()
 var continueFirstBoot : Bool = true
 var prefs = loadPreferences()
-var shasumFileList = shasumLoadApprovedFileHashList()
-var shasumsAvailable = !shasumFileList.isEmpty
-
 
 // Logic insertion point
 @main
