@@ -44,6 +44,7 @@
 		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		41A67A13296BF35F000BFFCE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		41ADC47C29AECB8B00C5B94C /* outset */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = outset; sourceTree = "<group>"; };
+		41ADC47E29AF649C00C5B94C /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				41A67A13296BF35F000BFFCE /* README.md */,
+				41ADC47E29AF649C00C5B94C /* LICENSE.md */,
 				41A679EA29659F4E000BFFCE /* Package */,
 				4124EFAE29414A5D003B00F4 /* Outset */,
 				4124EF8E293822F4003B00F4 /* Products */,
