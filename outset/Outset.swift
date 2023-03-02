@@ -8,6 +8,7 @@
 
 import Foundation
 import ArgumentParser
+import OSLog
 
 let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
 let outsetVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
@@ -44,6 +45,10 @@ var ignoredUsers : [String] = []
 var loginOnceOverride : [String: Date] = [String: Date]()
 var continueFirstBoot : Bool = true
 var prefs = loadPreferences()
+
+// Log Stuff
+let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
+let osLog = OSLog(subsystem: bundleID, category: "main")
 
 // Logic insertion point
 @main

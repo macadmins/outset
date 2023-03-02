@@ -36,10 +36,8 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
     return array[key]
 }
 
-func writeLog(_ message: String, status: OSLogType = .info) {
+func writeLog(_ message: String, status: OSLogType = .info, log: OSLog = osLog) {
     let logMessage = "\(message)"
-    let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
-    let log = OSLog(subsystem: bundleID, category: "main")
     os_log("%{public}@", log: log, type: status, logMessage)
     if status == .error || status == .info || (debugMode && status == .debug) {
         // print info, errors and debug to stdout
