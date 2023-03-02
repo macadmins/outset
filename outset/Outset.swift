@@ -88,7 +88,7 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Remove one or more scripts from override list", valueName: "script"), completion: .file())
     var removeOveride : [String] = []
     
-    @Option(help: ArgumentHelp("Compute the SHA256 hash of the given file. Use the keyword 'all' to compute all SHA values and generate a formatted configuration plist", valueName: "file"), completion: .file())
+    @Option(help: ArgumentHelp("Compute the SHA1 hash of the given file. Use the keyword 'all' to compute all SHA values and generate a formatted configuration plist", valueName: "file"), completion: .file())
     var computeSHA : [String] = []
     
     @Flag(help: .hidden)
