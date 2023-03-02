@@ -15,11 +15,11 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
         exit(1)
     }
 
-    // TODO: There's been some discussion that in modern macOS, supporting package installs should not be required as well as profiles
+    // TODO: There's been some discussion that in modern macOS, supporting package installs. 
+    // Profile support has been removed in Outset v4
     var items_to_process : [String] = []    // raw list of files
     var packages : [String] = []            // array of packages once they have passed checks
     var scripts : [String] = []             // array of scripts once they have passed checks
-    var profiles : [String] = []            // profiles aren't supported anyway so we could delete this
     var runOnceDict : [String:Date] = [:]
     
     let shasumFileList = shasumLoadApprovedFileHashList()
@@ -37,8 +37,6 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
             switch pathname.split(separator: ".").last {
             case "pkg", "mpkg", "dmg":
                 packages.append(pathname)
-            case "mobileconfig":
-                profiles.append(pathname)
             default:
                 scripts.append(pathname)
             }
@@ -80,13 +78,7 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
             pathCleanup(pathname: package)
         }
     }
-    
-    /*
-    for profile in profiles {
-        // NO PROFILE SUPPORT
-    }
-     */
-    
+        
     // loop through the scripts list and process.
     for script in scripts {
         if shasumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: shasumFileList) {
@@ -175,10 +167,6 @@ func installPackage(pkg : String) -> Bool {
         writeLog("Unable to process \(pkg)", status: .error)
         writeLog("Must be root to install packages", status: .error)
     }
-    return false
-}
-
-func installProfile(pathname : String) -> Bool {
     return false
 }
 
