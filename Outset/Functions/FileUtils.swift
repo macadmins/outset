@@ -48,6 +48,7 @@ func ensureWorkingFolders() {
     let working_directories = [
         bootEveryDir,
         bootOnceDir,
+        loginWindowDir,
         loginEveryDir,
         loginOnceDir,
         loginEveryPrivilegedDir,
@@ -253,19 +254,20 @@ func detachDmg(dmgMount: String) -> String {
 func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
     // Verify that the file
     var proceed = false
+    var errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
     writeLog("checking hash for \(filename)", status: .debug)
-    if let storedHash = getValueForKey(filename, inArray: shasumArray) {
-        writeLog("stored hash : \(storedHash)", status: .debug)
-        let url = URL(fileURLWithPath: filename)
-        if let fileHash = sha256(for: url) {
-            writeLog("file hash : \(fileHash)", status: .debug)
+    let url = URL(fileURLWithPath: filename)
+    if let fileHash = sha256(for: url) {
+        writeLog("file hash : \(fileHash)", status: .debug)
+        if let storedHash = getValueForKey(filename, inArray: shasumArray) {
+            writeLog("required hash : \(storedHash)", status: .debug)
             if storedHash == fileHash {
                 proceed = true
             }
         }
     }
     if !proceed {
-        writeLog("file hash mismatch for: \(filename). Skipping", status: .error)
+        writeLog(errorMessage, status: .error)
     }
     
     return proceed
