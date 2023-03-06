@@ -138,9 +138,9 @@ func migrateLegacyPreferences() {
 }
 
 func checkFileExists(path: String, isDir: ObjCBool = false) -> Bool {
-    // What is says on the tin
-    var checkIsDir :ObjCBool = isDir
-    return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
+    var isDirectory: ObjCBool = false
+    let fileExists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+    return fileExists && (isDir.boolValue == isDirectory.boolValue)
 }
 
 func folderContents(path: String) -> [String] {
@@ -206,10 +206,13 @@ func pathCleanup(pathname: String) {
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", status: .debug)
     if checkFileExists(path: pathname, isDir: true) {
+        writeLog("\(pathname) is a folder. Iterating over files", status: .debug)
         for fileItem in folderContents(path: pathname) {
+            writeLog("Cleaning up \(fileItem)", status: .debug)
             deleteFile(fileItem)
         }
     } else if checkFileExists(path: pathname) {
+        writeLog("\(pathname) exists", status: .debug)
         deleteFile(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", status: .error)
@@ -254,7 +257,7 @@ func detachDmg(dmgMount: String) -> String {
 func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
     // Verify that the file
     var proceed = false
-    var errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
+    let errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
     writeLog("checking hash for \(filename)", status: .debug)
     let url = URL(fileURLWithPath: filename)
     if let fileHash = sha256(for: url) {
