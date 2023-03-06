@@ -58,7 +58,7 @@ func ensureWorkingFolders() {
     ]
 
     for directory in working_directories {
-        if !checkFileExists(path: directory, isDir: true) {
+        if !checkDirectoryExists(path: directory) {
             writeLog("\(directory) does not exist, creating now.", logLevel: .debug)
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -210,13 +210,13 @@ func pathCleanup(pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", logLevel: .debug)
-    if checkFileExists(path: pathname, isDir: true) {
+    if checkDirectoryExists(path: pathname) {
         for fileItem in folderContents(path: pathname) {
-            writeLog("Cleaning up \(fileItem)", status: .debug)
+            writeLog("Cleaning up \(fileItem)", logLevel: .debug)
             deleteFile(fileItem)
         }
     } else if checkFileExists(path: pathname) {
-        writeLog("\(pathname) exists", status: .debug)
+        writeLog("\(pathname) exists", logLevel: .debug)
         deleteFile(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", logLevel: .error)
@@ -261,22 +261,23 @@ func detachDmg(dmgMount: String) -> String {
 func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
     // Verify that the file
     var proceed = false
-    writeLog("checking hash for \(filename)", logLevel: .debug)
-    if let storedHash = getValueForKey(filename, inArray: shasumArray) {
-        writeLog("stored hash : \(storedHash)", logLevel: .debug)
+        let errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
+        writeLog("checking hash for \(filename)", logLevel: .debug)
         let url = URL(fileURLWithPath: filename)
         if let fileHash = sha256(for: url) {
             writeLog("file hash : \(fileHash)", logLevel: .debug)
-            if storedHash == fileHash {
-                proceed = true
+            if let storedHash = getValueForKey(filename, inArray: shasumArray) {
+                writeLog("required hash : \(storedHash)", logLevel: .debug)
+                if storedHash == fileHash {
+                    proceed = true
+                }
             }
         }
-    }
-    if !proceed {
-        writeLog("file hash mismatch for: \(filename). Skipping", logLevel: .error)
-    }
-    
-    return proceed
+        if !proceed {
+            writeLog(errorMessage, logLevel: .error)
+        }
+        
+        return proceed
 }
 
 func sha256(for url: URL) -> String? {

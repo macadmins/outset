@@ -144,7 +144,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginWindow {
-            writeLog("Processing scheduled runs for login window", status: .debug)
+            writeLog("Processing scheduled runs for login window", logLevel: .debug)
             
             if !folderContents(path: loginWindowDir).isEmpty {
                 processItems(loginWindowDir)
