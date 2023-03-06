@@ -8,6 +8,7 @@
 
 import Foundation
 import ArgumentParser
+import OSLog
 
 let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
 let outsetVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as! String
@@ -25,6 +26,8 @@ let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
 let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
 let onDemandDir = outsetDirectory+"on-demand"
 let shareDirectory = outsetDirectory+"share/"
+let logDirectory = outsetDirectory+"logs"
+let logFile = logDirectory+"/outset.log"
 
 let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
 let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
@@ -45,6 +48,10 @@ var ignoredUsers : [String] = []
 var loginOnceOverride : [String: Date] = [String: Date]()
 var continueFirstBoot : Bool = true
 var prefs = loadPreferences()
+
+// Log Stuff
+let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
+let osLog = OSLog(subsystem: bundleID, category: "main")
 
 // Logic insertion point
 @main
@@ -102,22 +109,13 @@ struct Outset: ParsableCommand {
     var version = false
     
     mutating func run() throws {
-                
-        if debug {
-            debugMode = true
-            writeLog("Outset version \(outsetVersion)", status: .debug)
-            writeSysReport()
-        }
         
-        if shasumReport {
-            writeLog("sha256sum report", status: .info)
-            for (filename, shasum) in shasumLoadApprovedFileHashList() {
-                writeLog("\(filename) : \(shasum)", status: .info)
-            }
+        if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
+            debugMode = true
         }
         
         if boot {
-            writeLog("Processing scheduled runs for boot", status: .debug)
+            writeLog("Processing scheduled runs for boot", logLevel: .debug)
             ensureWorkingFolders()
             writePreferences(prefs: prefs)
             
@@ -131,7 +129,7 @@ struct Outset: ParsableCommand {
                     writeSysReport()
                     processItems(bootOnceDir, delete_items: true)
                 } else {
-                    writeLog("Unable to connect to network. Skipping boot-once scripts...", status: .error)
+                    writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
                 }
                 if !loginwindowState {
                     loginWindowEnable()
@@ -146,7 +144,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginWindow {
-            writeLog("Processing scheduled runs for login window", status: .debug)
+            writeLog("Processing scheduled runs for login window", logLevel: .debug)
             
             if !folderContents(path: loginWindowDir).isEmpty {
                 processItems(loginWindowDir)
@@ -154,7 +152,7 @@ struct Outset: ParsableCommand {
         }
         
         if login {
-            writeLog("Processing scheduled runs for login", status: .debug)
+            writeLog("Processing scheduled runs for login", logLevel: .debug)
             if !ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true, override: prefs.override_login_once)
@@ -170,7 +168,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginPrivileged {
-            writeLog("Processing scheduled runs for privileged login", status: .debug)
+            writeLog("Processing scheduled runs for privileged login", logLevel: .debug)
             if checkFileExists(path: loginPrivilegedTrigger) {
                 pathCleanup(pathname: loginPrivilegedTrigger)
             }
@@ -187,7 +185,7 @@ struct Outset: ParsableCommand {
         }
         
         if onDemand {
-            writeLog("Processing on-demand", status: .debug)
+            writeLog("Processing on-demand", logLevel: .debug)
             if !folderContents(path: onDemandDir).isEmpty {
                 if !["root", "loginwindow"].contains(consoleUser) {
                     let current_user = NSUserName()
@@ -209,7 +207,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginEvery {
-            writeLog("Processing scripts in login-every", status: .debug)
+            writeLog("Processing scripts in login-every", logLevel: .debug)
             if !ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginEveryDir).isEmpty {
                     processItems(loginEveryDir)
@@ -218,7 +216,7 @@ struct Outset: ParsableCommand {
         }
         
         if loginOnce {
-            writeLog("Processing scripts in login-once", status: .debug)
+            writeLog("Processing scripts in login-once", logLevel: .debug)
             if !ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true)
@@ -227,7 +225,7 @@ struct Outset: ParsableCommand {
         }
         
         if cleanup {
-            writeLog("Cleaning up on-demand directory.", status: .debug)
+            writeLog("Cleaning up on-demand directory.", logLevel: .debug)
             if checkFileExists(path: onDemandTrigger) {
                     pathCleanup(pathname: onDemandTrigger)
             }
@@ -240,9 +238,9 @@ struct Outset: ParsableCommand {
             ensure_root("add to ignored users")
             for username in addIgnoredUser {
                 if prefs.ignored_users.contains(username) {
-                    writeLog("User \"\(username)\" is already in the ignored users list", status: .info)
+                    writeLog("User \"\(username)\" is already in the ignored users list", logLevel: .info)
                 } else {
-                    writeLog("Adding \(username) to ignored users list", status: .info)
+                    writeLog("Adding \(username) to ignored users list", logLevel: .info)
                     prefs.ignored_users.append(username)
                 }
             }
@@ -266,7 +264,7 @@ struct Outset: ParsableCommand {
                 if !overide.contains(loginOnceDir) {
                     overide = "\(loginOnceDir)/\(overide)"
                 }
-                writeLog("Adding \(overide) to overide list", status: .debug)
+                writeLog("Adding \(overide) to overide list", logLevel: .debug)
                 prefs.override_login_once[overide] = Date()
             }
             writePreferences(prefs: prefs)
@@ -278,7 +276,7 @@ struct Outset: ParsableCommand {
                 if !overide.contains(loginOnceDir) {
                     overide = "\(loginOnceDir)/\(overide)"
                 }
-                writeLog("Removing \(overide) from overide list", status: .debug)
+                writeLog("Removing \(overide) from overide list", logLevel: .debug)
                 prefs.override_login_once.removeValue(forKey: overide)
             }
             writePreferences(prefs: prefs)
@@ -297,8 +295,18 @@ struct Outset: ParsableCommand {
             }
         }
         
+        if shasumReport {
+            writeLog("sha256sum report", logLevel: .info)
+            for (filename, shasum) in shasumLoadApprovedFileHashList() {
+                writeLog("\(filename) : \(shasum)", logLevel: .info)
+            }
+        }
+        
         if version {
             print(outsetVersion)
+            if debugMode {
+                writeSysReport()
+            }
         }
     }
 }

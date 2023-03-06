@@ -41,7 +41,7 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
                 scripts.append(pathname)
             }
         } else {
-            writeLog("Bad permissions: \(pathname)", status: .error)
+            writeLog("Bad permissions: \(pathname)", logLevel: .error)
         }
     }
     
@@ -62,9 +62,9 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
                 }
             } else {
                 if override.contains(where: {$0.key == package}) {
-                    writeLog("override for \(package) dated \(override[package]!)", status: .debug)
+                    writeLog("override for \(package) dated \(override[package]!)", logLevel: .debug)
                     if override[package]! > runOnceDict[package]! {
-                        writeLog("Actioning package override", status: .debug)
+                        writeLog("Actioning package override", logLevel: .debug)
                         if installPackage(pkg: package) {
                             runOnceDict.updateValue(Date(), forKey: package)
                         }
@@ -91,7 +91,7 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
             if !runOnceDict.contains(where: {$0.key == script}) {
                 let (output, error, status) = runShellCommand(script, verbose: true)
                 if status != 0 {
-                    writeLog(error, status: .error)
+                    writeLog(error, logLevel: .error)
                 } else {
                     runOnceDict.updateValue(Date(), forKey: script)
                     writeLog(output)
@@ -99,16 +99,16 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
             } else {
                 // there's a run-once plist entry for this script. Check to see if there's an override
                 if override.contains(where: {$0.key == script}) {
-                    writeLog("override for \(script) dated \(override[script]!)", status: .debug)
+                    writeLog("override for \(script) dated \(override[script]!)", logLevel: .debug)
                     if override[script]! > runOnceDict[script]! {
-                        writeLog("Actioning script override", status: .debug)
+                        writeLog("Actioning script override", logLevel: .debug)
                         let (output, error, status) = runShellCommand(script, verbose: true)
                         if status != 0 {
-                            writeLog(error, status: .error)
+                            writeLog(error, logLevel: .error)
                         } else {
                             runOnceDict.updateValue(Date(), forKey: script)
                             if !output.isEmpty {
-                                writeLog(output, status: .debug)
+                                writeLog(output, logLevel: .debug)
                             }
                         }
                     }
@@ -117,7 +117,7 @@ func processItems(_ path: String, delete_items : Bool=false, once : Bool=false, 
         } else {
             let (_, error, status) = runShellCommand(script, verbose: true)
             if status != 0 {
-                writeLog(error, status: .error)
+                writeLog(error, logLevel: .error)
             }
         }
         if delete_items {
@@ -152,7 +152,7 @@ func installPackage(pkg : String) -> Bool {
         let cmd = "/usr/sbin/installer -pkg \(pkg_to_install) -target /"
         let (output, error, status) = runShellCommand(cmd, verbose: true)
         if status != 0 {
-            writeLog(error, status: .error)
+            writeLog(error, logLevel: .error)
         } else {
             writeLog(output)
         }
@@ -164,8 +164,8 @@ func installPackage(pkg : String) -> Bool {
         }
         return true
     } else {
-        writeLog("Unable to process \(pkg)", status: .error)
-        writeLog("Must be root to install packages", status: .error)
+        writeLog("Unable to process \(pkg)", logLevel: .error)
+        writeLog("Must be root to install packages", logLevel: .error)
     }
     return false
 }
