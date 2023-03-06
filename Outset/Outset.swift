@@ -18,6 +18,7 @@ let outsetVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as
 let outsetDirectory = "/usr/local/outset/"
 let bootEveryDir = outsetDirectory+"boot-every"
 let bootOnceDir = outsetDirectory+"boot-once"
+let loginWindowDir = outsetDirectory+"login-window"
 let loginEveryDir = outsetDirectory+"login-every"
 let loginOnceDir = outsetDirectory+"login-once"
 let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
@@ -36,7 +37,7 @@ let requiredExecutablePermissions: NSNumber = 0o755
 
 // Set some variables
 var debugMode : Bool = false
-var loginwindow : Bool = true
+var loginwindowState : Bool = true
 var consoleUser : String = getConsoleUserInfo().username
 var networkWait : Bool = true
 var networkTimeout : Int = 180
@@ -60,6 +61,9 @@ struct Outset: ParsableCommand {
     
     @Flag(help: "Used by launchd for scheduled runs at login")
     var login = false
+    
+    @Flag(help: "Used by launchd for scheduled runs at the login window")
+    var loginWindow = false
     
     @Flag(help: "Used by launchd for scheduled privileged runs at login")
     var loginPrivileged = false
@@ -119,7 +123,7 @@ struct Outset: ParsableCommand {
             
             if !folderContents(path: bootOnceDir).isEmpty {
                 if networkWait {
-                    loginwindow = false
+                    loginwindowState = false
                     loginWindowDisable()
                     continueFirstBoot = waitForNetworkUp(timeout: floor(Double(networkTimeout) / 10))
                 }
@@ -129,7 +133,7 @@ struct Outset: ParsableCommand {
                 } else {
                     writeLog("Unable to connect to network. Skipping boot-once scripts...", status: .error)
                 }
-                if !loginwindow {
+                if !loginwindowState {
                     loginWindowEnable()
                 }
             }
@@ -139,6 +143,14 @@ struct Outset: ParsableCommand {
             }
             
             writeLog("Boot processing complete")
+        }
+        
+        if loginWindow {
+            writeLog("Processing scheduled runs for login window", status: .debug)
+            
+            if !folderContents(path: loginWindowDir).isEmpty {
+                processItems(loginWindowDir)
+            }
         }
         
         if login {

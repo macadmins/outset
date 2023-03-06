@@ -48,6 +48,7 @@ func ensureWorkingFolders() {
     let working_directories = [
         bootEveryDir,
         bootOnceDir,
+        loginWindowDir,
         loginEveryDir,
         loginOnceDir,
         loginEveryPrivilegedDir,
@@ -56,7 +57,7 @@ func ensureWorkingFolders() {
     ]
 
     for directory in working_directories {
-        if !checkFileExists(path: directory, isDir: true) {
+        if !checkDirectoryExists(path: directory) {
             writeLog("\(directory) does not exist, creating now.", status: .debug)
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -70,7 +71,7 @@ func ensureWorkingFolders() {
 func migrateLegacyPreferences() {
     // shared folder should not contain any executable content, iterate and update as required
     // TODO: could probably be optimised as there is duplication with ensure_working_folders()
-    if checkFileExists(path: shareDirectory) {
+    if checkDirectoryExists(path: shareDirectory) {
         writeLog("\(shareDirectory) exists. Migrating prefrences to user defaults", status: .debug)
         
         let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
@@ -136,10 +137,14 @@ func migrateLegacyPreferences() {
 
 }
 
-func checkFileExists(path: String, isDir: ObjCBool = false) -> Bool {
-    // What is says on the tin
-    var checkIsDir :ObjCBool = isDir
-    return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
+func checkFileExists(path: String) -> Bool {
+    return FileManager.default.fileExists(atPath: path)
+}
+
+func checkDirectoryExists(path: String) -> Bool {
+    var isDirectory: ObjCBool = false
+    let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+    return isDirectory.boolValue
 }
 
 func folderContents(path: String) -> [String] {
@@ -204,11 +209,14 @@ func pathCleanup(pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", status: .debug)
-    if checkFileExists(path: pathname, isDir: true) {
+    if checkDirectoryExists(path: pathname) {
+        writeLog("\(pathname) is a folder. Iterating over files", status: .debug)
         for fileItem in folderContents(path: pathname) {
+            writeLog("Cleaning up \(fileItem)", status: .debug)
             deleteFile(fileItem)
         }
     } else if checkFileExists(path: pathname) {
+        writeLog("\(pathname) exists", status: .debug)
         deleteFile(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", status: .error)
@@ -253,19 +261,20 @@ func detachDmg(dmgMount: String) -> String {
 func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
     // Verify that the file
     var proceed = false
+    let errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
     writeLog("checking hash for \(filename)", status: .debug)
-    if let storedHash = getValueForKey(filename, inArray: shasumArray) {
-        writeLog("stored hash : \(storedHash)", status: .debug)
-        let url = URL(fileURLWithPath: filename)
-        if let fileHash = sha256(for: url) {
-            writeLog("file hash : \(fileHash)", status: .debug)
+    let url = URL(fileURLWithPath: filename)
+    if let fileHash = sha256(for: url) {
+        writeLog("file hash : \(fileHash)", status: .debug)
+        if let storedHash = getValueForKey(filename, inArray: shasumArray) {
+            writeLog("required hash : \(storedHash)", status: .debug)
             if storedHash == fileHash {
                 proceed = true
             }
         }
     }
     if !proceed {
-        writeLog("file hash mismatch for: \(filename). Skipping", status: .error)
+        writeLog(errorMessage, status: .error)
     }
     
     return proceed
@@ -334,5 +343,11 @@ extension Data {
 
     func hexEncodedString() -> String {
         return map { String(format: "%02hhx", $0) }.joined()
+    }
+}
+
+extension URL {
+    var isDirectory: Bool {
+       (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }

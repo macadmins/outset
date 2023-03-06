@@ -5,6 +5,8 @@
 #  Created by Bart Reardon on 9/1/2023.
 #  
 
+# run boot argument - creates necessary paths and folders
+/usr/local/outset/Outset.app/Contents/MacOS/Outset --boot
 
 ## LaunchDaemons
 LD_ROOT="/Library/LaunchDaemons"
@@ -19,6 +21,7 @@ LA_ROOT="/Library/LaunchAgents"
 AGENTS=(
   "${LA_ROOT}/io.macadmins.outset.login.plist"
   "${LA_ROOT}/io.macadmins.outset.on-demand.plist"
+  "${LA_ROOT}/io.macadmins.outset.login-window"
 )
 
 for daemon in ${DAEMONS}; do
