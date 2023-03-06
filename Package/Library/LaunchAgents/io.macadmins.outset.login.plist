@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>io.macadmins.outset.login</string>
+	<string>io.macadmins.Outset.login</string>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
 	<key>ProgramArguments</key>

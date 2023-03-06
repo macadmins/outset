@@ -3,10 +3,15 @@
 #  Postinstall script for outset CLI
 #
 #  Created by Bart Reardon on 9/1/2023.
-#  
+#
+
+APP_PATH="/usr/local/outset/Outset.app"
+
+# register the app bundle
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister "${APP_PATH}"
 
 # run boot argument - creates necessary paths and folders
-/usr/local/outset/Outset.app/Contents/MacOS/Outset --boot
+"${APP_PATH}/Contents/MacOS/Outset" --boot
 
 ## LaunchDaemons
 LD_ROOT="/Library/LaunchDaemons"

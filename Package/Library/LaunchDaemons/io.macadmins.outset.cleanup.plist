@@ -13,7 +13,7 @@
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>io.macadmins.outset.cleanup</string>
+	<string>io.macadmins.Outset.cleanup</string>
 	<key>OnDemand</key>
 	<true/>
 	<key>ProgramArguments</key>

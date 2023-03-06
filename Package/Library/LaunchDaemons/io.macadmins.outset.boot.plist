@@ -5,7 +5,7 @@
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
 	<key>Label</key>
-	<string>io.macadmins.outset.boot</string>
+	<string>io.macadmins.Outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
