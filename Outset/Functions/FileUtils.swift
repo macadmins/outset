@@ -57,7 +57,7 @@ func ensureWorkingFolders() {
     ]
 
     for directory in working_directories {
-        if !checkFileExists(path: directory, isDir: true) {
+        if !checkDirectoryExists(path: directory) {
             writeLog("\(directory) does not exist, creating now.", status: .debug)
             do {
                 try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
@@ -71,7 +71,7 @@ func ensureWorkingFolders() {
 func migrateLegacyPreferences() {
     // shared folder should not contain any executable content, iterate and update as required
     // TODO: could probably be optimised as there is duplication with ensure_working_folders()
-    if checkFileExists(path: shareDirectory) {
+    if checkDirectoryExists(path: shareDirectory) {
         writeLog("\(shareDirectory) exists. Migrating prefrences to user defaults", status: .debug)
         
         let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
@@ -137,10 +137,14 @@ func migrateLegacyPreferences() {
 
 }
 
-func checkFileExists(path: String, isDir: ObjCBool = false) -> Bool {
+func checkFileExists(path: String) -> Bool {
+    return FileManager.default.fileExists(atPath: path)
+}
+
+func checkDirectoryExists(path: String) -> Bool {
     var isDirectory: ObjCBool = false
-    let fileExists = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
-    return fileExists && (isDir.boolValue == isDirectory.boolValue)
+    let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+    return isDirectory.boolValue
 }
 
 func folderContents(path: String) -> [String] {
@@ -205,7 +209,7 @@ func pathCleanup(pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", status: .debug)
-    if checkFileExists(path: pathname, isDir: true) {
+    if checkDirectoryExists(path: pathname) {
         writeLog("\(pathname) is a folder. Iterating over files", status: .debug)
         for fileItem in folderContents(path: pathname) {
             writeLog("Cleaning up \(fileItem)", status: .debug)
@@ -339,5 +343,11 @@ extension Data {
 
     func hexEncodedString() -> String {
         return map { String(format: "%02hhx", $0) }.joined()
+    }
+}
+
+extension URL {
+    var isDirectory: Bool {
+       (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }
