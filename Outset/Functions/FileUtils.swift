@@ -147,7 +147,8 @@ func folderContents(path: String) -> [String] {
     var filelist: [String] = []
     do {
         let files = try FileManager.default.contentsOfDirectory(atPath: path)
-        for file in files {
+        let sortedFiles = files.sorted()
+        for file in sortedFiles {
             filelist.append("\(path)/\(file)")
         }
     } catch {
