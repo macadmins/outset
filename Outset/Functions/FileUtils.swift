@@ -48,6 +48,7 @@ func ensureWorkingFolders() {
     let working_directories = [
         bootEveryDir,
         bootOnceDir,
+        loginWindowDir,
         loginEveryDir,
         loginOnceDir,
         loginEveryPrivilegedDir,
@@ -137,10 +138,14 @@ func migrateLegacyPreferences() {
 
 }
 
-func checkFileExists(path: String, isDir: ObjCBool = false) -> Bool {
-    // What is says on the tin
-    var checkIsDir :ObjCBool = isDir
-    return FileManager.default.fileExists(atPath: path, isDirectory: &checkIsDir)
+func checkFileExists(path: String) -> Bool {
+    return FileManager.default.fileExists(atPath: path)
+}
+
+func checkDirectoryExists(path: String) -> Bool {
+    var isDirectory: ObjCBool = false
+    let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+    return isDirectory.boolValue
 }
 
 func folderContents(path: String) -> [String] {
@@ -207,9 +212,11 @@ func pathCleanup(pathname: String) {
     writeLog("Cleaning up \(pathname)", logLevel: .debug)
     if checkFileExists(path: pathname, isDir: true) {
         for fileItem in folderContents(path: pathname) {
+            writeLog("Cleaning up \(fileItem)", status: .debug)
             deleteFile(fileItem)
         }
     } else if checkFileExists(path: pathname) {
+        writeLog("\(pathname) exists", status: .debug)
         deleteFile(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", logLevel: .error)
@@ -335,5 +342,11 @@ extension Data {
 
     func hexEncodedString() -> String {
         return map { String(format: "%02hhx", $0) }.joined()
+    }
+}
+
+extension URL {
+    var isDirectory: Bool {
+       (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }
