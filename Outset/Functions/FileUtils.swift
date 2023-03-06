@@ -4,22 +4,23 @@
 //
 //  Created by Bart Reardon on 3/12/2022.
 //
+// swiftlint:disable large_tuple line_length function_body_length
 
 import Foundation
 import CommonCrypto
 
-func runShellCommand(_ command: String, verbose : Bool = false) -> (output: String, error: String, exitCode: Int32) {
+func runShellCommand(_ command: String, verbose: Bool = false) -> (output: String, error: String, exitCode: Int32) {
     // runs a shell command passed as an argument
     // If the verbose parameter is set to true, will log the command being run and its status when completed.
     // returns the output, error and exit code as a tuple.
-    
+
     if verbose {
         writeLog("Running task \(command)", logLevel: .debug)
     }
     let task = Process()
     let pipe = Pipe()
     let errorpipe = Pipe()
-    
+
     var output: String = ""
     var error: String = ""
 
@@ -45,7 +46,7 @@ func runShellCommand(_ command: String, verbose : Bool = false) -> (output: Stri
 
 func ensureWorkingFolders() {
     // Ensures working folders are all present and creates them if necessary
-    let working_directories = [
+    let workingDirectories = [
         bootEveryDir,
         bootOnceDir,
         loginWindowDir,
@@ -57,82 +58,74 @@ func ensureWorkingFolders() {
         logDirectory
     ]
 
-    for directory in working_directories {
-        if !checkDirectoryExists(path: directory) {
-            writeLog("\(directory) does not exist, creating now.", logLevel: .debug)
-            do {
-                try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
-            } catch {
-                writeLog("could not create path at \(directory)", logLevel: .error)
-            }
+    for directory in workingDirectories where !checkDirectoryExists(path: directory) {
+        writeLog("\(directory) does not exist, creating now.", logLevel: .debug)
+        do {
+            try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true)
+        } catch {
+            writeLog("could not create path at \(directory)", logLevel: .error)
         }
     }
 }
 
 func migrateLegacyPreferences() {
     // shared folder should not contain any executable content, iterate and update as required
-    // TODO: could probably be optimised as there is duplication with ensure_working_folders()
     if checkFileExists(path: shareDirectory) {
         writeLog("\(shareDirectory) exists. Migrating prefrences to user defaults", logLevel: .debug)
-        
+
         let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
         let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
-        let userHomePath = FileManager.default.homeDirectoryForCurrentUser.relativeString.replacingOccurrences(of: "file://", with: "")
+        let userHomeDirectory = FileManager.default.homeDirectoryForCurrentUser
+        let userHomePath = userHomeDirectory.relativeString.replacingOccurrences(of: "file://", with: "")
         let legacyUserRunOncePlistFile = userHomePath+"Library/Preferences/com.github.outset.once.plist"
 
-        var share_files : [String] = []
-        share_files.append(legacyOutsetPreferencesFile)
-        share_files.append(legacyRootRunOncePlistFile)
-        share_files.append(legacyUserRunOncePlistFile)
-        
-        for filename in share_files {
-            if checkFileExists(path: filename) {
-                let url = URL(fileURLWithPath: filename)
-                do {
-                    let data = try Data(contentsOf: url)
-                    switch filename {
-                        
-                    case legacyOutsetPreferencesFile:
-                        do {
-                            let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-                            writePreferences(prefs: legacyPreferences)
-                            writeLog("Migrated Legacy Outset Preferences", logLevel: .debug)
-                            deleteFile(legacyOutsetPreferencesFile)
-                        } catch {
-                            writeLog("legacy Preferences migration failed", logLevel: .error)
-                        }
-                        
-                    case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
-                        do {
-                            let legacyRunOncePlistData = try PropertyListDecoder().decode([String:Date].self, from: data)
-                            writeRunOnce(runOnceData: legacyRunOncePlistData)
-                            writeLog("Migrated Legacy Runonce Data", logLevel: .debug)
-                            if isRoot() {
-                                deleteFile(legacyRootRunOncePlistFile)
-                            } else {
-                                deleteFile(legacyUserRunOncePlistFile)
-                            }
-                        } catch {
-                            writeLog("legacy Run Once Plist migration failed", logLevel: .error)
-                        }
-                        
-                    default:
-                        continue
-                    }
-                } catch {
-                    writeLog("could not load \(filename)", logLevel: .error)
-                }
-            }
-            
-        }
-        
-        if folderContents(path: shareDirectory).isEmpty {
+        var shareFiles: [String] = []
+        shareFiles.append(legacyOutsetPreferencesFile)
+        shareFiles.append(legacyRootRunOncePlistFile)
+        shareFiles.append(legacyUserRunOncePlistFile)
+
+        for filename in shareFiles where checkFileExists(path: filename) {
+
+            let url = URL(fileURLWithPath: filename)
             do {
-                try FileManager.default.removeItem(atPath: shareDirectory)
-                writeLog("removed \(shareDirectory)", logLevel: .debug)
+                let data = try Data(contentsOf: url)
+                switch filename {
+
+                case legacyOutsetPreferencesFile:
+                    do {
+                        let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
+                        writePreferences(prefs: legacyPreferences)
+                        writeLog("Migrated Legacy Outset Preferences", logLevel: .debug)
+                        deletePath(legacyOutsetPreferencesFile)
+                    } catch {
+                        writeLog("legacy Preferences migration failed", logLevel: .error)
+                    }
+
+                case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
+                    do {
+                        let legacyRunOncePlistData = try PropertyListDecoder().decode([String: Date].self, from: data)
+                        writeRunOnce(runOnceData: legacyRunOncePlistData)
+                        writeLog("Migrated Legacy Runonce Data", logLevel: .debug)
+                        if isRoot() {
+                            deletePath(legacyRootRunOncePlistFile)
+                        } else {
+                            deletePath(legacyUserRunOncePlistFile)
+                        }
+                    } catch {
+                        writeLog("legacy Run Once Plist migration failed", logLevel: .error)
+                    }
+
+                default:
+                    continue
+                }
             } catch {
-                writeLog("could not remove \(shareDirectory)", logLevel: .error)
+                writeLog("could not load \(filename)", logLevel: .error)
             }
+
+        }
+
+        if folderContents(path: shareDirectory).isEmpty {
+            deletePath(shareDirectory)
         }
     }
 
@@ -144,14 +137,14 @@ func checkFileExists(path: String) -> Bool {
 
 func checkDirectoryExists(path: String) -> Bool {
     var isDirectory: ObjCBool = false
-    let _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
+    _ = FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory)
     return isDirectory.boolValue
 }
 
 func folderContents(path: String) -> [String] {
     // Returns a array of strings containing the folder contents
     // Does not perform a recursive list
-    var filelist : [String] = []
+    var filelist: [String] = []
     do {
         let files = try FileManager.default.contentsOfDirectory(atPath: path)
         for file in files {
@@ -163,14 +156,15 @@ func folderContents(path: String) -> [String] {
     return filelist
 }
 
-func verifyPermissions(pathname :String) -> Bool {
+func verifyPermissions(pathname: String) -> Bool {
     // Files should be owned by root
     // Files that are not scripts should have permissions 644 (-rw-r--r--)
     // Files that are scripts should have permissions 755 (-rwxr-xr-x)
     // If the permission for the request file is not correct then return fals to indicate it should not be processed
-    
-    let (ownerID, mode) = getFileProperties(pathname: pathname) //fileAttributes[.ownerAccountID] as! Int
+
+    let (ownerID, mode) = getFileProperties(pathname: pathname)
     let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
+    let errorMessage = "Permissions for \(pathname) are incorrect. Should be owned by root and with mode"
 
     writeLog("ownerID for \(pathname) : \(String(describing: ownerID))", logLevel: .debug)
     writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", logLevel: .debug)
@@ -179,31 +173,35 @@ func verifyPermissions(pathname :String) -> Bool {
         if ownerID == 0 && mode == requiredFilePermissions {
             return true
         } else {
-            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x644", logLevel: .error)
+            writeLog("\(errorMessage) x644", logLevel: .error)
         }
     } else {
         if ownerID == 0 && mode == requiredExecutablePermissions {
             return true
         } else {
-            writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x755", logLevel: .error)
+            writeLog("\(errorMessage) x755", logLevel: .error)
         }
     }
     return false
 }
 
-func getFileProperties(pathname: String) -> (ownerID : Int, permissions : NSNumber) {
+func getFileProperties(pathname: String) -> (ownerID: Int, permissions: NSNumber) {
     // returns the ID and permissions of the specified file
-    var fileAttributes : [FileAttributeKey:Any]
-    var ownerID : Int = 0
-    var mode : NSNumber = 0
+    var fileAttributes: [FileAttributeKey: Any]
+    var ownerID: Int = 0
+    var mode: NSNumber = 0
     do {
-        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)// as Dictionary
-        ownerID = fileAttributes[.ownerAccountID] as! Int
-        mode = fileAttributes[.posixPermissions] as! NSNumber
+        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)
+        if let ownerProperty = fileAttributes[.ownerAccountID] as? Int {
+            ownerID = ownerProperty
+        }
+        if let modeProperty = fileAttributes[.posixPermissions] as? NSNumber {
+            mode = modeProperty
+        }
     } catch {
         writeLog("Could not read file at path \(pathname)", logLevel: .error)
     }
-    return (ownerID,mode)
+    return (ownerID, mode)
 }
 
 func pathCleanup(pathname: String) {
@@ -213,17 +211,17 @@ func pathCleanup(pathname: String) {
     if checkDirectoryExists(path: pathname) {
         for fileItem in folderContents(path: pathname) {
             writeLog("Cleaning up \(fileItem)", logLevel: .debug)
-            deleteFile(fileItem)
+            deletePath(fileItem)
         }
     } else if checkFileExists(path: pathname) {
         writeLog("\(pathname) exists", logLevel: .debug)
-        deleteFile(pathname)
+        deletePath(pathname)
     } else {
         writeLog("\(pathname) doesn't seem to exist", logLevel: .error)
     }
 }
 
-func deleteFile(_ path: String) {
+func deletePath(_ path: String) {
     // Deletes the specified file
     writeLog("Deleting \(path)", logLevel: .debug)
     do {
@@ -258,7 +256,7 @@ func detachDmg(dmgMount: String) -> String {
     return output.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool {
+func verifySHASUMForFile(filename: String, shasumArray: [String: String]) -> Bool {
     // Verify that the file
     var proceed = false
         let errorMessage = "no required hash or file hash mismatch for: \(filename). Skipping"
@@ -276,7 +274,7 @@ func verifySHASUMForFile(filename: String, shasumArray: [String:String]) -> Bool
         if !proceed {
             writeLog(errorMessage, logLevel: .error)
         }
-        
+
         return proceed
 }
 
@@ -296,28 +294,28 @@ func shaAllFiles() {
     // returns data in two formats to stdout:
     //   plaintext
     //   as plist format ready for import into an MDM or converting to a .mobileconfig
-    
+
     let url = URL(fileURLWithPath: outsetDirectory)
     writeLog("SHASUM", logLevel: .info)
-    var shasum_plist = FileHashes()
+    var shasumPlist = FileHashes()
     if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
         for case let fileURL as URL in enumerator {
             do {
-                let fileAttributes = try fileURL.resourceValues(forKeys:[.isRegularFileKey])
+                let fileAttributes = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
                 if fileAttributes.isRegularFile! && fileURL.pathExtension != "plist" && fileURL.lastPathComponent != "outset" {
                     if let shasum = sha256(for: fileURL) {
                         print("\(fileURL.relativePath) : \(shasum)")
-                        shasum_plist.sha256sum[fileURL.relativePath] = shasum
+                        shasumPlist.sha256sum[fileURL.relativePath] = shasum
                     }
                 }
             } catch { print(error, fileURL) }
         }
-        
+
         writeLog("PLIST", logLevel: .info)
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .xml
         do {
-            let data = try encoder.encode(shasum_plist)
+            let data = try encoder.encode(shasumPlist)
             if let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] {
                 let formatted = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
                 if let string = String(data: formatted, encoding: .utf8) {
@@ -329,7 +327,6 @@ func shaAllFiles() {
         }
     }
 }
-
 
 extension Data {
     // extension to the Data class that lets us compute sha256

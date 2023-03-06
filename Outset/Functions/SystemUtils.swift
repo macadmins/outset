@@ -4,23 +4,24 @@
 //
 //  Created by Bart Reardon on 1/12/2022.
 //
+// swiftlint:disable line_length
 
 import Foundation
 import SystemConfiguration
 import OSLog
 
 struct OutsetPreferences: Codable {
-    var wait_for_network : Bool = false
-    var network_timeout : Int = 180
-    var ignored_users : [String] = []
-    var override_login_once : [String:Date] = [String:Date]()
+    var waitForNetwork: Bool = false
+    var networkTimeout: Int = 180
+    var ignoredUsers: [String] = []
+    var overrideLoginOnce: [String: Date] = [String: Date]()
 }
 
 struct FileHashes: Codable {
-    var sha256sum : [String:String] = [String:String]()
+    var sha256sum: [String: String] = [String: String]()
 }
 
-func ensure_root(_ reason : String) {
+func ensureRoot(_ reason: String) {
     if !isRoot() {
         writeLog("Must be root to \(reason)", logLevel: .error)
         exit(1)
@@ -38,7 +39,7 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
 
 func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
     let logMessage = "\(message)"
-    
+
     os_log("%{public}@", log: log, type: logLevel, logMessage)
     if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
         // print info, errors and debug to stdout
@@ -82,12 +83,12 @@ func writeFileLog(message: String, logLevel: OSLogType) {
 
 func oslogTypeToString(_ type: OSLogType) -> String {
     switch type {
-        case OSLogType.default: return "default"
-        case OSLogType.info: return "info"
-        case OSLogType.debug: return "debug"
-        case OSLogType.error: return "error"
-        case OSLogType.fault: return "fault"
-        default: return "unknown"
+    case OSLogType.default: return "default"
+    case OSLogType.info: return "info"
+    case OSLogType.debug: return "debug"
+    case OSLogType.error: return "error"
+    case OSLogType.fault: return "fault"
+    default: return "unknown"
     }
 }
 
@@ -99,13 +100,13 @@ func getConsoleUserInfo() -> (username: String, userID: String) {
 }
 
 func writePreferences(prefs: OutsetPreferences) {
-    
+
     if debugMode {
         showPrefrencePath("Stor")
     }
-    
+
     let defaults = UserDefaults.standard
-        
+
     // Take the OutsetPreferences object and write it to UserDefaults
     let mirror = Mirror(reflecting: prefs)
     for child in mirror.children {
@@ -117,48 +118,48 @@ func writePreferences(prefs: OutsetPreferences) {
 }
 
 func loadPreferences() -> OutsetPreferences {
-    
+
     if debugMode {
         showPrefrencePath("Load")
     }
-    
+
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
-    
-    outsetPrefs.network_timeout = defaults.integer(forKey: "network_timeout")
-    outsetPrefs.ignored_users = defaults.array(forKey: "ignored_users") as? [String] ?? []
-    outsetPrefs.override_login_once = defaults.object(forKey: "override_login_once") as? [String:Date] ?? [:]
-    outsetPrefs.wait_for_network = defaults.bool(forKey: "wait_for_network")
-    
+
+    outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
+    outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
+    outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? [String: Date] ?? [:]
+    outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
+
     return outsetPrefs
 }
 
-func loadRunOnce() -> [String:Date] {
-    
+func loadRunOnce() -> [String: Date] {
+
     if debugMode {
         showPrefrencePath("Load")
     }
-    
+
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
-    
+
     if isRoot() {
-        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
+        runOnceKey += "-"+getConsoleUserInfo().username
     }
-    return defaults.object(forKey: runOnceKey) as? [String:Date] ?? [:]
+    return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
 }
 
-func writeRunOnce(runOnceData: [String:Date]) {
-    
+func writeRunOnce(runOnceData: [String: Date]) {
+
     if debugMode {
         showPrefrencePath("Stor")
     }
-    
+
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
-    
+
     if isRoot() {
-        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
+        runOnceKey += "-"+getConsoleUserInfo().username
     }
     defaults.set(runOnceData, forKey: runOnceKey)
 }
@@ -169,26 +170,26 @@ func showPrefrencePath(_ action: String) {
     writeLog("\(action)ing preference file: \(prefsPath)", logLevel: .debug)
 }
 
-func shasumLoadApprovedFileHashList() -> [String:String] {
+func shasumLoadApprovedFileHashList() -> [String: String] {
     // imports the list of file hashes that are approved to run
-    var outset_file_hash_list = FileHashes()
-    
+    var outsetFileHashList = FileHashes()
+
     let defaults = UserDefaults.standard
     let hashes = defaults.object(forKey: "sha256sum")
 
     if let data = hashes as? [String: String] {
         for (key, value) in data {
-            outset_file_hash_list.sha256sum[key] = value
+            outsetFileHashList.sha256sum[key] = value
         }
     }
 
-    return outset_file_hash_list.sha256sum
+    return outsetFileHashList.sha256sum
 }
 
 func isNetworkUp() -> Bool {
     // https://stackoverflow.com/a/39782859/17584669
     // perform a check to see if the network is available.
-    
+
     var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
     zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
     zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -254,7 +255,6 @@ func getDeviceHardwareModel() -> String {
 
 func getDeviceSerialNumber() -> String {
     // Returns the current devices serial number
-    // TODO: fix warning 'kIOMasterPortDefault' was deprecated in macOS 12.0: renamed to 'kIOMainPortDefault'
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
       guard platformExpert > 0 else {
         return "Serial Unknown"
