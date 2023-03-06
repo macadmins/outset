@@ -9,7 +9,7 @@ Requirements
 ------------
 + macOS 10.15+
 
-Legacy python version can be found here \<insertlink\>
+Legacy python version can be found here: https://github.com/chilcote/outset/
 
 Usage
 -----
@@ -39,7 +39,7 @@ Usage
 
 
 
-See the [wiki](https://github.com/chilcote/outset/wiki) for info on how to use Outset.
+See the [wiki](https://github.com/macadmins/outset/wiki) for info on how to use Outset.
 
 Credits
 -------
