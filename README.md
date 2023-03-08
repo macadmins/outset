@@ -75,7 +75,7 @@ Add your developer certificate in the signing and capabilities of the "Outset Ap
 License
 -------
 
-       Copyright 2023 Bart Reardon
+       Copyright 2023 Mac Admins Open Source
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
