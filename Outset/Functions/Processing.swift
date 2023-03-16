@@ -88,7 +88,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
             // If this is supposed to be a runonce item then we want to check to see if has an existing runonce entry
             // looks for a key with the full script path. Writes the full path and run date when done
             if !runOnceDict.contains(where: {$0.key == script}) {
-                let (output, error, status) = runShellCommand(script, verbose: true)
+                let (output, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
                 if status != 0 {
                     writeLog(error, logLevel: .error)
                 } else {
@@ -101,7 +101,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                     writeLog("override for \(script) dated \(override[script]!)", logLevel: .debug)
                     if override[script]! > runOnceDict[script]! {
                         writeLog("Actioning script override", logLevel: .debug)
-                        let (output, error, status) = runShellCommand(script, verbose: true)
+                        let (output, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
                         if status != 0 {
                             writeLog(error, logLevel: .error)
                         } else {
@@ -114,7 +114,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                 }
             }
         } else {
-            let (_, error, status) = runShellCommand(script, verbose: true)
+            let (_, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
             if status != 0 {
                 writeLog(error, logLevel: .error)
             }

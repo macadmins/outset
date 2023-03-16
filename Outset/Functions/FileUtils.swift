@@ -9,7 +9,7 @@
 import Foundation
 import CommonCrypto
 
-func runShellCommand(_ command: String, verbose: Bool = false) -> (output: String, error: String, exitCode: Int32) {
+func runShellCommand(_ command: String, args: [String] = [], verbose: Bool = false) -> (output: String, error: String, exitCode: Int32) {
     // runs a shell command passed as an argument
     // If the verbose parameter is set to true, will log the command being run and its status when completed.
     // returns the output, error and exit code as a tuple.
@@ -21,13 +21,19 @@ func runShellCommand(_ command: String, verbose: Bool = false) -> (output: Strin
     let pipe = Pipe()
     let errorpipe = Pipe()
 
+    var cmd = command
+    for arg in args {
+        cmd += " '\(arg)'"
+    }
+    let arguments = ["-c", cmd]
+
     var output: String = ""
     var error: String = ""
 
+    task.launchPath = "/bin/sh"
+    task.arguments = arguments
     task.standardOutput = pipe
     task.standardError = errorpipe
-    task.arguments = ["-c", command]
-    task.launchPath = "/bin/zsh"
     task.launch()
 
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
@@ -40,6 +46,7 @@ func runShellCommand(_ command: String, verbose: Bool = false) -> (output: Strin
     let status = task.terminationStatus
     if verbose {
         writeLog("Completed task \(command) with status \(status)", logLevel: .debug)
+        writeLog("Task output: \n\(output)", logLevel: .debug)
     }
     return (output, error, status)
 }
