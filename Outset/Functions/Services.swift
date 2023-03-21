@@ -36,7 +36,10 @@ class ServiceManager {
     }
 
     private func register(_ service: SMAppService) {
-        if service.status == .notRegistered {
+        if service.status == .enabled {
+            writeLog("\(service.description) status: \(statusToString(service))",
+                     logLevel: .info)
+        } else {
             do {
                 try service.register()
             } catch let error {
@@ -46,9 +49,6 @@ class ServiceManager {
                     writeLog("\(service.description): \(error.localizedDescription)", logLevel: .error)
                 }
             }
-        } else {
-            writeLog("\(service.description) status: \(statusToString(service))",
-                     logLevel: .info)
         }
     }
 

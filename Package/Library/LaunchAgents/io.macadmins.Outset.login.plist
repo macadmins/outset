@@ -2,13 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BundleProgram</key>
+	<array>
+		<string>Contents/MacOS/Outset</string>
+	</array>
 	<key>Label</key>
 	<string>io.macadmins.Outset.login</string>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
+		<string>Contents/MacOS/Outset</string>
 		<string>--login</string>
 	</array>
 	<key>RunAtLoad</key>
