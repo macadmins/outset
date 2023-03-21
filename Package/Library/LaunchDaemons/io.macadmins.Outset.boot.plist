@@ -2,20 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>RunAtLoad</key>
-	<false/>
-	<key>LimitLoadToSessionType</key>
-	<array>
-		<string>LoginWindow</string>
-	</array>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
 	<key>Label</key>
-	<string>io.macadmins.Outset.login-window</string>
+	<string>io.macadmins.Outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
-		<string>--login-window</string>
+		<string>--boot</string>
 	</array>
+	<key>RunAtLoad</key>
+	<true/>
 </dict>
 </plist>
