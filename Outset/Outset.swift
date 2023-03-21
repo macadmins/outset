@@ -104,6 +104,15 @@ struct Outset: ParsableCommand {
     @Flag(help: .hidden)
     var shasumReport = false
 
+    @Flag(help: .hidden)
+    var enableServices = false
+
+    @Flag(help: .hidden)
+    var disableServices = false
+
+    @Flag(help: .hidden)
+    var serviceStatus = false
+
     @Flag(help: "Show version number")
     var version = false
 
@@ -111,6 +120,21 @@ struct Outset: ParsableCommand {
 
         if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
             debugMode = true
+        }
+
+        if enableServices, #available(macOS 13.0, *) {
+            let manager = ServiceManager()
+            manager.registerDaemons()
+        }
+
+        if disableServices, #available(macOS 13.0, *) {
+            let manager = ServiceManager()
+            manager.removeDaemons()
+        }
+
+        if serviceStatus, #available(macOS 13.0, *) {
+            let manager = ServiceManager()
+            manager.getStatus()
         }
 
         if boot {

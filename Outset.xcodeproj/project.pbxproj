@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB329414A5E003B00F4 /* Assets.xcassets */; };
 		4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */; };
+		41765AC829C8450800D616BF /* Library in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4124EFCD29446FDE003B00F4 /* Library */; };
+		41765ACA29C97B6400D616BF /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41765AC929C97B6400D616BF /* Services.swift */; };
 		41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF90293822F4003B00F4 /* Outset.swift */; };
 		41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA2293B2F9B003B00F4 /* FileUtils.swift */; };
 		41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
@@ -26,6 +28,19 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		41765AC729C844F900D616BF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "${PROJECT_NAME}.app/Contents";
+			dstSubfolderSpec = 16;
+			files = (
+				41765AC829C8450800D616BF /* Library in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		4124EF90293822F4003B00F4 /* Outset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outset.swift; sourceTree = "<group>"; };
 		4124EF99293824C8003B00F4 /* SystemUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemUtils.swift; sourceTree = "<group>"; };
@@ -37,6 +52,7 @@
 		4124EFB829414A5E003B00F4 /* Outset.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Outset.entitlements; sourceTree = "<group>"; };
 		4124EFC329414DA4003B00F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4124EFCD29446FDE003B00F4 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
+		41765AC929C97B6400D616BF /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
 		41A679FE2966479E000BFFCE /* generatePackage.zsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
 		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
 		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -84,6 +100,7 @@
 				4124EFA2293B2F9B003B00F4 /* FileUtils.swift */,
 				4124EFA4293B304B003B00F4 /* Processing.swift */,
 				4124EF99293824C8003B00F4 /* SystemUtils.swift */,
+				41765AC929C97B6400D616BF /* Services.swift */,
 			);
 			path = Functions;
 			sourceTree = "<group>";
@@ -119,10 +136,10 @@
 		41A679EA29659F4E000BFFCE /* Package */ = {
 			isa = PBXGroup;
 			children = (
+				4124EFCD29446FDE003B00F4 /* Library */,
 				41A67A03296B93D1000BFFCE /* Scripts */,
 				41A679FE2966479E000BFFCE /* generatePackage.zsh */,
 				41ADC47C29AECB8B00C5B94C /* outset */,
-				4124EFCD29446FDE003B00F4 /* Library */,
 			);
 			path = Package;
 			sourceTree = "<group>";
@@ -145,6 +162,7 @@
 				4124EFA929414A5D003B00F4 /* Sources */,
 				4124EFAA29414A5D003B00F4 /* Frameworks */,
 				4124EFAB29414A5D003B00F4 /* Resources */,
+				41765AC729C844F900D616BF /* CopyFiles */,
 				410A30F329B606070093A1CB /* ShellScript */,
 			);
 			buildRules = (
@@ -253,7 +271,6 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/Package/generatePackage.zsh",
-				"$(SRCROOT)/Package/Library",
 				"$(SRCROOT)/Package/Scripts",
 				"$(SRCROOT)/Package/outset",
 			);
@@ -274,6 +291,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				41765ACA29C97B6400D616BF /* Services.swift in Sources */,
 				41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */,
 				41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */,
 				41E28EA529ACDCE3002ADBE5 /* SystemUtils.swift in Sources */,
