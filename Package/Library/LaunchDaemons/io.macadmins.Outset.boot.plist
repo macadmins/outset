@@ -2,9 +2,9 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BundleProgram</key>
+	<key>Program</key>
 	<array>
-		<string>Contents/MacOS/Outset</string>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 	</array>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
@@ -12,7 +12,7 @@
 	<string>io.macadmins.Outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>Contents/MacOS/Outset</string>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 		<string>--boot</string>
 	</array>
 	<key>RunAtLoad</key>
