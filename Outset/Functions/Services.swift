@@ -36,6 +36,11 @@ class ServiceManager {
     }
 
     private func register(_ service: SMAppService) {
+        if !isRoot() {
+            writeLog("Must be root to register \(service.description)",
+                     logLevel: .error)
+            return
+        }
         if service.status == .enabled {
             writeLog("\(service.description) status: \(statusToString(service))",
                      logLevel: .info)
@@ -52,7 +57,12 @@ class ServiceManager {
         }
     }
 
-    private func deregister(_ service: SMAppService) {
+    private func unregister(_ service: SMAppService) {
+        if !isRoot() {
+            writeLog("Must be root to unregister \(service.description)",
+                     logLevel: .error)
+            return
+        }
         if service.status == .enabled {
             do {
                 try service.unregister()
@@ -97,13 +107,13 @@ class ServiceManager {
 
     func removeDaemons() {
         writeLog("de-registering Services", logLevel: .debug)
-        deregister(bootDaemon)
-        deregister(loginPrivilegedDaemon)
-        deregister(cleanupDaemon)
-        deregister(loginAgent)
-        deregister(onDemandAgent)
+        unregister(bootDaemon)
+        unregister(loginPrivilegedDaemon)
+        unregister(cleanupDaemon)
+        unregister(loginAgent)
+        unregister(onDemandAgent)
         // Disabled for the time being until ServiceManagement and loginwindow agent issues are resolved
-        // deregister(loginWindowAgent)
+        // unregister(loginWindowAgent)
     }
 
     func getStatus() {
