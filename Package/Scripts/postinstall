@@ -25,7 +25,7 @@ if [[ $(echo "${macos_version}" | cut -d'.' -f1) -ge 13 ]]; then
     "${APP_PATH}/Contents/MacOS/Outset" --enable-services
     
     # issue with ServiceManagement in that login-window agents don't get loaded so we'll copy that one over manually
-    cp "${APP_ROOT}/io.macadmins.outset.login-window.plist" "${LA_ROOT}"
+    cp "${APP_ROOT}/${LA_ROOT}/io.macadmins.outset.login-window.plist" "${LA_ROOT}"
     exit 0
 fi
 

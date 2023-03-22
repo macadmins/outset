@@ -91,7 +91,8 @@ class ServiceManager {
         register(cleanupDaemon)
         register(loginAgent)
         register(onDemandAgent)
-        register(loginWindowAgent)
+        // Disabled for the time being until ServiceManagement and loginwindow agent issues are resolved
+        // register(loginWindowAgent)
     }
 
     func removeDaemons() {
@@ -101,7 +102,8 @@ class ServiceManager {
         deregister(cleanupDaemon)
         deregister(loginAgent)
         deregister(onDemandAgent)
-        deregister(loginWindowAgent)
+        // Disabled for the time being until ServiceManagement and loginwindow agent issues are resolved
+        // deregister(loginWindowAgent)
     }
 
     func getStatus() {
