@@ -52,8 +52,8 @@ jobs:
       with:
         name: Outset ${{env.OUTSET_VERSION}}
         tag_name: v${{env.OUTSET_VERSION}}
-        draft: true
-        prerelease: false
+        draft: false
+        prerelease: true
         token: ${{ secrets.GITHUB_TOKEN }}
         body: |
             # Notes
