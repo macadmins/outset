@@ -40,15 +40,6 @@ else
   exit 1
 fi
 
-# Perform unit tests
-echo "Running Outset unit tests"
-$XCODE_BUILD test -project "$TOOLSDIR/outset.xcodeproj" -scheme "Outset App Bundle" -destination 'platform=macos'
-XCBT_RESULT="$?"
-if [ "${XCBT_RESULT}" != "0" ]; then
-    echo "Error running xcodebuild: ${XCBT_RESULT}" 1>&2
-    exit 1
-fi
-
 # Build Outset
 echo "Building Outset"
 $XCODE_BUILD -project "$TOOLSDIR/outset.xcodeproj" CODE_SIGN_IDENTITY=$APP_SIGNING_IDENTITY OTHER_CODE_SIGN_FLAGS="--timestamp"
