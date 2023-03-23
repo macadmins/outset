@@ -49,12 +49,18 @@ if [ "${XCB_RESULT}" != "0" ]; then
     exit 1
 fi
 
-# Setup notary item
-$XCODE_NOTARY_PATH store-credentials --apple-id "opensource@macadmins.io" --team-id "T4SK8ZXCXG" --password "$2" outset
-
 # Zip application for notary
 /bin/mkdir -p "$BUILDSDIR"
-/usr/bin/ditto -c -k --keepParent "$TARGET_BUILD_DIR/Outset.app" "${BUILDSDIR}/Outset.zip"
+/usr/bin/ditto -c -k --keepParent "$BUILDSDIR/Build/Products/Release/Outset.app" "${BUILDSDIR}/Outset.zip"
+
+DITTO_RESULT="$?"
+if [ "${DITTO_RESULT}" != "0" ]; then
+    echo "Error running ditto: ${XCB_RESULT}" 1>&2
+    exit 1
+fi
+
+# Setup notary item
+$XCODE_NOTARY_PATH store-credentials --apple-id "opensource@macadmins.io" --team-id "T4SK8ZXCXG" --password "$2" outset
 # Notarize Outset application
 $XCODE_NOTARY_PATH submit "${BUILDSDIR}/Outset.zip" --keychain-profile "outset" --wait
 
