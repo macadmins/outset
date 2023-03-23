@@ -53,9 +53,10 @@ fi
 $XCODE_NOTARY_PATH store-credentials --apple-id "opensource@macadmins.io" --team-id "T4SK8ZXCXG" --password "$2" outset
 
 # Zip application for notary
-/usr/bin/ditto -c -k --keepParent "${BUILDSDIR}/Release/Outset.app" "${BUILDSDIR}/Release/Outset.zip"
+/bin/mkdir -p "$BUILDSDIR"
+/usr/bin/ditto -c -k --keepParent "$TARGET_BUILD_DIR/Outset.app" "${BUILDSDIR}/Outset.zip"
 # Notarize Outset application
-$XCODE_NOTARY_PATH submit "${BUILDSDIR}/Release/Outset.zip" --keychain-profile "outset" --wait
+$XCODE_NOTARY_PATH submit "${BUILDSDIR}/Outset.zip" --keychain-profile "outset" --wait
 
 # Create outputs folder
 if [ -e $OUTPUTSDIR ]; then
@@ -66,7 +67,7 @@ fi
 if ! [ -n "$1" ]; then
   echo "Did not pass option to create package"
   # Move notarized zip to outputs folder
-  /bin/mv "${BUILDSDIR}/Release/Outset.zip" "$OUTPUTSDIR"
+  /bin/mv "${BUILDSDIR}/Outset.zip" "$OUTPUTSDIR"
   exit 0
 fi
 
@@ -95,7 +96,7 @@ fi
 /bin/mkdir -p "$PKG_PATH/payload/usr/local/outset"
 /bin/mkdir -p "$PKG_PATH/scripts"
 /usr/bin/sudo /usr/sbin/chown -R ${CONSOLEUSER}:wheel "$PKG_PATH"
-/bin/cp -R "$BUILDSDIR/Release/Outset.app" "$PKG_PATH/payload/usr/local/outset/Outset.app"
+/bin/cp -R "$TARGET_BUILD_DIR/Outset.app" "$PKG_PATH/payload/usr/local/outset/Outset.app"
 /bin/cp -R "$TOOLSDIR/Package/outset" "$PKG_PATH/payload/usr/local/outset/outset"
 /bin/chmod a+x "$PKG_PATH/payload/usr/local/outset/outset"
 /bin/cp "$TOOLSDIR/Package/Scripts/postinstall" "$PKG_PATH/scripts/postinstall"
