@@ -2,24 +2,20 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>Program</key>
+	<array>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
+	</array>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
-	<key>KeepAlive</key>
-	<dict>
-		<key>PathState</key>
-		<dict>
-			<key>/private/tmp/.io.macadmins.outset.login-privileged.launchd</key>
-			<true/>
-		</dict>
-	</dict>
 	<key>Label</key>
-	<string>io.macadmins.outset.login-privileged</string>
-	<key>OnDemand</key>
-	<true/>
+	<string>io.macadmins.Outset.boot</string>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
-		<string>--login-privileged</string>
+		<string>--boot</string>
 	</array>
+	<key>RunAtLoad</key>
+	<true/>
 </dict>
 </plist>

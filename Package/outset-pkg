@@ -1,0 +1,145 @@
+#!/bin/bash
+#==================================================================================
+#
+#          FILE: outset-pkg
+#
+#         USAGE: ./outset-pkg -a | --file [--target] | [--version] | [--build-path]
+#
+#   DESCRIPTION: Creates a PKG of /usr/local/outset processing directories 
+#                Either for one file or package the entire structure 
+#
+#         NOTES: ---
+#        AUTHOR: Bart Reardon
+#  ORGANIZATION: Macadmins Open Source
+#       CREATED: 2023-03-23
+#      REVISION: 1.0
+#
+#       COPYRIGHT: (C) Macadmins Open Source 2023. All rights reserved.
+#
+#==================================================================================
+
+FILE_TO_PACKAGE=""
+FILE_TARGET="login-once"
+BUILD_ALL=false
+BUILD_DIRECTORY="/var/tmp/outset"
+
+PKGTITLE="Outset Custom Content"
+PKG_DOMAIN="io.macadmins.Outset"
+PKGVERSION="1.0"
+PKGID="${PKG_DOMAIN}.custom-content"
+
+OUTSET_ROOT="/usr/local/outset"
+PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
+PKGNAME="outset-custom-content"
+
+printUsage() {
+    echo "USAGE: ${0##*/} -a | --file [--target] | [--version] | [--build-path]"
+    echo "    -a                     package all scripts into one package"
+    echo "    --file <filename>      package the selected file"
+    echo "    --target <directory>   file target directory (default 'login-once')"
+    echo "    --version <number>     set package version to the selected number (default is '1.0')"
+    echo "    --build-path <path>    path to use as the build location (default ${BUILD_DIRECTORY})" 
+    echo "    --help                 print this message"
+}
+
+validateVersion() {
+    # Regular expression to match a version number
+    regex='^[0-9]+([.][0-9]+)*$'
+
+    # Check if the string matches the regular expression
+    if [[ $1 =~ $regex ]]; then
+        echo $1
+    else
+        return 1
+    fi
+}
+
+validateTarget() {
+    targetList=($(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*))
+    for target in "${targetList[@]}"; do
+        if [[ "${target##*/}" == "$1" ]]; then
+            echo "${target##*/}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+printValidTargets() {
+    targetList=($(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*))
+    echo "Invalid target name '$1'"
+    echo "Valid targets:"
+    for target in ${targetList[@]}; do
+        echo "  [${target##*/}]"
+    done
+    exit 1
+}
+
+exitWithError() {
+    echo "$1"
+    exit 1
+}
+
+# if no arguments passed, print help and exit
+if [[ "$#" -eq 0 ]]; then
+    printUsage
+    exit 0
+fi
+
+# Loop through named arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --file) FILE_TO_PACKAGE="$2"; shift ;;
+        --target) FILE_TARGET=$(validateTarget "$2") || printValidTargets "$2"; shift ;;
+        --version) PKGVERSION=$(validateVersion "$2") || exitWithError "invalid version number $2"; shift ;;
+        --build-path)
+            if [[ -e "$2" ]]; then 
+                BUILD_DIRECTORY="${2%/}"
+                PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
+            else
+                exitWithError "path '$2' not found"
+            fi
+            shift
+        ;;
+        --help|help) printUsage; exit 0 ;;
+        -a) BUILD_ALL=true ;;
+        *) echo "Unknown parameter passed: $1"; printUsage; exit 1 ;;
+    esac
+    shift
+done
+    
+# create PGKROOT structure
+mkdir -p "${PGKROOT}${OUTSET_ROOT}"
+
+if [[ -n $FILE_TO_PACKAGE ]]; then
+    PKGID="${PKG_DOMAIN}.${FILE_TARGET}-${FILE_TO_PACKAGE##*/}"
+    PKGNAME="outset-${FILE_TARGET}-${FILE_TO_PACKAGE##*/}_v${PKGVERSION}"
+    TARGET_DIR="${PGKROOT}${OUTSET_ROOT}/${FILE_TARGET}/"
+    
+    mkdir -p "${TARGET_DIR}"
+    
+    if [[ -e "${FILE_TO_PACKAGE}" ]]; then
+        cp "${FILE_TO_PACKAGE}" "${TARGET_DIR}"
+    else
+        exitWithError "${FILE_TO_PACKAGE} doesn't exist"
+    fi
+elif $BUILD_ALL; then
+    PKGNAME="outset-custom-content_v${PKGVERSION}"
+    for folder in $(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*); do
+        cp -r "${folder}" "${PGKROOT}${OUTSET_ROOT}"
+    done
+fi
+
+# create package
+TMP_PKG="${BUILD_DIRECTORY}/${PKGNAME}.component.pkg"
+BUILD_PKG="${BUILD_DIRECTORY}/${PKGNAME}.pkg"
+
+/usr/bin/pkgbuild --root "${PGKROOT}" --identifier ${PKGID} --version ${PKGVERSION} "${TMP_PKG}"
+/usr/bin/productbuild --identifier ${PKGID} --package "${TMP_PKG}" "${BUILD_PKG}"
+
+# clean up
+rm -r "${PGKROOT}"
+rm "${TMP_PKG}"
+
+# done
+echo "Package has been created at ${BUILD_PKG}"

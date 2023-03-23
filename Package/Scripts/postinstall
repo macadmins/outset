@@ -3,11 +3,33 @@
 #  Postinstall script for outset CLI
 #
 #  Created by Bart Reardon on 9/1/2023.
-#  
+#
 
+# Get the macOS version number
+macos_version="$(sw_vers -productVersion)"
+LD_ROOT="/Library/LaunchDaemons"
+LA_ROOT="/Library/LaunchAgents"
+
+APP_PATH="/usr/local/outset/Outset.app"
+APP_ROOT="${APP_PATH}/Contents"
+
+# register the app bundle
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister "${APP_PATH}"
+
+# run boot argument - creates necessary paths and folders
+"${APP_PATH}/Contents/MacOS/Outset" --boot
+
+# Check if the macOS version is 13 or newer. If so, we don't need to load the launchd plists manually.
+if [[ $(echo "${macos_version}" | cut -d'.' -f1) -ge 13 ]]; then
+    # register the agents
+    "${APP_PATH}/Contents/MacOS/Outset" --enable-services
+    
+    # issue with ServiceManagement in that login-window agents don't get loaded so we'll copy that one over manually
+    cp "${APP_ROOT}/${LA_ROOT}/io.macadmins.outset.login-window.plist" "${LA_ROOT}"
+    exit 0
+fi
 
 ## LaunchDaemons
-LD_ROOT="/Library/LaunchDaemons"
 DAEMONS=(
   "${LD_ROOT}/io.macadmins.outset.boot.plist"
   "${LD_ROOT}/io.macadmins.outset.cleanup.plist"
@@ -15,18 +37,20 @@ DAEMONS=(
 )
 
 ## LaunchAgents
-LA_ROOT="/Library/LaunchAgents"
 AGENTS=(
   "${LA_ROOT}/io.macadmins.outset.login.plist"
   "${LA_ROOT}/io.macadmins.outset.on-demand.plist"
+  "${LA_ROOT}/io.macadmins.outset.login-window.plist"
 )
 
 for daemon in ${DAEMONS}; do
+    cp "${APP_ROOT}/${daemon}" "${LD_ROOT}"
     if [ -e "${daemon}" ]; then
         /bin/launchctl bootstrap system "${daemon}"
     fi
 done
 
 for agent in ${AGENTS}; do
+    cp "${APP_ROOT}/${agent}" "${LA_ROOT}"
     echo ${agent}
 done

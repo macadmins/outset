@@ -9,7 +9,7 @@ Requirements
 ------------
 + macOS 10.15+
 
-Legacy python version can be found here \<insertlink\>
+Legacy python version can be found here: https://github.com/chilcote/outset/
 
 Usage
 -----
@@ -39,7 +39,7 @@ Usage
 
 
 
-See the [wiki](https://github.com/chilcote/outset/wiki) for info on how to use Outset.
+See the [wiki](https://github.com/macadmins/outset/wiki) for info on how to use Outset.
 
 Credits
 -------
@@ -75,16 +75,16 @@ Add your developer certificate in the signing and capabilities of the "Outset Ap
 License
 -------
 
-       Copyright 2023 Bart Reardon
+       Copyright 2023 Mac Admins Open Source
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
 
        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+        Unless required by applicable law or agreed to in writing, software
+        distributed under the License is distributed on an "AS IS" BASIS,
+        WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        See the License for the specific language governing permissions and
+        limitations under the License.

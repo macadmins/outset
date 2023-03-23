@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB329414A5E003B00F4 /* Assets.xcassets */; };
 		4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */; };
-		41ADC47D29AF1F4500C5B94C /* ServiceManagement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFCA29446C2C003B00F4 /* ServiceManagement.swift */; };
+		413833A429CC6A1B0093319F /* outset-pkg in CopyFiles */ = {isa = PBXBuildFile; fileRef = 413833A229CC69800093319F /* outset-pkg */; };
+		41765AC829C8450800D616BF /* Library in CopyFiles */ = {isa = PBXBuildFile; fileRef = 4124EFCD29446FDE003B00F4 /* Library */; };
+		41765ACA29C97B6400D616BF /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41765AC929C97B6400D616BF /* Services.swift */; };
 		41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF90293822F4003B00F4 /* Outset.swift */; };
 		41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA2293B2F9B003B00F4 /* FileUtils.swift */; };
 		41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* Processing.swift */; };
@@ -27,6 +29,29 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		413833A329CC6A0C0093319F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				413833A429CC6A1B0093319F /* outset-pkg in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41765AC729C844F900D616BF /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "${PROJECT_NAME}.app/Contents";
+			dstSubfolderSpec = 16;
+			files = (
+				41765AC829C8450800D616BF /* Library in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		4124EF90293822F4003B00F4 /* Outset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outset.swift; sourceTree = "<group>"; };
 		4124EF99293824C8003B00F4 /* SystemUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemUtils.swift; sourceTree = "<group>"; };
@@ -37,8 +62,9 @@
 		4124EFB629414A5E003B00F4 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		4124EFB829414A5E003B00F4 /* Outset.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Outset.entitlements; sourceTree = "<group>"; };
 		4124EFC329414DA4003B00F4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		4124EFCA29446C2C003B00F4 /* ServiceManagement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ServiceManagement.swift; path = Outset/Functions/ServiceManagement.swift; sourceTree = SOURCE_ROOT; };
 		4124EFCD29446FDE003B00F4 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
+		413833A229CC69800093319F /* outset-pkg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "outset-pkg"; sourceTree = "<group>"; };
+		41765AC929C97B6400D616BF /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
 		41A679FE2966479E000BFFCE /* generatePackage.zsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
 		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
 		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -83,10 +109,10 @@
 		4124EFA6293B30D6003B00F4 /* Functions */ = {
 			isa = PBXGroup;
 			children = (
-				4124EFCA29446C2C003B00F4 /* ServiceManagement.swift */,
 				4124EFA2293B2F9B003B00F4 /* FileUtils.swift */,
 				4124EFA4293B304B003B00F4 /* Processing.swift */,
 				4124EF99293824C8003B00F4 /* SystemUtils.swift */,
+				41765AC929C97B6400D616BF /* Services.swift */,
 			);
 			path = Functions;
 			sourceTree = "<group>";
@@ -122,10 +148,11 @@
 		41A679EA29659F4E000BFFCE /* Package */ = {
 			isa = PBXGroup;
 			children = (
+				4124EFCD29446FDE003B00F4 /* Library */,
 				41A67A03296B93D1000BFFCE /* Scripts */,
 				41A679FE2966479E000BFFCE /* generatePackage.zsh */,
 				41ADC47C29AECB8B00C5B94C /* outset */,
-				4124EFCD29446FDE003B00F4 /* Library */,
+				413833A229CC69800093319F /* outset-pkg */,
 			);
 			path = Package;
 			sourceTree = "<group>";
@@ -148,6 +175,9 @@
 				4124EFA929414A5D003B00F4 /* Sources */,
 				4124EFAA29414A5D003B00F4 /* Frameworks */,
 				4124EFAB29414A5D003B00F4 /* Resources */,
+				41765AC729C844F900D616BF /* CopyFiles */,
+				413833A329CC6A0C0093319F /* CopyFiles */,
+				410A30F329B606070093A1CB /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -193,7 +223,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 4124EF88293822F3003B00F4 /* Build configuration list for PBXProject "outset" */;
+			buildConfigurationList = 4124EF88293822F3003B00F4 /* Build configuration list for PBXProject "Outset" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -228,6 +258,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		410A30F329B606070093A1CB /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif which swiftlint > /dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
 		41A67A08296BADFE000BFFCE /* Generate Package */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -237,7 +285,6 @@
 			);
 			inputPaths = (
 				"$(SRCROOT)/Package/generatePackage.zsh",
-				"$(SRCROOT)/Package/Library",
 				"$(SRCROOT)/Package/Scripts",
 				"$(SRCROOT)/Package/outset",
 			);
@@ -258,9 +305,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				41765ACA29C97B6400D616BF /* Services.swift in Sources */,
 				41E28EA329ACDCE3002ADBE5 /* FileUtils.swift in Sources */,
 				41E28EA429ACDCE3002ADBE5 /* Processing.swift in Sources */,
-				41ADC47D29AF1F4500C5B94C /* ServiceManagement.swift in Sources */,
 				41E28EA529ACDCE3002ADBE5 /* SystemUtils.swift in Sources */,
 				41E28EA229ACDCD6002ADBE5 /* Outset.swift in Sources */,
 			);
@@ -419,7 +466,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0a;
+				MARKETING_VERSION = "4.0.0-b2";
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -455,7 +502,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0a;
+				MARKETING_VERSION = "4.0.0-b2";
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -550,7 +597,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4124EF88293822F3003B00F4 /* Build configuration list for PBXProject "outset" */ = {
+		4124EF88293822F3003B00F4 /* Build configuration list for PBXProject "Outset" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4124EF92293822F4003B00F4 /* Debug */,

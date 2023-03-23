@@ -4,25 +4,26 @@
 //
 //  Created by Bart Reardon on 1/12/2022.
 //
+// swiftlint:disable line_length
 
 import Foundation
 import SystemConfiguration
 import OSLog
 
 struct OutsetPreferences: Codable {
-    var wait_for_network : Bool = false
-    var network_timeout : Int = 180
-    var ignored_users : [String] = []
-    var override_login_once : [String:Date] = [String:Date]()
+    var waitForNetwork: Bool = false
+    var networkTimeout: Int = 180
+    var ignoredUsers: [String] = []
+    var overrideLoginOnce: [String: Date] = [String: Date]()
 }
 
 struct FileHashes: Codable {
-    var sha256sum : [String:String] = [String:String]()
+    var sha256sum: [String: String] = [String: String]()
 }
 
-func ensure_root(_ reason : String) {
+func ensureRoot(_ reason: String) {
     if !isRoot() {
-        writeLog("Must be root to \(reason)", status: .error)
+        writeLog("Must be root to \(reason)", logLevel: .error)
         exit(1)
     }
 }
@@ -36,25 +37,58 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
     return array[key]
 }
 
-func writeLog(_ message: String, status: OSLogType = .info) {
+func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
     let logMessage = "\(message)"
-    let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
-    let log = OSLog(subsystem: bundleID, category: "main")
-    os_log("%{public}@", log: log, type: status, logMessage)
-    if status == .error || status == .info || (debugMode && status == .debug) {
+
+    os_log("%{public}@", log: log, type: logLevel, logMessage)
+    if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
         // print info, errors and debug to stdout
-        print("\(oslogTypeToString(status).uppercased()): \(message)")
+        print("\(oslogTypeToString(logLevel).uppercased()): \(message)")
+    }
+    writeFileLog(message: message, logLevel: logLevel)
+}
+
+func writeFileLog(message: String, logLevel: OSLogType) {
+    if logLevel == .debug && !debugMode {
+        return
+    }
+    let logFileURL = URL(fileURLWithPath: logFile)
+    if !checkFileExists(path: logFile) {
+        FileManager.default.createFile(atPath: logFileURL.path, contents: nil, attributes: nil)
+        let attributes = [FileAttributeKey.posixPermissions: 0o666]
+        do {
+            try FileManager.default.setAttributes(attributes, ofItemAtPath: logFileURL.path)
+        } catch {
+            print("\(oslogTypeToString(.error).uppercased()): Unable to create log file at \(logFile)")
+            return
+        }
+    }
+    do {
+        let fileHandle = try FileHandle(forWritingTo: logFileURL)
+        defer { fileHandle.closeFile() }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+
+        let date = dateFormatter.string(from: Date())
+        let logEntry = "\(date) \(oslogTypeToString(logLevel).uppercased()): \(message)\n"
+
+        fileHandle.seekToEndOfFile()
+        fileHandle.write(logEntry.data(using: .utf8)!)
+    } catch {
+        print("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFile)")
+        return
     }
 }
 
 func oslogTypeToString(_ type: OSLogType) -> String {
     switch type {
-        case OSLogType.default: return "default"
-        case OSLogType.info: return "info"
-        case OSLogType.debug: return "debug"
-        case OSLogType.error: return "error"
-        case OSLogType.fault: return "fault"
-        default: return "unknown"
+    case OSLogType.default: return "default"
+    case OSLogType.info: return "info"
+    case OSLogType.debug: return "debug"
+    case OSLogType.error: return "error"
+    case OSLogType.fault: return "fault"
+    default: return "unknown"
     }
 }
 
@@ -66,13 +100,13 @@ func getConsoleUserInfo() -> (username: String, userID: String) {
 }
 
 func writePreferences(prefs: OutsetPreferences) {
-    let defaults = UserDefaults.standard
-    
-    let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
-    let prefsPath = path[0].appending("/Preferences").appending("/\(Bundle.main.bundleIdentifier!).plist")
 
-    writeLog("Writing preference file: \(prefsPath)", status: .debug)
-    
+    if debugMode {
+        showPrefrencePath("Stor")
+    }
+
+    let defaults = UserDefaults.standard
+
     // Take the OutsetPreferences object and write it to UserDefaults
     let mirror = Mirror(reflecting: prefs)
     for child in mirror.children {
@@ -84,57 +118,78 @@ func writePreferences(prefs: OutsetPreferences) {
 }
 
 func loadPreferences() -> OutsetPreferences {
+
+    if debugMode {
+        showPrefrencePath("Load")
+    }
+
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
-    
-    outsetPrefs.network_timeout = defaults.integer(forKey: "network_timeout")
-    outsetPrefs.ignored_users = defaults.array(forKey: "ignored_users") as? [String] ?? []
-    outsetPrefs.override_login_once = defaults.object(forKey: "override_login_once") as? [String:Date] ?? [:]
-    outsetPrefs.wait_for_network = defaults.bool(forKey: "wait_for_network")
-    
+
+    outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
+    outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
+    outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? [String: Date] ?? [:]
+    outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
+
     return outsetPrefs
 }
 
-func loadRunOnce() -> [String:Date] {
+func loadRunOnce() -> [String: Date] {
+
+    if debugMode {
+        showPrefrencePath("Load")
+    }
+
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
-    
+
     if isRoot() {
-        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
+        runOnceKey += "-"+getConsoleUserInfo().username
     }
-    return defaults.object(forKey: runOnceKey) as? [String:Date] ?? [:]
+    return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
 }
 
-func writeRunOnce(runOnceData: [String:Date]) {
+func writeRunOnce(runOnceData: [String: Date]) {
+
+    if debugMode {
+        showPrefrencePath("Stor")
+    }
+
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
-    
+
     if isRoot() {
-        runOnceKey = runOnceKey+"-"+getConsoleUserInfo().username
+        runOnceKey += "-"+getConsoleUserInfo().username
     }
     defaults.set(runOnceData, forKey: runOnceKey)
 }
 
-func shasumLoadApprovedFileHashList() -> [String:String] {
+func showPrefrencePath(_ action: String) {
+    let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
+    let prefsPath = path[0].appending("/Preferences").appending("/\(Bundle.main.bundleIdentifier!).plist")
+    writeLog("\(action)ing preference file: \(prefsPath)", logLevel: .debug)
+}
+
+func shasumLoadApprovedFileHashList() -> [String: String] {
     // imports the list of file hashes that are approved to run
-    var outset_file_hash_list = FileHashes()
-    
+    var outsetFileHashList = FileHashes()
+
     let defaults = UserDefaults.standard
     let hashes = defaults.object(forKey: "sha256sum")
 
     if let data = hashes as? [String: String] {
         for (key, value) in data {
-            outset_file_hash_list.sha256sum[key] = value
+            outsetFileHashList.sha256sum[key] = value
         }
     }
 
-    return outset_file_hash_list.sha256sum
+    return outsetFileHashList.sha256sum
 }
 
 func isNetworkUp() -> Bool {
     // https://stackoverflow.com/a/39782859/17584669
     // perform a check to see if the network is available.
-    
+
     var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
     zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
     zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -162,29 +217,29 @@ func waitForNetworkUp(timeout: Double) -> Bool {
     var networkUp = false
     let deadline = DispatchTime.now() + timeout
     while !networkUp && DispatchTime.now() < deadline {
-        writeLog("Waiting for network: \(timeout) seconds", status: .debug)
+        writeLog("Waiting for network: \(timeout) seconds", logLevel: .debug)
         networkUp = isNetworkUp()
         if !networkUp {
-            writeLog("Waiting...", status: .debug)
+            writeLog("Waiting...", logLevel: .debug)
             Thread.sleep(forTimeInterval: 1)
         }
     }
     if !networkUp && DispatchTime.now() > deadline {
-        writeLog("No network connectivity detected after \(timeout) seconds", status: .error)
+        writeLog("No network connectivity detected after \(timeout) seconds", logLevel: .error)
     }
     return networkUp
 }
 
 func loginWindowDisable() {
     // Disables the loginwindow process
-    writeLog("Disabling loginwindow process", status: .debug)
+    writeLog("Disabling loginwindow process", logLevel: .debug)
     let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }
 
 func loginWindowEnable() {
     // Enables the loginwindow process
-    writeLog("Enabling loginwindow process", status: .debug)
+    writeLog("Enabling loginwindow process", logLevel: .debug)
     let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     _ = runShellCommand(cmd)
 }
@@ -200,7 +255,6 @@ func getDeviceHardwareModel() -> String {
 
 func getDeviceSerialNumber() -> String {
     // Returns the current devices serial number
-    // TODO: fix warning 'kIOMasterPortDefault' was deprecated in macOS 12.0: renamed to 'kIOMainPortDefault'
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
       guard platformExpert > 0 else {
         return "Serial Unknown"
@@ -231,9 +285,9 @@ func getOSVersion() -> String {
 
 func writeSysReport() {
     // Logs system information to log file
-    writeLog("User: \(getConsoleUserInfo())", status: .debug)
-    writeLog("Model: \(getDeviceHardwareModel())", status: .debug)
-    writeLog("Serial: \(getDeviceSerialNumber())", status: .debug)
-    writeLog("OS: \(getOSVersion())", status: .debug)
-    writeLog("Build: \(getOSBuildVersion())", status: .debug)
+    writeLog("User: \(getConsoleUserInfo())", logLevel: .debug)
+    writeLog("Model: \(getDeviceHardwareModel())", logLevel: .debug)
+    writeLog("Serial: \(getDeviceSerialNumber())", logLevel: .debug)
+    writeLog("OS: \(getOSVersion())", logLevel: .debug)
+    writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
 }

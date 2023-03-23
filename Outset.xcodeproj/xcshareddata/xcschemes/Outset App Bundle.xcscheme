@@ -17,7 +17,7 @@
                BlueprintIdentifier = "4124EFAC29414A5D003B00F4"
                BuildableName = "Outset.app"
                BlueprintName = "Outset"
-               ReferencedContainer = "container:outset.xcodeproj">
+               ReferencedContainer = "container:Outset.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -47,9 +47,15 @@
             BlueprintIdentifier = "4124EFAC29414A5D003B00F4"
             BuildableName = "Outset.app"
             BlueprintName = "Outset"
-            ReferencedContainer = "container:outset.xcodeproj">
+            ReferencedContainer = "container:Outset.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "--help"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -64,7 +70,7 @@
             BlueprintIdentifier = "4124EFAC29414A5D003B00F4"
             BuildableName = "Outset.app"
             BlueprintName = "Outset"
-            ReferencedContainer = "container:outset.xcodeproj">
+            ReferencedContainer = "container:Outset.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
