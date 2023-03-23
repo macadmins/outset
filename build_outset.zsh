@@ -99,12 +99,12 @@ PKG_PATH="$TOOLSDIR/OutsetPkg"
 if [ -e $PKG_PATH ]; then
   /bin/rm -rf $PKG_PATH
 fi
-/bin/mkdir -p "$PKG_PATH/payload/usr/local/outset"
+/bin/mkdir -p "$PKG_PATH/payload"
 /bin/mkdir -p "$PKG_PATH/scripts"
 /usr/bin/sudo /usr/sbin/chown -R ${CONSOLEUSER}:wheel "$PKG_PATH"
-/bin/cp -R "$TARGET_BUILD_DIR/Outset.app" "$PKG_PATH/payload/usr/local/outset/Outset.app"
-/bin/cp -R "$TOOLSDIR/Package/outset" "$PKG_PATH/payload/usr/local/outset/outset"
-/bin/chmod a+x "$PKG_PATH/payload/usr/local/outset/outset"
+/bin/cp -R "$BUILDSDIR/Build/Products/Release/Outset.app" "$PKG_PATH/payload/Outset.app"
+/bin/cp -R "$TOOLSDIR/Package/outset" "$PKG_PATH/payload/outset"
+/bin/chmod a+x "$PKG_PATH/payload/outset"
 /bin/cp "$TOOLSDIR/Package/Scripts/postinstall" "$PKG_PATH/scripts/postinstall"
 
 # Create the json file for signed munkipkg Outset pkg
