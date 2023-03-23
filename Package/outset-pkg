@@ -24,12 +24,13 @@ BUILD_ALL=false
 BUILD_DIRECTORY="/var/tmp/outset"
 
 PKGTITLE="Outset Custom Content"
+PKG_DOMAIN="io.macadmins.Outset"
 PKGVERSION="1.0"
-PKGID="io.macadmins.Outset.custom-content"
+PKGID="${PKG_DOMAIN}.custom-content"
 
 OUTSET_ROOT="/usr/local/outset"
 PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
-PKGNAME="outset-custom-content_v${PKGVERSION}"
+PKGNAME="outset-custom-content"
 
 printUsage() {
     echo "USAGE: ${0##*/} -a | --file [--target] | [--version] | [--build-path]"
@@ -106,42 +107,39 @@ while [[ "$#" -gt 0 ]]; do
     esac
     shift
 done
-
-if [[ -n $FILE_TO_PACKAGE ]]; then
-    PKGID="io.macadmins.Outset.${FILE_TARGET}-${FILE_TO_PACKAGE##*/}"
-    PKGNAME="outset-${FILE_TARGET}-${FILE_TO_PACKAGE##*/}_v${PKGVERSION}"
-else
-    PKGNAME="outset-custom-content_v${PKGVERSION}"
-fi
-
-if $BUILD_ALL; then
-    echo "making all the things"
-fi
-
+    
 # create PGKROOT structure
 mkdir -p "${PGKROOT}${OUTSET_ROOT}"
-if [[ -n $FILE_TO_PACKAGE ]]; then 
+
+if [[ -n $FILE_TO_PACKAGE ]]; then
+    PKGID="${PKG_DOMAIN}.${FILE_TARGET}-${FILE_TO_PACKAGE##*/}"
+    PKGNAME="outset-${FILE_TARGET}-${FILE_TO_PACKAGE##*/}_v${PKGVERSION}"
     TARGET_DIR="${PGKROOT}${OUTSET_ROOT}/${FILE_TARGET}/"
+    
     mkdir -p "${TARGET_DIR}"
+    
     if [[ -e "${FILE_TO_PACKAGE}" ]]; then
         cp "${FILE_TO_PACKAGE}" "${TARGET_DIR}"
     else
-        echo "${FILE_TO_PACKAGE} doesn't exist"
-        exit 1
+        exitWithError "${FILE_TO_PACKAGE} doesn't exist"
     fi
 elif $BUILD_ALL; then
+    PKGNAME="outset-custom-content_v${PKGVERSION}"
     for folder in $(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*); do
         cp -r "${folder}" "${PGKROOT}${OUTSET_ROOT}"
     done
 fi
 
 # create package
-/usr/bin/pkgbuild --root "${PGKROOT}" --identifier ${PKGID} --version ${PKGVERSION} "${BUILD_DIRECTORY}/${PKGNAME}.component.pkg"
-/usr/bin/productbuild --identifier ${PKGID} --package "${BUILD_DIRECTORY}/${PKGNAME}.component.pkg" "${BUILD_DIRECTORY}/${PKGNAME}.pkg"
+TMP_PKG="${BUILD_DIRECTORY}/${PKGNAME}.component.pkg"
+BUILD_PKG="${BUILD_DIRECTORY}/${PKGNAME}.pkg"
+
+/usr/bin/pkgbuild --root "${PGKROOT}" --identifier ${PKGID} --version ${PKGVERSION} "${TMP_PKG}"
+/usr/bin/productbuild --identifier ${PKGID} --package "${TMP_PKG}" "${BUILD_PKG}"
 
 # clean up
 rm -r "${PGKROOT}"
-rm "${BUILD_DIRECTORY}/${PKGNAME}.component.pkg"
+rm "${TMP_PKG}"
 
 # done
-echo "Package has been created at ${BUILD_DIRECTORY}/${PKGNAME}.pkg"
+echo "Package has been created at ${BUILD_PKG}"
