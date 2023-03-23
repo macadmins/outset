@@ -8,3 +8,7 @@ project.xcworkspace/
 Preview Content/
 xcuserdata/
 xcsharedata/
+outputs/
+OutsetPkg/
+build_info.txt
+date_info.txt
