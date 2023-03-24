@@ -108,7 +108,7 @@ while [[ "$#" -gt 0 ]]; do
         ;;
         --help|-h|help) printUsage; exit 0 ;;
         --all|-a) BUILD_ALL=true ;;
-        *) echo "Unknown parameter passed: $1"; printUsage; exit 1 ;;
+        *) echo "Unknown argument: $1"; printUsage; exit 1 ;;
     esac
     shift
 done
