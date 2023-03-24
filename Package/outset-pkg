@@ -3,7 +3,7 @@
 #
 #          FILE: outset-pkg
 #
-#         USAGE: ./outset-pkg -a | --file [--target] | [--version] | [--build-path]
+#         USAGE: outset-pkg --all [<options>] | --file <filename> [<options>]
 #
 #   DESCRIPTION: Creates a PKG of /usr/local/outset processing directories 
 #                Either for one file or package the entire structure 
@@ -12,7 +12,7 @@
 #        AUTHOR: Bart Reardon
 #  ORGANIZATION: Macadmins Open Source
 #       CREATED: 2023-03-23
-#      REVISION: 1.0
+#      REVISION: 1.0.1
 #
 #       COPYRIGHT: (C) Macadmins Open Source 2023. All rights reserved.
 #
@@ -33,13 +33,18 @@ PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
 PKGNAME="outset-custom-content"
 
 printUsage() {
-    echo "USAGE: ${0##*/} -a | --file [--target] | [--version] | [--build-path]"
-    echo "    -a                     package all scripts into one package"
-    echo "    --file <filename>      package the selected file"
-    echo "    --target <directory>   file target directory (default 'login-once')"
-    echo "    --version <number>     set package version to the selected number (default is '1.0')"
-    echo "    --build-path <path>    path to use as the build location (default ${BUILD_DIRECTORY})" 
-    echo "    --help                 print this message"
+    echo "OVERVIEW: ${0##*/} is a utility that packages files for use in outset workflows."
+    echo ""
+    echo "USAGE: ${0##*/} --all [<options>] | --file <filename> [<options>]"
+    echo ""
+    echo "OPTIONS:"
+    echo "    -a, --all                 Package all scripts from outset processing directories into one package"
+    echo "    -f, --file <filename>     Package the selected file"
+    echo "    -t, --target <directory>  Target processing directory (default 'login-once')"
+    echo "    -v, --version, <number>   Set package version to the selected number (default is '1.0')"
+    echo "    -p, --build-path, <path>  Path to use as the build location (default ${BUILD_DIRECTORY})"
+    echo "    -h, --help                Print this message"
+    echo ""
 }
 
 validateVersion() {
@@ -89,10 +94,10 @@ fi
 # Loop through named arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        --file) FILE_TO_PACKAGE="$2"; shift ;;
-        --target) FILE_TARGET=$(validateTarget "$2") || printValidTargets "$2"; shift ;;
-        --version) PKGVERSION=$(validateVersion "$2") || exitWithError "invalid version number $2"; shift ;;
-        --build-path)
+        --file|-f) FILE_TO_PACKAGE="$2"; shift ;;
+        --target|-t) FILE_TARGET=$(validateTarget "$2") || printValidTargets "$2"; shift ;;
+        --version|-v) PKGVERSION=$(validateVersion "$2") || exitWithError "invalid version number $2"; shift ;;
+        --build-path|-p)
             if [[ -e "$2" ]]; then 
                 BUILD_DIRECTORY="${2%/}"
                 PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
@@ -101,8 +106,8 @@ while [[ "$#" -gt 0 ]]; do
             fi
             shift
         ;;
-        --help|help) printUsage; exit 0 ;;
-        -a) BUILD_ALL=true ;;
+        --help|-h|help) printUsage; exit 0 ;;
+        --all|-a) BUILD_ALL=true ;;
         *) echo "Unknown parameter passed: $1"; printUsage; exit 1 ;;
     esac
     shift
