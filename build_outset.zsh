@@ -42,7 +42,7 @@ fi
 
 # Build Outset
 echo "Building Outset"
-$XCODE_BUILD -project "./outset.xcodeproj" -scheme "Outset App Bundle" -configuration Release -derivedDataPath ./build CODE_SIGN_IDENTITY=$APP_SIGNING_IDENTITY OTHER_CODE_SIGN_FLAGS="--timestamp"
+$XCODE_BUILD -project "./outset.xcodeproj" -scheme "Outset App Bundle" -configuration Release -derivedDataPath ./build CODE_SIGN_IDENTITY=$APP_SIGNING_IDENTITY OTHER_CODE_SIGN_FLAGS="--timestamp" CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
 XCB_RESULT="$?"
 if [ "${XCB_RESULT}" != "0" ]; then
     echo "Error running xcodebuild: ${XCB_RESULT}" 1>&2
