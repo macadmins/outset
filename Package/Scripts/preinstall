@@ -29,14 +29,14 @@ AGENTS=(
 )
 
 # Unload if present
-for daemon in ${DAEMONS}; do
+for daemon in ${DAEMONS[@]}; do
     if [ -e "${daemon}" ]; then
         /bin/launchctl bootout system "${daemon}"
         sudo rm -fv "${daemon}"
     fi
 done
 
-for agent in ${AGENTS}; do
+for agent in ${AGENTS[@]}; do
     if [ -e "${agent}" ]; then
         if [ ${USER_ID} -ne 0 ]; then
             launchctl bootout gui/${USER_ID} "${agent}"
@@ -48,8 +48,8 @@ done
 # backup existing preference files
 mkdir -p "${OUTSET_BACKUP}"
 
-if [ -e "${OUTSET_ROOT}/share" ]; then
-    cp "${OUTSET_ROOT}/share/*" "${OUTSET_BACKUP}/"
+if [ -d "${OUTSET_ROOT}/share" ]; then
+    cp ${OUTSET_ROOT}/share/* "${OUTSET_BACKUP}/"
 fi
 
 for user in $(ls /Users); do

@@ -65,7 +65,7 @@
 		4124EFCD29446FDE003B00F4 /* Library */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Library; sourceTree = "<group>"; };
 		413833A229CC69800093319F /* outset-pkg */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "outset-pkg"; sourceTree = "<group>"; };
 		41765AC929C97B6400D616BF /* Services.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services.swift; sourceTree = "<group>"; };
-		4188FE4A29CE7196003E39BD /* preinstall.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = preinstall.sh; sourceTree = "<group>"; };
+		4188FE4A29CE7196003E39BD /* preinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = preinstall; sourceTree = "<group>"; };
 		41A679FE2966479E000BFFCE /* generatePackage.zsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = generatePackage.zsh; sourceTree = "<group>"; };
 		41A67A04296B9711000BFFCE /* postinstall */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = postinstall; sourceTree = "<group>"; };
 		41A67A0C296BADFE000BFFCE /* Outset Install Package.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Outset Install Package.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -162,7 +162,7 @@
 			isa = PBXGroup;
 			children = (
 				41A67A04296B9711000BFFCE /* postinstall */,
-				4188FE4A29CE7196003E39BD /* preinstall.sh */,
+				4188FE4A29CE7196003E39BD /* preinstall */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -493,6 +493,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Outset/Preview Content\"";
 				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = N8GJ2Y5Z9T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -526,7 +527,7 @@
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				DEVELOPMENT_TEAM = N8GJ2Y5Z9T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -568,7 +569,7 @@
 				CURRENT_PROJECT_VERSION = 4;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				DEVELOPMENT_TEAM = N8GJ2Y5Z9T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
