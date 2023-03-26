@@ -105,6 +105,7 @@ fi
 /bin/cp -R "$BUILDSDIR/Build/Products/Release/Outset.app" "$PKG_PATH/payload/Outset.app"
 /bin/cp -R "$TOOLSDIR/Package/outset" "$PKG_PATH/payload/outset"
 /bin/chmod a+x "$PKG_PATH/payload/outset"
+/bin/cp "$TOOLSDIR/Package/Scripts/preinstall" "$PKG_PATH/scripts/preinstall"
 /bin/cp "$TOOLSDIR/Package/Scripts/postinstall" "$PKG_PATH/scripts/postinstall"
 
 # Create the json file for signed munkipkg Outset pkg

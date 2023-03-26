@@ -15,10 +15,25 @@ struct OutsetPreferences: Codable {
     var networkTimeout: Int = 180
     var ignoredUsers: [String] = []
     var overrideLoginOnce: [String: Date] = [String: Date]()
+
+    enum CodingKeys: String, CodingKey {
+        case waitForNetwork = "wait_for_network"
+        case networkTimeout = "network_timeout"
+        case ignoredUsers = "ignored_users"
+        case overrideLoginOnce = "override_login_once"
+    }
 }
 
 struct FileHashes: Codable {
     var sha256sum: [String: String] = [String: String]()
+}
+
+extension String {
+    func camelCaseToUnderscored() -> String {
+        let regex = try? NSRegularExpression(pattern: "([a-z])([A-Z])", options: [])
+        let range = NSRange(location: 0, length: utf16.count)
+        return regex?.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "$1_$2").lowercased() ?? self
+    }
 }
 
 func ensureRoot(_ reason: String) {
@@ -112,7 +127,8 @@ func writePreferences(prefs: OutsetPreferences) {
     for child in mirror.children {
         // Use the name of each property as the key, and save its value to UserDefaults
         if let propertyName = child.label {
-            defaults.set(child.value, forKey: propertyName)
+            let key = propertyName.camelCaseToUnderscored()
+            defaults.set(child.value, forKey: key)
         }
     }
 }
