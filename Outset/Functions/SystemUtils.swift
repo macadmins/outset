@@ -58,13 +58,13 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
 }
 
 func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
-    let logMessage = "\(message)"
-
-    os_log("%{public}@", log: log, type: logLevel, logMessage)
+    // write to the system logs
+    os_log("%{public}@", log: log, type: logLevel, message)
     if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
         // print info, errors and debug to stdout
         print("\(oslogTypeToString(logLevel).uppercased()): \(message)")
     }
+    // also write to a log file for accessability of those that don't want to manage the system log
     writeFileLog(message: message, logLevel: logLevel)
 }
 
