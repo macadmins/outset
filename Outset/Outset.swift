@@ -145,7 +145,7 @@ struct Outset: ParsableCommand {
             if !folderContents(path: bootOnceDir).isEmpty {
                 if networkWait {
                     loginwindowState = false
-                    loginWindowDisable()
+                    loginWindowUpdateState(.disable)
                     continueFirstBoot = waitForNetworkUp(timeout: floor(Double(networkTimeout) / 10))
                 }
                 if continueFirstBoot {
@@ -155,7 +155,7 @@ struct Outset: ParsableCommand {
                     writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
                 }
                 if !loginwindowState {
-                    loginWindowEnable()
+                    loginWindowUpdateState(.enable)
                 }
             }
 

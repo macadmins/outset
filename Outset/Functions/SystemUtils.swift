@@ -36,6 +36,11 @@ extension String {
     }
 }
 
+enum Action {
+    case enable
+    case disable
+}
+
 func ensureRoot(_ reason: String) {
     if !isRoot() {
         writeLog("Must be root to \(reason)", logLevel: .error)
@@ -249,18 +254,18 @@ func waitForNetworkUp(timeout: Double) -> Bool {
     return networkUp
 }
 
-func loginWindowDisable() {
-    // Disables the loginwindow process
-    writeLog("Disabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
-}
-
-func loginWindowEnable() {
-    // Enables the loginwindow process
-    writeLog("Enabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
+func loginWindowUpdateState(_ action: Action) {
+    var cmd : String
+    var loginWindowPlist : String = "/System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    switch action {
+    case .enable:
+        writeLog("Enabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl load \(loginWindowPlist)"
+    case .disable:
+        writeLog("Disabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl unload \(loginWindowPlist)"
+    }
+        _ = runShellCommand(cmd)
 }
 
 func getDeviceHardwareModel() -> String {
