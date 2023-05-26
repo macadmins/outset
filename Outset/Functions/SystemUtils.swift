@@ -110,8 +110,11 @@ func oslogTypeToString(_ type: OSLogType) -> String {
 func getConsoleUserInfo() -> (username: String, userID: String) {
     // We need the console user, not the process owner so NSUserName() won't work for our needs when outset runs as root
     var uid: uid_t = 0
-    let consoleUser = SCDynamicStoreCopyConsoleUser(nil, &uid, nil)! as String
-    return (consoleUser, "\(uid)")
+    if let consoleUser = SCDynamicStoreCopyConsoleUser(nil, &uid, nil) as? String {
+        return (consoleUser, "\(uid)")
+    } else {
+        return ("", "")
+    }
 }
 
 func writePreferences(prefs: OutsetPreferences) {
