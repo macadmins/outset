@@ -36,6 +36,11 @@ extension String {
     }
 }
 
+enum Action {
+    case enable
+    case disable
+}
+
 func ensureRoot(_ reason: String) {
     if !isRoot() {
         writeLog("Must be root to \(reason)", logLevel: .error)
@@ -53,13 +58,13 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
 }
 
 func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
-    let logMessage = "\(message)"
-
-    os_log("%{public}@", log: log, type: logLevel, logMessage)
+    // write to the system logs
+    os_log("%{public}@", log: log, type: logLevel, message)
     if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
         // print info, errors and debug to stdout
         print("\(oslogTypeToString(logLevel).uppercased()): \(message)")
     }
+    // also write to a log file for accessability of those that don't want to manage the system log
     writeFileLog(message: message, logLevel: logLevel)
 }
 
@@ -109,9 +114,12 @@ func oslogTypeToString(_ type: OSLogType) -> String {
 
 func getConsoleUserInfo() -> (username: String, userID: String) {
     // We need the console user, not the process owner so NSUserName() won't work for our needs when outset runs as root
-    let consoleUserName = runShellCommand("who | grep 'console' | awk '{print $1}'").output
-    let consoleUserID = runShellCommand("id -u \(consoleUserName)").output
-    return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
+    var uid: uid_t = 0
+    if let consoleUser = SCDynamicStoreCopyConsoleUser(nil, &uid, nil) as? String {
+        return (consoleUser, "\(uid)")
+    } else {
+        return ("", "")
+    }
 }
 
 func writePreferences(prefs: OutsetPreferences) {
@@ -246,18 +254,18 @@ func waitForNetworkUp(timeout: Double) -> Bool {
     return networkUp
 }
 
-func loginWindowDisable() {
-    // Disables the loginwindow process
-    writeLog("Disabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
-}
-
-func loginWindowEnable() {
-    // Enables the loginwindow process
-    writeLog("Enabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
+func loginWindowUpdateState(_ action: Action) {
+    var cmd : String
+    var loginWindowPlist : String = "/System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    switch action {
+    case .enable:
+        writeLog("Enabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl load \(loginWindowPlist)"
+    case .disable:
+        writeLog("Disabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl unload \(loginWindowPlist)"
+    }
+        _ = runShellCommand(cmd)
 }
 
 func getDeviceHardwareModel() -> String {
