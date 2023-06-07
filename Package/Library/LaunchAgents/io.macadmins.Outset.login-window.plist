@@ -4,6 +4,8 @@
 <dict>
 	<key>OnDemand</key>
 	<false/>
+	<key>LaunchOnlyOnce</key>
+	<true/>
 	<key>Program</key>
 	<array>
 		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
