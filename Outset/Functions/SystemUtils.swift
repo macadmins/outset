@@ -9,6 +9,7 @@
 import Foundation
 import SystemConfiguration
 import OSLog
+import IOKit
 
 struct OutsetPreferences: Codable {
     var waitForNetwork: Bool = false
@@ -277,6 +278,17 @@ func getDeviceHardwareModel() -> String {
     return String(cString: model)
 }
 
+func getMarketingModel() -> String {
+    let appleSiliconProduct = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/AppleARMPE/product")
+        let cfKeyValue = IORegistryEntryCreateCFProperty(appleSiliconProduct, "product-description" as CFString, kCFAllocatorDefault, 0)
+        IOObjectRelease(appleSiliconProduct)
+        let keyValue: AnyObject? = cfKeyValue?.takeUnretainedValue()
+        if keyValue != nil, let data = keyValue as? Data {
+            return String(data: data, encoding: String.Encoding.utf8)?.trimmingCharacters(in: CharacterSet(["\0"])) ?? ""
+        }
+        return ""
+}
+
 func getDeviceSerialNumber() -> String {
     // Returns the current devices serial number
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
@@ -311,6 +323,7 @@ func writeSysReport() {
     // Logs system information to log file
     writeLog("User: \(getConsoleUserInfo())", logLevel: .debug)
     writeLog("Model: \(getDeviceHardwareModel())", logLevel: .debug)
+    writeLog("Marketing Model: \(getMarketingModel())", logLevel: .debug)
     writeLog("Serial: \(getDeviceSerialNumber())", logLevel: .debug)
     writeLog("OS: \(getOSVersion())", logLevel: .debug)
     writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
