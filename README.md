@@ -53,7 +53,7 @@ Future releases may also remove the capability to install packages as this also 
 
 ### What's installed
 
-Appart from the `Outset` app, the pkg also includes some other files:
+Apart from the `Outset` app, the pkg also includes some other files:
 
 #### Agents
 `/Library/LaunchDaemons/` `/Library/LaunchAgents/`
