@@ -10,6 +10,7 @@ import Foundation
 import SystemConfiguration
 import OSLog
 import IOKit
+import CoreFoundation
 
 struct OutsetPreferences: Codable {
     var waitForNetwork: Bool = false
@@ -137,7 +138,17 @@ func writePreferences(prefs: OutsetPreferences) {
         // Use the name of each property as the key, and save its value to UserDefaults
         if let propertyName = child.label {
             let key = propertyName.camelCaseToUnderscored()
-            defaults.set(child.value, forKey: key)
+            if isRoot() {
+                // write the preference to /Library/Preferences/
+                CFPreferencesSetValue(key as CFString,
+                                      child.value as CFPropertyList,
+                                      Bundle.main.bundleIdentifier! as CFString,
+                                      kCFPreferencesAnyUser,
+                                      kCFPreferencesAnyHost)
+            } else {
+                // write the preference to ~/Library/Preferences/
+                defaults.set(child.value, forKey: key)
+            }
         }
     }
 }
