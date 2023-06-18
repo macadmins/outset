@@ -123,11 +123,6 @@ struct Outset: ParsableCommand {
 
         if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
             debugMode = true
-            writeLog("Preference keys", logLevel: .debug)
-            writeLog("Ignored Users: \(prefs.ignoredUsers)", logLevel: .debug)
-            writeLog("networkTimeout: \(prefs.networkTimeout)", logLevel: .debug)
-            writeLog("waitForNetwork: \(prefs.waitForNetwork)", logLevel: .debug)
-            writeLog("overrideLoginOnce: \(prefs.overrideLoginOnce)", logLevel: .debug)
         }
 
         if enableServices, #available(macOS 13.0, *) {
