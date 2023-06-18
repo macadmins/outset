@@ -13,7 +13,7 @@ import ArgumentParser
 import OSLog
 
 let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
-let outsetVersion: AnyObject? = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject
+let outsetVersion: AnyObject = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject
 
 // Outset specific directories
 let outsetDirectory = "/usr/local/outset/"
@@ -41,10 +41,6 @@ let requiredExecutablePermissions: NSNumber = 0o755
 var debugMode: Bool = false
 var loginwindowState: Bool = true
 var consoleUser: String = getConsoleUserInfo().username
-var networkWait: Bool = true
-var networkTimeout: Int = 180
-var ignoredUsers: [String] = []
-var loginOnceOverride: [String: Date] = [String: Date]()
 var continueFirstBoot: Bool = true
 var prefs = loadPreferences()
 
@@ -98,11 +94,18 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Remove one or more scripts from override list", valueName: "script"), completion: .file())
     var removeOveride: [String] = []
 
-    @Option(help: ArgumentHelp("Compute the SHA256 hash of the given file. Use the keyword 'all' to compute all SHA values and generate a formatted configuration plist", valueName: "file"), completion: .file())
+    // removed from view in favour for checksum. retained to support backward compatability
+    @Option(help: .hidden, completion: .file())
     var computeSHA: [String] = []
+
+    @Option(help: ArgumentHelp("Compute the checksum (SHA256) hash of the given file. Use the keyword 'all' to compute all values and generate a formatted configuration plist", valueName: "file"), completion: .file())
+    var checksum: [String] = []
 
     @Flag(help: .hidden)
     var shasumReport = false
+
+    @Flag(help: .hidden)
+    var checksumReport = false
 
     @Flag(help: .hidden)
     var enableServices = false
@@ -143,10 +146,10 @@ struct Outset: ParsableCommand {
             writePreferences(prefs: prefs)
 
             if !folderContents(path: bootOnceDir).isEmpty {
-                if networkWait {
+                if prefs.waitForNetwork {
                     loginwindowState = false
                     loginWindowUpdateState(.disable)
-                    continueFirstBoot = waitForNetworkUp(timeout: floor(Double(networkTimeout) / 10))
+                    continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
                 }
                 if continueFirstBoot {
                     writeSysReport()
@@ -176,7 +179,7 @@ struct Outset: ParsableCommand {
 
         if login {
             writeLog("Processing scheduled runs for login", logLevel: .debug)
-            if !ignoredUsers.contains(consoleUser) {
+            if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
                 }
@@ -195,7 +198,7 @@ struct Outset: ParsableCommand {
             if checkFileExists(path: loginPrivilegedTrigger) {
                 pathCleanup(pathname: loginPrivilegedTrigger)
             }
-            if !ignoredUsers.contains(consoleUser) {
+            if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOncePrivilegedDir).isEmpty {
                     processItems(loginOncePrivilegedDir, once: true, override: prefs.overrideLoginOnce)
                 }
@@ -231,7 +234,7 @@ struct Outset: ParsableCommand {
 
         if loginEvery {
             writeLog("Processing scripts in login-every", logLevel: .debug)
-            if !ignoredUsers.contains(consoleUser) {
+            if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginEveryDir).isEmpty {
                     processItems(loginEveryDir)
                 }
@@ -240,7 +243,7 @@ struct Outset: ParsableCommand {
 
         if loginOnce {
             writeLog("Processing scripts in login-once", logLevel: .debug)
-            if !ignoredUsers.contains(consoleUser) {
+            if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true)
                 }
@@ -305,31 +308,36 @@ struct Outset: ParsableCommand {
             writePreferences(prefs: prefs)
         }
 
-        if !computeSHA.isEmpty {
-            if computeSHA[0].lowercased() == "all" {
-                shaAllFiles()
+        if !checksum.isEmpty || !computeSHA.isEmpty {
+            if checksum.isEmpty {
+                checksum = computeSHA
+            }
+            if checksum[0].lowercased() == "all" {
+                checksumAllFiles()
             } else {
-                for fileToHash in computeSHA {
+                for fileToHash in checksum {
                     let url = URL(fileURLWithPath: fileToHash)
                     if let hash = sha256(for: url) {
-                        print("SHA256 for file \(fileToHash): \(hash)")
+                        print("Checksum for file \(fileToHash): \(hash)")
                     }
                 }
             }
         }
 
-        if shasumReport {
-            writeLog("sha256sum report", logLevel: .info)
+        if shasumReport || checksumReport {
+            writeLog("Checksum report", logLevel: .info)
             for (filename, shasum) in shasumLoadApprovedFileHashList() {
                 writeLog("\(filename) : \(shasum)", logLevel: .info)
             }
         }
 
         if version {
-            print(outsetVersion ?? "4.0")
+            print(outsetVersion)
             if debugMode {
                 writeSysReport()
             }
         }
     }
 }
+
+// swiftlint:enable line_length function_body_length cyclomatic_complexity

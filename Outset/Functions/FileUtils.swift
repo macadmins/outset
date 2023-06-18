@@ -4,7 +4,7 @@
 //
 //  Created by Bart Reardon on 3/12/2022.
 //
-// swiftlint:disable large_tuple line_length function_body_length
+// swiftlint:disable large_tuple line_length
 
 import Foundation
 import CommonCrypto
@@ -333,14 +333,14 @@ func sha256(for url: URL) -> String? {
     }
 }
 
-func shaAllFiles() {
-    // compute sha256sum for all files in the outset directory
+func checksumAllFiles() {
+    // compute checksum (SHA256) for all files in the outset directory
     // returns data in two formats to stdout:
     //   plaintext
     //   as plist format ready for import into an MDM or converting to a .mobileconfig
 
     let url = URL(fileURLWithPath: outsetDirectory)
-    writeLog("SHASUM", logLevel: .info)
+    writeLog("CHECKSUM", logLevel: .info)
     var shasumPlist = FileHashes()
     if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
         for case let fileURL as URL in enumerator {
@@ -392,3 +392,5 @@ extension URL {
        (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }
+
+// swiftlint:enable large_tuple line_length

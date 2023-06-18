@@ -256,8 +256,8 @@ func waitForNetworkUp(timeout: Double) -> Bool {
 }
 
 func loginWindowUpdateState(_ action: Action) {
-    var cmd : String
-    var loginWindowPlist : String = "/System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    var cmd: String
+    let loginWindowPlist: String = "/System/Library/LaunchDaemons/com.apple.loginwindow.plist"
     switch action {
     case .enable:
         writeLog("Enabling loginwindow process", logLevel: .debug)
@@ -328,3 +328,5 @@ func writeSysReport() {
     writeLog("OS: \(getOSVersion())", logLevel: .debug)
     writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
 }
+
+// swiftlint:enable line_length
