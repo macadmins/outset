@@ -123,6 +123,11 @@ struct Outset: ParsableCommand {
 
         if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
             debugMode = true
+            writeLog("Preference keys", logLevel: .debug)
+            writeLog("Ignored Users: \(prefs.ignoredUsers)", logLevel: .debug)
+            writeLog("networkTimeout: \(prefs.networkTimeout)", logLevel: .debug)
+            writeLog("waitForNetwork: \(prefs.waitForNetwork)", logLevel: .debug)
+            writeLog("overrideLoginOnce: \(prefs.overrideLoginOnce)", logLevel: .debug)
         }
 
         if enableServices, #available(macOS 13.0, *) {
@@ -143,6 +148,7 @@ struct Outset: ParsableCommand {
         if boot {
             writeLog("Processing scheduled runs for boot", logLevel: .debug)
             ensureWorkingFolders()
+
             writePreferences(prefs: prefs)
 
             if !folderContents(path: bootOnceDir).isEmpty {
@@ -245,8 +251,10 @@ struct Outset: ParsableCommand {
             writeLog("Processing scripts in login-once", logLevel: .debug)
             if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
-                    processItems(loginOnceDir, once: true)
+                    processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
                 }
+            } else {
+                writeLog("user \(consoleUser) is in the ignored list. skipping", logLevel: .debug)
             }
         }
 
@@ -326,8 +334,8 @@ struct Outset: ParsableCommand {
 
         if shasumReport || checksumReport {
             writeLog("Checksum report", logLevel: .info)
-            for (filename, shasum) in shasumLoadApprovedFileHashList() {
-                writeLog("\(filename) : \(shasum)", logLevel: .info)
+            for (filename, checksum) in checksumLoadApprovedFiles() {
+                writeLog("\(filename) : \(checksum)", logLevel: .info)
             }
         }
 

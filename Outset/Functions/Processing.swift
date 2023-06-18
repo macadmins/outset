@@ -22,8 +22,8 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     var scripts: [String] = []             // array of scripts once they have passed checks
     var runOnceDict: [String: Date] = [:]
 
-    let shasumFileList = shasumLoadApprovedFileHashList()
-    let shasumsAvailable = !shasumFileList.isEmpty
+    let checksumList = checksumLoadApprovedFiles()
+    let checksumsAvailable = !checksumList.isEmpty
 
     // See if there's any old stuff to migrate
     migrateLegacyPreferences()
@@ -50,7 +50,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
 
     // loop through the packages list and process installs.
     for package in packages {
-        if shasumsAvailable && !verifySHASUMForFile(filename: package, shasumArray: shasumFileList) {
+        if checksumsAvailable && !verifySHASUMForFile(filename: package, shasumArray: checksumList) {
             continue
         }
 
@@ -80,14 +80,16 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
 
     // loop through the scripts list and process.
     for script in scripts {
-        if shasumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: shasumFileList) {
+        if checksumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: checksumList) {
             continue
         }
 
         if once {
+            writeLog("Processing run-once \(script)", logLevel: .debug)
             // If this is supposed to be a runonce item then we want to check to see if has an existing runonce entry
             // looks for a key with the full script path. Writes the full path and run date when done
             if !runOnceDict.contains(where: {$0.key == script}) {
+                writeLog("run-once not yet processed. proceeding", logLevel: .debug)
                 let (output, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
                 if status != 0 {
                     writeLog(error, logLevel: .error)
@@ -97,6 +99,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                 }
             } else {
                 // there's a run-once plist entry for this script. Check to see if there's an override
+                writeLog("checking for override", logLevel: .debug)
                 if override.contains(where: {$0.key == script}) {
                     writeLog("override for \(script) dated \(override[script]!)", logLevel: .debug)
                     if override[script]! > runOnceDict[script]! {
@@ -111,9 +114,12 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                             }
                         }
                     }
+                } else {
+                    writeLog(" no override for \(script) dated \(override[script]!)", logLevel: .debug)
                 }
             }
         } else {
+            writeLog("Processing script \(script)", logLevel: .debug)
             let (_, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
             if status != 0 {
                 writeLog(error, logLevel: .error)
