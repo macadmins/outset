@@ -90,14 +90,14 @@ struct Outset: ParsableCommand {
 
     @Option(help: ArgumentHelp("Add one or more scripts to override list", valueName: "script"), completion: .file())
     var addOverride: [String] = []
-    
+
     // maintaining misspelt option as hidden
     @Option(help: .hidden, completion: .file())
     var addOveride: [String] = []
 
     @Option(help: ArgumentHelp("Remove one or more scripts from override list", valueName: "script"), completion: .file())
     var removeOverride: [String] = []
-    
+
     // maintaining misspelt option as hidden
     @Option(help: .hidden, completion: .file())
     var removeOveride: [String] = []

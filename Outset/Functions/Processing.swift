@@ -115,7 +115,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                         }
                     }
                 } else {
-                    writeLog(" no override for \(script) dated \(override[script]!)", logLevel: .debug)
+                    writeLog("no override for \(script)", logLevel: .debug)
                 }
             }
         } else {
