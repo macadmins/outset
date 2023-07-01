@@ -26,6 +26,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     let checksumsAvailable = !checksumList.isEmpty
 
     // See if there's any old stuff to migrate
+    // Perform this each processing run to pick up individual user preferences as well
     migrateLegacyPreferences()
 
     // Get a list of all the files to process

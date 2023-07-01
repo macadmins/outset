@@ -189,8 +189,10 @@ func loadRunOnce() -> [String: Date] {
 
     if isRoot() {
         runOnceKey += "-"+getConsoleUserInfo().username
+        return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String: Date] ?? [:]
+    } else {
+        return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
     }
-    return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
 }
 
 func writeRunOnce(runOnceData: [String: Date]) {
@@ -204,8 +206,14 @@ func writeRunOnce(runOnceData: [String: Date]) {
 
     if isRoot() {
         runOnceKey += "-"+getConsoleUserInfo().username
+        CFPreferencesSetValue(runOnceKey as CFString,
+                              runOnceData as CFPropertyList,
+                              Bundle.main.bundleIdentifier! as CFString,
+                              kCFPreferencesAnyUser,
+                              kCFPreferencesAnyHost)
+    } else {
+        defaults.set(runOnceData, forKey: runOnceKey)
     }
-    defaults.set(runOnceData, forKey: runOnceKey)
 }
 
 func showPrefrencePath(_ action: String) {
