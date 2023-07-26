@@ -4,7 +4,7 @@
 //
 //  Created by Bart Reardon on 3/12/2022.
 //
-// swiftlint:disable large_tuple line_length function_body_length
+// swiftlint:disable large_tuple line_length force_cast file_length cyclomatic_complexity function_body_length
 
 import Foundation
 import CommonCrypto
@@ -112,9 +112,10 @@ func ensureWorkingFolders() {
 }
 
 func migrateLegacyPreferences() {
+    let newoldRootUserDefaults = "/var/root/Library/Preferences/io.macadmins.Outset.plist"
     // shared folder should not contain any executable content, iterate and update as required
-    if checkFileExists(path: shareDirectory) {
-        writeLog("\(shareDirectory) exists. Migrating prefrences to user defaults", logLevel: .debug)
+    if checkFileExists(path: shareDirectory) || checkFileExists(path: newoldRootUserDefaults) {
+        writeLog("Legacy preferences exist. Migrating to user defaults", logLevel: .debug)
 
         let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
         let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
@@ -126,6 +127,7 @@ func migrateLegacyPreferences() {
         shareFiles.append(legacyOutsetPreferencesFile)
         shareFiles.append(legacyRootRunOncePlistFile)
         shareFiles.append(legacyUserRunOncePlistFile)
+        shareFiles.append(newoldRootUserDefaults)
 
         for filename in shareFiles where checkFileExists(path: filename) {
 
@@ -134,7 +136,22 @@ func migrateLegacyPreferences() {
                 let data = try Data(contentsOf: url)
                 switch filename {
 
+                case newoldRootUserDefaults:
+                    if isRoot() {
+                        writeLog("\(newoldRootUserDefaults) migration", logLevel: .debug)
+                        let legacyDefaultKeys = CFPreferencesCopyKeyList(Bundle.main.bundleIdentifier! as CFString, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+                        for key in legacyDefaultKeys as! [CFString] {
+                            let keyValue = CFPreferencesCopyValue(key, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
+                            CFPreferencesSetValue(key as CFString,
+                                                  keyValue as CFPropertyList,
+                                                  Bundle.main.bundleIdentifier! as CFString,
+                                                  kCFPreferencesAnyUser,
+                                                  kCFPreferencesAnyHost)
+                        }
+                        deletePath(newoldRootUserDefaults)
+                    }
                 case legacyOutsetPreferencesFile:
+                    writeLog("\(legacyOutsetPreferencesFile) migration", logLevel: .debug)
                     do {
                         let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
                         writePreferences(prefs: legacyPreferences)
@@ -145,6 +162,7 @@ func migrateLegacyPreferences() {
                     }
 
                 case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
+                    writeLog("\(legacyRootRunOncePlistFile) and \(legacyUserRunOncePlistFile) migration", logLevel: .debug)
                     do {
                         let legacyRunOncePlistData = try PropertyListDecoder().decode([String: Date].self, from: data)
                         writeRunOnce(runOnceData: legacyRunOncePlistData)
@@ -167,7 +185,7 @@ func migrateLegacyPreferences() {
 
         }
 
-        if folderContents(path: shareDirectory).isEmpty {
+        if checkFileExists(path: shareDirectory) && folderContents(path: shareDirectory).isEmpty {
             deletePath(shareDirectory)
         }
     }
@@ -333,14 +351,14 @@ func sha256(for url: URL) -> String? {
     }
 }
 
-func shaAllFiles() {
-    // compute sha256sum for all files in the outset directory
+func checksumAllFiles() {
+    // compute checksum (SHA256) for all files in the outset directory
     // returns data in two formats to stdout:
     //   plaintext
     //   as plist format ready for import into an MDM or converting to a .mobileconfig
 
     let url = URL(fileURLWithPath: outsetDirectory)
-    writeLog("SHASUM", logLevel: .info)
+    writeLog("CHECKSUM", logLevel: .info)
     var shasumPlist = FileHashes()
     if let enumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
         for case let fileURL as URL in enumerator {
@@ -392,3 +410,5 @@ extension URL {
        (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }
+
+// swiftlint:enable large_tuple line_length force_cast file_length cyclomatic_complexity function_body_length
