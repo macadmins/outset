@@ -36,7 +36,7 @@ Outset is a utility application which automatically processes scripts and packag
 
 ## Credits
 
-The Outset 4 is a direct feature for feature (almost) update of outset by [Joseph Chilcote](https://github.com/chilcote) written in Swift.
+Outset 4 is a direct feature for feature (almost) update of outset by [Joseph Chilcote](https://github.com/chilcote) written in Swift.
 
 Maintained by [MacAdmins Open Source](https://macadmins.io) and [Bart Reardon](https://github.com/bartreardon) 
 
