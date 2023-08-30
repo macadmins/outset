@@ -4,7 +4,6 @@
 //
 //  Created by Bart Reardon on 21/3/2023.
 //
-// swiftlint:disable line_length
 
 import Foundation
 import ServiceManagement

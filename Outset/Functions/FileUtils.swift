@@ -4,7 +4,6 @@
 //
 //  Created by Bart Reardon on 3/12/2022.
 //
-// swiftlint:disable large_tuple line_length function_body_length
 
 import Foundation
 import CommonCrypto

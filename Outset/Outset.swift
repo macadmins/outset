@@ -6,7 +6,6 @@
 //
 // swift implementation of outset by Joseph Chilcote https://github.com/chilcote/outset
 //
-// swiftlint:disable line_length function_body_length cyclomatic_complexity
 
 import Foundation
 import ArgumentParser
@@ -249,12 +248,9 @@ struct Outset: ParsableCommand {
 
         if cleanup {
             writeLog("Cleaning up on-demand directory.", logLevel: .debug)
-            if checkFileExists(path: onDemandTrigger) {
-                    pathCleanup(pathname: onDemandTrigger)
-            }
-            if !folderContents(path: onDemandDir).isEmpty {
-                pathCleanup(pathname: onDemandDir)
-            }
+            if checkFileExists(path: onDemandTrigger) { pathCleanup(pathname: onDemandTrigger) }
+            if checkFileExists(path: cleanupTrigger) { pathCleanup(pathname: cleanupTrigger) }
+            if !folderContents(path: onDemandDir).isEmpty { pathCleanup(pathname: onDemandDir) }
         }
 
         if !addIgnoredUser.isEmpty {

@@ -4,7 +4,6 @@
 //
 //  Created by Bart Reardon on 1/12/2022.
 //
-// swiftlint:disable line_length
 
 import Foundation
 import SystemConfiguration
