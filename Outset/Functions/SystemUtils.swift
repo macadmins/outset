@@ -8,6 +8,8 @@
 import Foundation
 import SystemConfiguration
 import OSLog
+import IOKit
+import CoreFoundation
 
 struct OutsetPreferences: Codable {
     var waitForNetwork: Bool = false
@@ -35,6 +37,11 @@ extension String {
     }
 }
 
+enum Action {
+    case enable
+    case disable
+}
+
 func ensureRoot(_ reason: String) {
     if !isRoot() {
         writeLog("Must be root to \(reason)", logLevel: .error)
@@ -52,13 +59,13 @@ func getValueForKey(_ key: String, inArray array: [String: String]) -> String? {
 }
 
 func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
-    let logMessage = "\(message)"
-
-    os_log("%{public}@", log: log, type: logLevel, logMessage)
+    // write to the system logs
+    os_log("%{public}@", log: log, type: logLevel, message)
     if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
         // print info, errors and debug to stdout
         print("\(oslogTypeToString(logLevel).uppercased()): \(message)")
     }
+    // also write to a log file for accessability of those that don't want to manage the system log
     writeFileLog(message: message, logLevel: logLevel)
 }
 
@@ -108,9 +115,12 @@ func oslogTypeToString(_ type: OSLogType) -> String {
 
 func getConsoleUserInfo() -> (username: String, userID: String) {
     // We need the console user, not the process owner so NSUserName() won't work for our needs when outset runs as root
-    let consoleUserName = runShellCommand("who | grep 'console' | awk '{print $1}'").output
-    let consoleUserID = runShellCommand("id -u \(consoleUserName)").output
-    return (consoleUserName.trimmingCharacters(in: .whitespacesAndNewlines), consoleUserID.trimmingCharacters(in: .whitespacesAndNewlines))
+    var uid: uid_t = 0
+    if let consoleUser = SCDynamicStoreCopyConsoleUser(nil, &uid, nil) as? String {
+        return (consoleUser, "\(uid)")
+    } else {
+        return ("", "")
+    }
 }
 
 func writePreferences(prefs: OutsetPreferences) {
@@ -127,7 +137,17 @@ func writePreferences(prefs: OutsetPreferences) {
         // Use the name of each property as the key, and save its value to UserDefaults
         if let propertyName = child.label {
             let key = propertyName.camelCaseToUnderscored()
-            defaults.set(child.value, forKey: key)
+            if isRoot() {
+                // write the preference to /Library/Preferences/
+                CFPreferencesSetValue(key as CFString,
+                                      child.value as CFPropertyList,
+                                      Bundle.main.bundleIdentifier! as CFString,
+                                      kCFPreferencesAnyUser,
+                                      kCFPreferencesAnyHost)
+            } else {
+                // write the preference to ~/Library/Preferences/
+                defaults.set(child.value, forKey: key)
+            }
         }
     }
 }
@@ -141,11 +161,19 @@ func loadPreferences() -> OutsetPreferences {
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
 
-    outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
-    outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
-    outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? [String: Date] ?? [:]
-    outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
-
+    if isRoot() {
+        // force preferences to be read from /Library/Preferences instead of root's preferences
+        outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
+        outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
+        outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String: Date] ?? [:]
+        outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
+    } else {
+        // load preferences for the current user, which includes /Library/Preferences
+        outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
+        outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
+        outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? [String: Date] ?? [:]
+        outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
+    }
     return outsetPrefs
 }
 
@@ -160,8 +188,10 @@ func loadRunOnce() -> [String: Date] {
 
     if isRoot() {
         runOnceKey += "-"+getConsoleUserInfo().username
+        return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String: Date] ?? [:]
+    } else {
+        return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
     }
-    return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
 }
 
 func writeRunOnce(runOnceData: [String: Date]) {
@@ -175,17 +205,28 @@ func writeRunOnce(runOnceData: [String: Date]) {
 
     if isRoot() {
         runOnceKey += "-"+getConsoleUserInfo().username
+        CFPreferencesSetValue(runOnceKey as CFString,
+                              runOnceData as CFPropertyList,
+                              Bundle.main.bundleIdentifier! as CFString,
+                              kCFPreferencesAnyUser,
+                              kCFPreferencesAnyHost)
+    } else {
+        defaults.set(runOnceData, forKey: runOnceKey)
     }
-    defaults.set(runOnceData, forKey: runOnceKey)
 }
 
 func showPrefrencePath(_ action: String) {
-    let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
-    let prefsPath = path[0].appending("/Preferences").appending("/\(Bundle.main.bundleIdentifier!).plist")
+    var prefsPath: String
+    if isRoot() {
+        prefsPath = "/Library/Preferences".appending("/\(Bundle.main.bundleIdentifier!).plist")
+    } else {
+        let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)
+        prefsPath = path[0].appending("/Preferences").appending("/\(Bundle.main.bundleIdentifier!).plist")
+    }
     writeLog("\(action)ing preference file: \(prefsPath)", logLevel: .debug)
 }
 
-func shasumLoadApprovedFileHashList() -> [String: String] {
+func checksumLoadApprovedFiles() -> [String: String] {
     // imports the list of file hashes that are approved to run
     var outsetFileHashList = FileHashes()
 
@@ -245,18 +286,18 @@ func waitForNetworkUp(timeout: Double) -> Bool {
     return networkUp
 }
 
-func loginWindowDisable() {
-    // Disables the loginwindow process
-    writeLog("Disabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl unload /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
-}
-
-func loginWindowEnable() {
-    // Enables the loginwindow process
-    writeLog("Enabling loginwindow process", logLevel: .debug)
-    let cmd = "/bin/launchctl load /System/Library/LaunchDaemons/com.apple.loginwindow.plist"
-    _ = runShellCommand(cmd)
+func loginWindowUpdateState(_ action: Action) {
+    var cmd: String
+    let loginWindowPlist: String = "/System/Library/LaunchDaemons/com.apple.loginwindow.plist"
+    switch action {
+    case .enable:
+        writeLog("Enabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl load \(loginWindowPlist)"
+    case .disable:
+        writeLog("Disabling loginwindow process", logLevel: .debug)
+        cmd = "/bin/launchctl unload \(loginWindowPlist)"
+    }
+        _ = runShellCommand(cmd)
 }
 
 func getDeviceHardwareModel() -> String {
@@ -266,6 +307,17 @@ func getDeviceHardwareModel() -> String {
     var model = [CChar](repeating: 0, count: size)
     sysctlbyname("hw.model", &model, &size, nil, 0)
     return String(cString: model)
+}
+
+func getMarketingModel() -> String {
+    let appleSiliconProduct = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/AppleARMPE/product")
+        let cfKeyValue = IORegistryEntryCreateCFProperty(appleSiliconProduct, "product-description" as CFString, kCFAllocatorDefault, 0)
+        IOObjectRelease(appleSiliconProduct)
+        let keyValue: AnyObject? = cfKeyValue?.takeUnretainedValue()
+        if keyValue != nil, let data = keyValue as? Data {
+            return String(data: data, encoding: String.Encoding.utf8)?.trimmingCharacters(in: CharacterSet(["\0"])) ?? ""
+        }
+        return ""
 }
 
 func getDeviceSerialNumber() -> String {
@@ -302,7 +354,10 @@ func writeSysReport() {
     // Logs system information to log file
     writeLog("User: \(getConsoleUserInfo())", logLevel: .debug)
     writeLog("Model: \(getDeviceHardwareModel())", logLevel: .debug)
+    writeLog("Marketing Model: \(getMarketingModel())", logLevel: .debug)
     writeLog("Serial: \(getDeviceSerialNumber())", logLevel: .debug)
     writeLog("OS: \(getOSVersion())", logLevel: .debug)
     writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
 }
+
+// swiftlint:enable line_length

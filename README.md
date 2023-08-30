@@ -51,6 +51,20 @@ Future releases may also remove the capability to install packages as this also 
 Classic outset is available if required [as a legacy release](https://github.com/macadmins/outset/tree/main/legacy)
 
 _Note: Classic outset, while available in this repository, is no longer maintained and there are no plans for any future updates_ 
+Apart from the `Outset` app, the pkg also includes some other files:
+
+#### Agents
+`/Library/LaunchDaemons/` `/Library/LaunchAgents/`
+
+Updated with the `AssociatedBundleIdentifiers` key so under macOS 13, Login Items show everything under the 'Outset' title
+
+#### Outset.app
+
+![Outset Icon](https://github.com/bartreardon/outset/blob/master/outset/Assets.xcassets/AppIcon.appiconset/Outset.png_32x32@2x.png?raw=true) 
+
+`/usr/local/outset/Outset.app`
+
+Apart from being an app bundle, this app has the BundleID of `io.macadmins.Outset` which is used to show in macOS 13 Login Items under the same app bundle and with an icon. 
 
 ## Building the project
 
