@@ -125,5 +125,3 @@ class ServiceManager {
         status(loginWindowAgent)
     }
 }
-
-// swiftlint:enable line_length

@@ -346,5 +346,3 @@ struct Outset: ParsableCommand {
         }
     }
 }
-
-// swiftlint:enable line_length function_body_length cyclomatic_complexity

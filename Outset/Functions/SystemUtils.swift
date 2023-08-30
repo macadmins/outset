@@ -359,5 +359,3 @@ func writeSysReport() {
     writeLog("OS: \(getOSVersion())", logLevel: .debug)
     writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
 }
-
-// swiftlint:enable line_length

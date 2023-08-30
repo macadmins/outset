@@ -409,5 +409,3 @@ extension URL {
        (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
     }
 }
-
-// swiftlint:enable large_tuple line_length force_cast file_length cyclomatic_complexity function_body_length

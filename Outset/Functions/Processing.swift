@@ -135,5 +135,3 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     }
 
 }
-
-// swiftlint:enable function_body_length cyclomatic_complexity
