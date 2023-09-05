@@ -25,9 +25,6 @@ let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
 let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
 let onDemandDir = outsetDirectory+"on-demand"
 let shareDirectory = outsetDirectory+"share/"
-let logDirectory = outsetDirectory+"logs"
-let logFileName = "outset.log"
-let logFilePath = logDirectory+"/"+logFileName
 
 let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
 let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
@@ -47,7 +44,11 @@ var prefs = loadOutsetPreferences()
 // Log Stuff
 let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
 let osLog = OSLog(subsystem: bundleID, category: "main")
-let logRotateDays: Int = 30
+// We could make these availab as preferences perhaps
+let logFileName = "outset.log"
+let logFileMaxCount: Int = 30
+let logDirectory = outsetDirectory+"logs"
+let logFilePath = logDirectory+"/"+logFileName
 
 // Logic insertion point
 @main
@@ -158,7 +159,7 @@ struct Outset: ParsableCommand {
 
         if boot {
             // perform log file rotation
-            performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName)
+            performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)
 
             writeLog("Processing scheduled runs for boot", logLevel: .debug)
             ensureWorkingFolders()
