@@ -8,6 +8,21 @@
 import Foundation
 import OSLog
 
+// swiftlint:disable force_try
+class StandardError: TextOutputStream {
+    func write(_ string: String) {
+      if #available(macOS 10.15.4, *) {
+          try! FileHandle.standardError.write(contentsOf: Data(string.utf8))
+      } else {
+          // Fallback on earlier versions
+          if let data = string.data(using: .utf8) {
+              FileHandle.standardError.write(data)
+          }
+      }
+    }
+}
+// swiftlint:enable force_try
+
 func oslogTypeToString(_ type: OSLogType) -> String {
     switch type {
     case OSLogType.default: return "default"
@@ -19,18 +34,34 @@ func oslogTypeToString(_ type: OSLogType) -> String {
     }
 }
 
+func printStdErr(_ errorMessage: String) {
+    var standardError = StandardError()
+    print(errorMessage, to: &standardError)
+}
+
+func printStdOut(_ message: String) {
+    print(message)
+}
+
 func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog) {
     // write to the system logs
+
+    // let logger = Logger()  // 'Logger' is only available in macOS 11.0 or newer so we use os_log
+
     os_log("%{public}@", log: log, type: logLevel, message)
-    if logLevel == .error || logLevel == .info || (debugMode && logLevel == .debug) {
-        // print info, errors and debug to stdout
-        print("\(oslogTypeToString(logLevel).uppercased()): \(message)")
+    switch logLevel {
+    case .error, .debug, .fault:
+        printStdErr("\(oslogTypeToString(logLevel).uppercased()): \(message)")
+    default:
+        printStdOut("\(oslogTypeToString(logLevel).uppercased()): \(message)")
     }
-    // also write to a log file for accessability of those that don't want to manage the system log
+
+    // also write to a log file
     writeFileLog(message: message, logLevel: logLevel)
 }
 
 func writeFileLog(message: String, logLevel: OSLogType) {
+    // write to a log file for accessability of those that don't want to manage the system log
     if logLevel == .debug && !debugMode {
         return
     }
@@ -41,7 +72,8 @@ func writeFileLog(message: String, logLevel: OSLogType) {
         do {
             try FileManager.default.setAttributes(attributes, ofItemAtPath: logFileURL.path)
         } catch {
-            print("\(oslogTypeToString(.error).uppercased()): Unable to create log file at \(logFile)")
+            printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to create log file at \(logFile)")
+            printStdErr(error.localizedDescription)
             return
         }
     }
@@ -58,7 +90,8 @@ func writeFileLog(message: String, logLevel: OSLogType) {
         fileHandle.seekToEndOfFile()
         fileHandle.write(logEntry.data(using: .utf8)!)
     } catch {
-        print("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFile)")
+        printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFile)")
+        printStdErr(error.localizedDescription)
         return
     }
 }

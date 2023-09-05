@@ -133,7 +133,7 @@ struct Outset: ParsableCommand {
         }
 
         if version {
-            print(outsetVersion)
+            printStdOut("\(outsetVersion)")
             if debugMode {
                 writeSysReport()
             }
@@ -331,7 +331,7 @@ struct Outset: ParsableCommand {
                 for fileToHash in checksum {
                     let url = URL(fileURLWithPath: fileToHash)
                     if let hash = sha256(for: url) {
-                        print("Checksum for file \(fileToHash): \(hash)")
+                        printStdOut("Checksum for file \(fileToHash): \(hash)")
                     }
                 }
             }

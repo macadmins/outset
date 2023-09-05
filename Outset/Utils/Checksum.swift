@@ -75,11 +75,14 @@ func checksumAllFiles() {
                 let fileAttributes = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
                 if fileAttributes.isRegularFile! && fileURL.pathExtension != "plist" && fileURL.lastPathComponent != "outset" {
                     if let shasum = sha256(for: fileURL) {
-                        print("\(fileURL.relativePath) : \(shasum)")
+                        printStdOut("\(fileURL.relativePath) : \(shasum)")
                         shasumPlist.sha256sum[fileURL.relativePath] = shasum
                     }
                 }
-            } catch { print(error, fileURL) }
+            } catch {
+                printStdErr(error.localizedDescription)
+                printStdErr(fileURL.absoluteString)
+            }
         }
 
         writeLog("PLIST", logLevel: .info)
@@ -90,7 +93,7 @@ func checksumAllFiles() {
             if let plist = try PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] {
                 let formatted = try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
                 if let string = String(data: formatted, encoding: .utf8) {
-                    print(string)
+                    printStdOut(string)
                 }
             }
         } catch {
