@@ -132,6 +132,13 @@ struct Outset: ParsableCommand {
             debugMode = true
         }
 
+        if version {
+            print(outsetVersion)
+            if debugMode {
+                writeSysReport()
+            }
+        }
+
         if enableServices, #available(macOS 13.0, *) {
             let manager = ServiceManager()
             manager.registerDaemons()
@@ -160,7 +167,6 @@ struct Outset: ParsableCommand {
                     continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
                 }
                 if continueFirstBoot {
-                    writeSysReport()
                     processItems(bootOnceDir, deleteItems: true)
                 } else {
                     writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
@@ -335,13 +341,6 @@ struct Outset: ParsableCommand {
             writeLog("Checksum report", logLevel: .info)
             for (filename, checksum) in checksumLoadApprovedFiles() {
                 writeLog("\(filename) : \(checksum)", logLevel: .info)
-            }
-        }
-
-        if version {
-            print(outsetVersion)
-            if debugMode {
-                writeSysReport()
             }
         }
     }

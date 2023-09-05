@@ -125,7 +125,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		4124EFA6293B30D6003B00F4 /* Functions */ = {
+		4124EFA6293B30D6003B00F4 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
 				4124EFA2293B2F9B003B00F4 /* FileUtils.swift */,
@@ -139,7 +139,7 @@
 				CC3DC8292AA70E380050EE16 /* Checksum.swift */,
 				CC3DC8322AA7100C0050EE16 /* ShellUtils.swift */,
 			);
-			path = Functions;
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		4124EFAE29414A5D003B00F4 /* Outset */ = {
@@ -147,7 +147,7 @@
 			children = (
 				4124EF90293822F4003B00F4 /* Outset.swift */,
 				CC3DC82B2AA70EC90050EE16 /* Extensions */,
-				4124EFA6293B30D6003B00F4 /* Functions */,
+				4124EFA6293B30D6003B00F4 /* Utils */,
 				4124EFC329414DA4003B00F4 /* Info.plist */,
 				4124EFB329414A5E003B00F4 /* Assets.xcassets */,
 				4124EFB829414A5E003B00F4 /* Outset.entitlements */,
@@ -512,7 +512,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0.5;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -549,7 +549,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0.5;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -587,7 +587,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0.4;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -629,7 +629,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.0.4;
+				MARKETING_VERSION = 4.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
