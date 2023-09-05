@@ -14,7 +14,7 @@ class StandardError: TextOutputStream {
       if #available(macOS 10.15.4, *) {
           try! FileHandle.standardError.write(contentsOf: Data(string.utf8))
       } else {
-          // Fallback on earlier versions
+          // Fallback on earlier versions (should work on pre 10.15.4 but untested)
           if let data = string.data(using: .utf8) {
               FileHandle.standardError.write(data)
           }
@@ -65,14 +65,14 @@ func writeFileLog(message: String, logLevel: OSLogType) {
     if logLevel == .debug && !debugMode {
         return
     }
-    let logFileURL = URL(fileURLWithPath: logFile)
-    if !checkFileExists(path: logFile) {
+    let logFileURL = URL(fileURLWithPath: logFilePath)
+    if !checkFileExists(path: logFilePath) {
         FileManager.default.createFile(atPath: logFileURL.path, contents: nil, attributes: nil)
         let attributes = [FileAttributeKey.posixPermissions: 0o666]
         do {
             try FileManager.default.setAttributes(attributes, ofItemAtPath: logFileURL.path)
         } catch {
-            printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to create log file at \(logFile)")
+            printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to create log file at \(logFilePath)")
             printStdErr(error.localizedDescription)
             return
         }
@@ -90,7 +90,7 @@ func writeFileLog(message: String, logLevel: OSLogType) {
         fileHandle.seekToEndOfFile()
         fileHandle.write(logEntry.data(using: .utf8)!)
     } catch {
-        printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFile)")
+        printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFilePath)")
         printStdErr(error.localizedDescription)
         return
     }
