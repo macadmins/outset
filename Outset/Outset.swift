@@ -41,7 +41,7 @@ var debugMode: Bool = false
 var loginwindowState: Bool = true
 var consoleUser: String = getConsoleUserInfo().username
 var continueFirstBoot: Bool = true
-var prefs = loadPreferences()
+var prefs = loadOutsetPreferences()
 
 // Log Stuff
 let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
@@ -151,7 +151,7 @@ struct Outset: ParsableCommand {
             writeLog("Processing scheduled runs for boot", logLevel: .debug)
             ensureWorkingFolders()
 
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
 
             if !folderContents(path: bootOnceDir).isEmpty {
                 if prefs.waitForNetwork {
@@ -277,7 +277,7 @@ struct Outset: ParsableCommand {
                     prefs.ignoredUsers.append(username)
                 }
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !removeIgnoredUser.isEmpty {
@@ -287,7 +287,7 @@ struct Outset: ParsableCommand {
                     prefs.ignoredUsers.remove(at: index)
                 }
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !addOveride.isEmpty {
@@ -300,7 +300,7 @@ struct Outset: ParsableCommand {
                 writeLog("Adding \(overide) to overide list", logLevel: .debug)
                 prefs.overrideLoginOnce[overide] = Date()
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !removeOveride.isEmpty {
@@ -312,7 +312,7 @@ struct Outset: ParsableCommand {
                 writeLog("Removing \(overide) from overide list", logLevel: .debug)
                 prefs.overrideLoginOnce.removeValue(forKey: overide)
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !checksum.isEmpty || !computeSHA.isEmpty {

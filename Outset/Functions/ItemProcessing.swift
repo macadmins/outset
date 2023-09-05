@@ -46,7 +46,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     }
 
     // load runonce data
-    runOnceDict = loadRunOnce()
+    runOnceDict = loadRunOncePlist()
 
     // loop through the packages list and process installs.
     for package in packages {
@@ -131,7 +131,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     }
 
     if !runOnceDict.isEmpty {
-        writeRunOnce(runOnceData: runOnceDict)
+        writeRunOncePlist(runOnceData: runOnceDict)
     }
 
 }
