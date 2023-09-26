@@ -4,7 +4,6 @@
 //
 //  Created by Bart Reardon on 3/12/2022.
 //
-// swiftlint:disable function_body_length cyclomatic_complexity
 
 import Foundation
 
@@ -47,7 +46,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     }
 
     // load runonce data
-    runOnceDict = loadRunOnce()
+    runOnceDict = loadRunOncePlist()
 
     // loop through the packages list and process installs.
     for package in packages {
@@ -132,9 +131,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
     }
 
     if !runOnceDict.isEmpty {
-        writeRunOnce(runOnceData: runOnceDict)
+        writeRunOncePlist(runOnceData: runOnceDict)
     }
 
 }
-
-// swiftlint:enable function_body_length cyclomatic_complexity

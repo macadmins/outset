@@ -6,7 +6,6 @@
 //
 // swift implementation of outset by Joseph Chilcote https://github.com/chilcote/outset
 //
-// swiftlint:disable line_length function_body_length cyclomatic_complexity
 
 import Foundation
 import ArgumentParser
@@ -26,8 +25,6 @@ let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
 let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
 let onDemandDir = outsetDirectory+"on-demand"
 let shareDirectory = outsetDirectory+"share/"
-let logDirectory = outsetDirectory+"logs"
-let logFile = logDirectory+"/outset.log"
 
 let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
 let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
@@ -42,11 +39,16 @@ var debugMode: Bool = false
 var loginwindowState: Bool = true
 var consoleUser: String = getConsoleUserInfo().username
 var continueFirstBoot: Bool = true
-var prefs = loadPreferences()
+var prefs = loadOutsetPreferences()
 
 // Log Stuff
 let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
 let osLog = OSLog(subsystem: bundleID, category: "main")
+// We could make these availab as preferences perhaps
+let logFileName = "outset.log"
+let logFileMaxCount: Int = 30
+let logDirectory = outsetDirectory+"logs"
+let logFilePath = logDirectory+"/"+logFileName
 
 // Logic insertion point
 @main
@@ -133,6 +135,13 @@ struct Outset: ParsableCommand {
             debugMode = true
         }
 
+        if version {
+            printStdOut("\(outsetVersion)")
+            if debugMode {
+                writeSysReport()
+            }
+        }
+
         if enableServices, #available(macOS 13.0, *) {
             let manager = ServiceManager()
             manager.registerDaemons()
@@ -149,10 +158,13 @@ struct Outset: ParsableCommand {
         }
 
         if boot {
+            // perform log file rotation
+            performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)
+
             writeLog("Processing scheduled runs for boot", logLevel: .debug)
             ensureWorkingFolders()
 
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
 
             if !folderContents(path: bootOnceDir).isEmpty {
                 if prefs.waitForNetwork {
@@ -161,7 +173,6 @@ struct Outset: ParsableCommand {
                     continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
                 }
                 if continueFirstBoot {
-                    writeSysReport()
                     processItems(bootOnceDir, deleteItems: true)
                 } else {
                     writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
@@ -263,12 +274,9 @@ struct Outset: ParsableCommand {
 
         if cleanup {
             writeLog("Cleaning up on-demand directory.", logLevel: .debug)
-            if checkFileExists(path: onDemandTrigger) {
-                    pathCleanup(pathname: onDemandTrigger)
-            }
-            if !folderContents(path: onDemandDir).isEmpty {
-                pathCleanup(pathname: onDemandDir)
-            }
+            if checkFileExists(path: onDemandTrigger) { pathCleanup(pathname: onDemandTrigger) }
+            if checkFileExists(path: cleanupTrigger) { pathCleanup(pathname: cleanupTrigger) }
+            if !folderContents(path: onDemandDir).isEmpty { pathCleanup(pathname: onDemandDir) }
         }
 
         if !addIgnoredUser.isEmpty {
@@ -281,7 +289,7 @@ struct Outset: ParsableCommand {
                     prefs.ignoredUsers.append(username)
                 }
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !removeIgnoredUser.isEmpty {
@@ -291,7 +299,7 @@ struct Outset: ParsableCommand {
                     prefs.ignoredUsers.remove(at: index)
                 }
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !addOveride.isEmpty {
@@ -304,7 +312,7 @@ struct Outset: ParsableCommand {
                 writeLog("Adding \(overide) to overide list", logLevel: .debug)
                 prefs.overrideLoginOnce[overide] = Date()
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !removeOveride.isEmpty {
@@ -316,7 +324,7 @@ struct Outset: ParsableCommand {
                 writeLog("Removing \(overide) from overide list", logLevel: .debug)
                 prefs.overrideLoginOnce.removeValue(forKey: overide)
             }
-            writePreferences(prefs: prefs)
+            writeOutsetPreferences(prefs: prefs)
         }
 
         if !checksum.isEmpty || !computeSHA.isEmpty {
@@ -329,7 +337,7 @@ struct Outset: ParsableCommand {
                 for fileToHash in checksum {
                     let url = URL(fileURLWithPath: fileToHash)
                     if let hash = sha256(for: url) {
-                        print("Checksum for file \(fileToHash): \(hash)")
+                        printStdOut("Checksum for file \(fileToHash): \(hash)")
                     }
                 }
             }
@@ -341,14 +349,5 @@ struct Outset: ParsableCommand {
                 writeLog("\(filename) : \(checksum)", logLevel: .info)
             }
         }
-
-        if version {
-            print(outsetVersion)
-            if debugMode {
-                writeSysReport()
-            }
-        }
     }
 }
-
-// swiftlint:enable line_length function_body_length cyclomatic_complexity
