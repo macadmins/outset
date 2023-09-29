@@ -308,12 +308,12 @@ struct Outset: ParsableCommand {
             }
             ensureRoot("add scripts to override list")
 
-            for var overide in addOverride {
-                if !overide.contains(loginOnceDir) {
-                    overide = "\(loginOnceDir)/\(overide)"
+            for var override in addOverride {
+                if !override.contains(loginOnceDir) {
+                    override = "\(loginOnceDir)/\(override)"
                 }
-                writeLog("Adding \(overide) to overide list", logLevel: .debug)
-                prefs.overrideLoginOnce[overide] = Date()
+                writeLog("Adding \(override) to override list", logLevel: .debug)
+                prefs.overrideLoginOnce[override] = Date()
             }
             writeOutsetPreferences(prefs: prefs)
         }
@@ -323,12 +323,12 @@ struct Outset: ParsableCommand {
                 removeOverride = removeOveride
             }
             ensureRoot("remove scripts to override list")
-            for var overide in removeOverride {
-                if !overide.contains(loginOnceDir) {
-                    overide = "\(loginOnceDir)/\(overide)"
+            for var override in removeOverride {
+                if !override.contains(loginOnceDir) {
+                    override = "\(loginOnceDir)/\(override)"
                 }
-                writeLog("Removing \(overide) from overide list", logLevel: .debug)
-                prefs.overrideLoginOnce.removeValue(forKey: overide)
+                writeLog("Removing \(override) from override list", logLevel: .debug)
+                prefs.overrideLoginOnce.removeValue(forKey: override)
             }
             writeOutsetPreferences(prefs: prefs)
         }
