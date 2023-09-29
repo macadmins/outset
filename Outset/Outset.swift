@@ -302,10 +302,13 @@ struct Outset: ParsableCommand {
             writeOutsetPreferences(prefs: prefs)
         }
 
-        if !addOveride.isEmpty {
+        if !addOverride.isEmpty || !addOveride.isEmpty {
+            if !addOveride.isEmpty {
+                addOverride = addOveride
+            }
             ensureRoot("add scripts to override list")
 
-            for var overide in addOveride {
+            for var overide in addOverride {
                 if !overide.contains(loginOnceDir) {
                     overide = "\(loginOnceDir)/\(overide)"
                 }
@@ -315,9 +318,12 @@ struct Outset: ParsableCommand {
             writeOutsetPreferences(prefs: prefs)
         }
 
-        if !removeOveride.isEmpty {
+        if !removeOverride.isEmpty || !removeOveride.isEmpty {
+            if !removeOveride.isEmpty {
+                removeOverride = removeOveride
+            }
             ensureRoot("remove scripts to override list")
-            for var overide in removeOveride {
+            for var overide in removeOverride {
                 if !overide.contains(loginOnceDir) {
                     overide = "\(loginOnceDir)/\(overide)"
                 }
