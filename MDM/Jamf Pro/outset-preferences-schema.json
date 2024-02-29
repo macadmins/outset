@@ -1,8 +1,8 @@
 {
 	"__preferencedomain": "io.macadmins.Outset",
-    "options": {
-        "remove_empty_properties": true
-    },
+	"options": {
+		"remove_empty_properties": true
+	},
 	"title": "Outset (io.macadmins.Outset)",
 	"description": "Outset automatically processes packages and scripts during the boot sequence, user logins, or on demand.",
 	"properties": {
