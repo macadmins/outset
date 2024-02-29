@@ -309,7 +309,7 @@ struct Outset: ParsableCommand {
             ensureRoot("add scripts to override list")
 
             for var override in addOverride {
-                if !override.contains(loginOnceDir) {
+                if !override.contains(loginOnceDir) && !override.contains(loginOncePrivilegedDir) {
                     override = "\(loginOnceDir)/\(override)"
                 }
                 writeLog("Adding \(override) to override list", logLevel: .debug)
