@@ -1,0 +1,49 @@
+{
+	"__preferencedomain": "io.macadmins.Outset",
+    "options": {
+        "remove_empty_properties": true
+    },
+	"title": "Outset (io.macadmins.Outset)",
+	"description": "Outset automatically processes packages and scripts during the boot sequence, user logins, or on demand.",
+	"properties": {
+		"ignored_users": {
+			"title": "Ignored Users",
+			"description": "Exclude certain users from scripts that run in the login context (I.e. a local admin account or a static kiosk user).",
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"network_timeout": {
+			"title": "Network Timeout",
+			"description": "By default, during boot-once runs, Outset will wait for an active network connection before continuing. If that directory is populated, it would check every ten seconds for a valid network connection, timing out after a total of 180 seconds (three minutes) and skipping those items if no connection is successfully detected.",
+			"type": "integer",
+			"default": "180",
+			"options": {
+				"inputAttributes": {
+					"placeholder": "180"
+				}
+			}
+		},
+		"wait_for_network": {
+			"title": "Wait for Network",
+			"description": "If you don't want Outset to wait for a valid network connection at all (and you don't want it to suppress the loginwindow process while running scripts) you can deliver a readable preference file with the wait_for_network value set to boolean false.",
+			"type": "boolean",
+			"default": true
+		},
+		"sha256sum": {
+			"title": "Checksums",
+			"description": "Enforce script integrity and ensure that only script that you want to run gets run. When used, every file to be processed must have a matching hash value. Absence of a hash value or value mismatch will prevent Outset from processing that file.",
+			"type": "object",
+			"additionalProperties": {
+				"type": "string"
+			}
+		},
+		"verbose_logging": {
+			"title": "Verbose Logging",
+			"description": "Enable verbose logging",
+			"type": "boolean",
+			"default": false
+		}
+	}
+}
