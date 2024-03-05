@@ -1,6 +1,14 @@
 #!/bin/zsh
 
-# Shows the current service status (Enabled, Not Registered, Requires Approval or Not Found).
+# Indicate if all the Outset daemons are enabled or not.
 
-outsetStatus=$(/usr/local/outset/outset --service-status)
-echo "<result>$outsetStatus</result>"
+outsetStatusRaw=$(/usr/local/outset/outset --service-status)
+enabledDaemons=$(echo $outsetStatusRaw | grep -c 'Enabled$')
+
+healthyStatus="Not Healthy"
+
+if [ $enabledDaemons -eq 6 ]; then
+	healthyStatus="Healthy"
+fi
+
+echo "<result>$healthyStatus</result>"
