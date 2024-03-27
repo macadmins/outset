@@ -161,7 +161,7 @@ struct Outset: ParsableCommand {
             // perform log file rotation
             performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)
 
-            writeLog("Processing scheduled runs for boot", logLevel: .debug)
+            writeLog("Processing scheduled runs for boot", logLevel: .info)
             ensureWorkingFolders()
 
             writeOutsetPreferences(prefs: prefs)
@@ -190,7 +190,7 @@ struct Outset: ParsableCommand {
         }
 
         if loginWindow {
-            writeLog("Processing scheduled runs for login window", logLevel: .debug)
+            writeLog("Processing scheduled runs for login window", logLevel: .info)
 
             if !folderContents(path: loginWindowDir).isEmpty {
                 processItems(loginWindowDir)
@@ -198,7 +198,7 @@ struct Outset: ParsableCommand {
         }
 
         if login {
-            writeLog("Processing scheduled runs for login", logLevel: .debug)
+            writeLog("Processing scheduled runs for login", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
@@ -214,7 +214,7 @@ struct Outset: ParsableCommand {
         }
 
         if loginPrivileged {
-            writeLog("Processing scheduled runs for privileged login", logLevel: .debug)
+            writeLog("Processing scheduled runs for privileged login", logLevel: .info)
             if checkFileExists(path: loginPrivilegedTrigger) {
                 pathCleanup(pathname: loginPrivilegedTrigger)
             }
@@ -231,7 +231,7 @@ struct Outset: ParsableCommand {
         }
 
         if onDemand {
-            writeLog("Processing on-demand", logLevel: .debug)
+            writeLog("Processing on-demand", logLevel: .info)
             if !folderContents(path: onDemandDir).isEmpty {
                 if !["root", "loginwindow"].contains(consoleUser) {
                     let currentUser = NSUserName()
@@ -248,7 +248,7 @@ struct Outset: ParsableCommand {
         }
 
         if loginEvery {
-            writeLog("Processing scripts in login-every", logLevel: .debug)
+            writeLog("Processing scripts in login-every", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginEveryDir).isEmpty {
                     processItems(loginEveryDir)
@@ -257,7 +257,7 @@ struct Outset: ParsableCommand {
         }
 
         if loginOnce {
-            writeLog("Processing scripts in login-once", logLevel: .debug)
+            writeLog("Processing scripts in login-once", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
                 if !folderContents(path: loginOnceDir).isEmpty {
                     processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
@@ -268,7 +268,7 @@ struct Outset: ParsableCommand {
         }
 
         if cleanup {
-            writeLog("Cleaning up on-demand directory.", logLevel: .debug)
+            writeLog("Cleaning up on-demand directory.", logLevel: .info)
             if checkFileExists(path: onDemandTrigger) { pathCleanup(pathname: onDemandTrigger) }
             if checkFileExists(path: cleanupTrigger) { pathCleanup(pathname: cleanupTrigger) }
             if !folderContents(path: onDemandDir).isEmpty { pathCleanup(pathname: onDemandDir) }

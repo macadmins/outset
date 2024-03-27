@@ -85,7 +85,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
         }
 
         if once {
-            writeLog("Processing run-once \(script)", logLevel: .debug)
+            writeLog("Processing run-once \(script)", logLevel: .info)
             // If this is supposed to be a runonce item then we want to check to see if has an existing runonce entry
             // looks for a key with the full script path. Writes the full path and run date when done
             if !runOnceDict.contains(where: {$0.key == script}) {
@@ -119,7 +119,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
                 }
             }
         } else {
-            writeLog("Processing script \(script)", logLevel: .debug)
+            writeLog("Processing script \(script)", logLevel: .info)
             let (_, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
             if status != 0 {
                 writeLog(error, logLevel: .error)
