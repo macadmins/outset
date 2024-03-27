@@ -207,7 +207,7 @@ struct Outset: ParsableCommand {
                     processItems(loginEveryDir)
                 }
                 if !folderContents(path: loginOncePrivilegedDir).isEmpty || !folderContents(path: loginEveryPrivilegedDir).isEmpty {
-                    FileManager.default.createFile(atPath: loginPrivilegedTrigger, contents: nil)
+                    createTrigger(loginPrivilegedTrigger)
                 }
             }
 
@@ -237,17 +237,12 @@ struct Outset: ParsableCommand {
                     let currentUser = NSUserName()
                     if consoleUser == currentUser {
                         processItems(onDemandDir)
+                        createTrigger(cleanupTrigger)
                     } else {
                         writeLog("User \(currentUser) is not the current console user. Skipping on-demand run.")
                     }
                 } else {
                     writeLog("No current user session. Skipping on-demand run.")
-                }
-                FileManager.default.createFile(atPath: cleanupTrigger, contents: nil)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if checkFileExists(path: cleanupTrigger) {
-                        pathCleanup(pathname: cleanupTrigger)
-                    }
                 }
             }
         }
