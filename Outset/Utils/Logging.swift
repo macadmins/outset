@@ -62,9 +62,9 @@ func writeLog(_ message: String, logLevel: OSLogType = .info, log: OSLog = osLog
 
 func writeFileLog(message: String, logLevel: OSLogType) {
     // write to a log file for accessability of those that don't want to manage the system log
-    if logLevel == .debug && !debugMode {
-        return
-    }
+    //if logLevel == .debug && !debugMode {
+    //    return
+    //}
     let logFileURL = URL(fileURLWithPath: logFilePath)
     if !checkFileExists(path: logFilePath) {
         FileManager.default.createFile(atPath: logFileURL.path, contents: nil, attributes: nil)
