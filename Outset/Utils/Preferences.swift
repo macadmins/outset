@@ -153,16 +153,17 @@ func migrateLegacyPreferences() {
                         deletePath(newoldRootUserDefaults)
                     }
                 case legacyOutsetPreferencesFile:
-                    writeLog("\(legacyOutsetPreferencesFile) migration", logLevel: .debug)
-                    do {
-                        let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
-                        writeOutsetPreferences(prefs: legacyPreferences)
-                        writeLog("Migrated Legacy Outset Preferences", logLevel: .debug)
-                        deletePath(legacyOutsetPreferencesFile)
-                    } catch {
-                        writeLog("legacy Preferences migration failed", logLevel: .error)
+                    if isRoot() {
+                        writeLog("\(legacyOutsetPreferencesFile) migration", logLevel: .debug)
+                        do {
+                            let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
+                            writeOutsetPreferences(prefs: legacyPreferences)
+                            writeLog("Migrated Legacy Outset Preferences", logLevel: .debug)
+                            deletePath(legacyOutsetPreferencesFile)
+                        } catch {
+                            writeLog("legacy Preferences migration failed", logLevel: .error)
+                        }
                     }
-
                 case legacyRootRunOncePlistFile, legacyUserRunOncePlistFile:
                     writeLog("\(legacyRootRunOncePlistFile) and \(legacyUserRunOncePlistFile) migration", logLevel: .debug)
                     do {
