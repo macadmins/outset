@@ -169,6 +169,10 @@ func deletePath(_ path: String) {
     }
 }
 
+func createTrigger(_ path: String) {
+    FileManager.default.createFile(atPath: path, contents: nil)
+}
+
 func mountDmg(dmg: String) -> String {
     // Attaches dmg and returns the path
     let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"

@@ -1,7 +1,7 @@
 #!/usr/local/outset/python3
 
 """
-This script automatically processes packages, profiles, and/or scripts at
+This script automatically processes packages and/or scripts at
 boot, on demand, and/or login.
 """
 
@@ -35,12 +35,11 @@ import subprocess
 import sys
 import time
 import warnings
-from distutils.version import StrictVersion as version
 from platform import mac_ver
 from stat import S_IWOTH, S_IXOTH
 
 __author__ = "Joseph Chilcote (chilcote@gmail.com)"
-__version__ = "3.0.3"
+__version__ = "3.0.4"
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
@@ -232,27 +231,6 @@ def install_package(pkg):
     return True
 
 
-def install_profile(pathname):
-    """Install mobileconfig located at given pathname"""
-    # profiles has new verbs in 10.13.
-    if version(mac_ver()[0]) >= version("10.13"):
-        cmd = ["/usr/bin/profiles", "install", "-path=%s" % pathname]
-    else:
-        cmd = ["/usr/bin/profiles", "-IF", pathname]
-
-    try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        logging.info("Installing profile %s", pathname)
-        (_, err) = proc.communicate()
-        if err:
-            logging.error("Failure processing %s: %s", pathname, err.decode('utf-8'))
-            return False
-    except OSError as err:
-        logging.error("Failure processing %s: %s", pathname, err.decode('utf-8'))
-        return False
-    return True
-
-
 def run_script(pathname):
     """Runs script located at given pathname"""
     logging.info("Processing %s", pathname)
@@ -286,7 +264,6 @@ def process_items(path, delete_items=False, once=False, override={}):
     items_to_process = []
     packages = []
     scripts = []
-    profiles = []
     d = {}
 
     for dirpath, _, files in os.walk(path):
@@ -301,8 +278,6 @@ def process_items(path, delete_items=False, once=False, override={}):
         if check_perms(pathname):
             if pathname.lower().endswith(("pkg", "mpkg", "dmg")):
                 packages.append(pathname)
-            elif pathname.lower().endswith("mobileconfig"):
-                profiles.append(pathname)
             else:
                 scripts.append(pathname)
         else:
@@ -330,21 +305,6 @@ def process_items(path, delete_items=False, once=False, override={}):
         if delete_items:
             cleanup(package)
 
-    for profile in profiles:
-        if once:
-            if profile not in d:
-                if install_profile(profile):
-                    d[profile] = datetime.datetime.now()
-            else:
-                if profile in override:
-                    if override[profile] > d[profile]:
-                        if install_profile(profile):
-                            d[profile] = datetime.datetime.now()
-        else:
-            install_profile(profile)
-        if delete_items:
-            cleanup(profile)
-
     for script in scripts:
         if once:
             if script not in d:
@@ -369,7 +329,7 @@ def main():
 
     parser = argparse.ArgumentParser(
         description="This script automatically \
-            processes packages, profiles, and/or scripts at boot, on demand,\
+            processes packages and/or scripts at boot, on demand,\
             and/or login."
     )
     group = parser.add_mutually_exclusive_group(required=True)

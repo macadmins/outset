@@ -12,7 +12,7 @@
 #        AUTHOR: Bart Reardon
 #  ORGANIZATION: Macadmins Open Source
 #       CREATED: 2023-03-23
-#      REVISION: 1.0.1
+#      REVISION: 1.0.2
 #
 #       COPYRIGHT: (C) Macadmins Open Source 2023. All rights reserved.
 #
@@ -21,6 +21,9 @@
 FILE_TO_PACKAGE=""
 FILE_TARGET="login-once"
 BUILD_ALL=false
+POSTINSTALL_SCRIPT=false
+MAKE_EXECUTABLE=false
+POSTINSTALL_SCRIPT_FILE=""
 BUILD_DIRECTORY="/var/tmp/outset"
 
 PKGTITLE="Outset Custom Content"
@@ -30,7 +33,16 @@ PKGID="${PKG_DOMAIN}.custom-content"
 
 OUTSET_ROOT="/usr/local/outset"
 PGKROOT="${BUILD_DIRECTORY}/PGKROOT"
+SCRIPT_DIR="${PGKROOT}/scripts"
 PKGNAME="outset-custom-content"
+ONDEMAND_POSTINSTALL=$(cat <<EOF
+#!/bin/bash
+trigger="/private/tmp/.io.macadmins.outset.ondemand.launchd"
+[[ \$3 != "/" ]] && exit 0
+/usr/bin/touch "\${trigger}"
+exit 0
+EOF
+)
 
 printUsage() {
     echo "OVERVIEW: ${0##*/} is a utility that packages files for use in outset workflows."
@@ -40,7 +52,11 @@ printUsage() {
     echo "OPTIONS:"
     echo "    -a, --all                 Package all scripts from outset processing directories into one package"
     echo "    -f, --file <filename>     Package the selected file"
+    echo "    -x, --make-executable     Ensure the selected file executable bit is set (only applies to script files)"
     echo "    -t, --target <directory>  Target processing directory (default 'login-once')"
+    echo "    -s, --postinstall-script [<filename>]"
+    echo "                              Include a postinstall script. If no argument is given, a standard postinstall"
+    echo "                              script to trigger on-demand will be included."
     echo "    -v, --version, <number>   Set package version to the selected number (default is '1.0')"
     echo "    -p, --build-path, <path>  Path to use as the build location (default ${BUILD_DIRECTORY})"
     echo "    -h, --help                Print this message"
@@ -95,8 +111,17 @@ fi
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --file|-f) FILE_TO_PACKAGE="$2"; shift ;;
+        --make-executable|-x) MAKE_EXECUTABLE=true ;;
         --target|-t) FILE_TARGET=$(validateTarget "$2") || printValidTargets "$2"; shift ;;
         --version|-v) PKGVERSION=$(validateVersion "$2") || exitWithError "invalid version number $2"; shift ;;
+        --postinstall-script|-s) POSTINSTALL_SCRIPT_FILE="$2" && POSTINSTALL_SCRIPT=true
+            # if the first character is a hyphen, then no argument was passed
+            if [[ -z $POSTINSTALL_SCRIPT_FILE ]] || [[ "${POSTINSTALL_SCRIPT_FILE:0:1}" == "-" ]]; then
+                POSTINSTALL_SCRIPT_FILE=""
+            else
+                shift
+            fi
+        ;;
         --build-path|-p)
             if [[ -e "$2" ]]; then 
                 BUILD_DIRECTORY="${2%/}"
@@ -116,6 +141,20 @@ done
 # create PGKROOT structure
 mkdir -p "${PGKROOT}${OUTSET_ROOT}"
 
+if $POSTINSTALL_SCRIPT; then
+    mkdir -p "${SCRIPT_DIR}"
+    if [[ -n $POSTINSTALL_SCRIPT_FILE ]]; then
+        if [[ -e "${POSTINSTALL_SCRIPT_FILE}" ]]; then
+            cp "${POSTINSTALL_SCRIPT_FILE}" "${SCRIPT_DIR}/postinstall"
+        else
+            exitWithError "${POSTINSTALL_SCRIPT_FILE} doesn't exist"
+        fi
+    else
+        echo "${ONDEMAND_POSTINSTALL}" > "${SCRIPT_DIR}/postinstall"
+    fi
+    chmod 755 "${SCRIPT_DIR}/postinstall"
+fi
+
 if [[ -n $FILE_TO_PACKAGE ]]; then
     PKGID="${PKG_DOMAIN}.${FILE_TARGET}-${FILE_TO_PACKAGE##*/}"
     PKGNAME="outset-${FILE_TARGET}-${FILE_TO_PACKAGE##*/}_v${PKGVERSION}"
@@ -125,6 +164,10 @@ if [[ -n $FILE_TO_PACKAGE ]]; then
     
     if [[ -e "${FILE_TO_PACKAGE}" ]]; then
         cp "${FILE_TO_PACKAGE}" "${TARGET_DIR}"
+        # if the file is not a pkg or dmg, make it executable
+        if $MAKE_EXECUTABLE && [[ "${FILE_TO_PACKAGE##*.}" != "pkg" ]] && [[ "${FILE_TO_PACKAGE##*.}" != "dmg" ]]; then
+            chmod 755 "${TARGET_DIR}/${FILE_TO_PACKAGE##*/}"
+        fi
     else
         exitWithError "${FILE_TO_PACKAGE} doesn't exist"
     fi
@@ -139,7 +182,11 @@ fi
 TMP_PKG="${BUILD_DIRECTORY}/${PKGNAME}.component.pkg"
 BUILD_PKG="${BUILD_DIRECTORY}/${PKGNAME}.pkg"
 
-/usr/bin/pkgbuild --root "${PGKROOT}" --identifier ${PKGID} --version ${PKGVERSION} "${TMP_PKG}"
+if $POSTINSTALL_SCRIPT; then
+    /usr/bin/pkgbuild --root "${PGKROOT}" --scripts "${SCRIPT_DIR}" --identifier ${PKGID} --version ${PKGVERSION} "${TMP_PKG}"
+else
+    /usr/bin/pkgbuild --root "${PGKROOT}" --identifier ${PKGID} --version ${PKGVERSION} "${TMP_PKG}"
+fi
 /usr/bin/productbuild --identifier ${PKGID} --package "${TMP_PKG}" "${BUILD_PKG}"
 
 # clean up
