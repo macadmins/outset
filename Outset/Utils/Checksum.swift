@@ -73,7 +73,7 @@ func checksumAllFiles() {
         for case let fileURL as URL in enumerator {
             do {
                 let fileAttributes = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
-                if fileAttributes.isRegularFile! && fileURL.pathExtension != "plist" && fileURL.lastPathComponent != "outset" {
+                if fileAttributes.isRegularFile! && fileURL.pathExtension != "plist" && fileURL.lastPathComponent != "outset" && !fileURL.relativePath.contains(logFilePath) {
                     if let shasum = sha256(for: fileURL) {
                         printStdOut("\(fileURL.relativePath) : \(shasum)")
                         shasumPlist.sha256sum[fileURL.relativePath] = shasum
