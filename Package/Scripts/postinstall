@@ -36,6 +36,7 @@ DAEMONS=(
   "${LD_ROOT}/io.macadmins.outset.boot.plist"
   "${LD_ROOT}/io.macadmins.outset.cleanup.plist"
   "${LD_ROOT}/io.macadmins.outset.login-privileged.plist"
+  "${LD_ROOT}/io.macadmins.outset.on-demand-privileged.plist"
 )
 
 ## LaunchAgents

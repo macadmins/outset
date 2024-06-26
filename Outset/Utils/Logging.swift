@@ -99,9 +99,41 @@ func writeFileLog(message: String, logLevel: OSLogType) {
 func writeSysReport() {
     // Logs system information to log file
     writeLog("User: \(getConsoleUserInfo())", logLevel: .debug)
-    writeLog("Model: \(getDeviceHardwareModel())", logLevel: .debug)
-    writeLog("Marketing Model: \(getMarketingModel())", logLevel: .debug)
-    writeLog("Serial: \(getDeviceSerialNumber())", logLevel: .debug)
-    writeLog("OS: \(getOSVersion())", logLevel: .debug)
-    writeLog("Build: \(getOSBuildVersion())", logLevel: .debug)
+    writeLog("Model: \(deviceHardwareModel)", logLevel: .debug)
+    writeLog("Marketing Model: \(marketingModel)", logLevel: .debug)
+    writeLog("Serial: \(deviceSerialNumber)", logLevel: .debug)
+    writeLog("OS: \(osVersion)", logLevel: .debug)
+    writeLog("Build: \(osBuildVersion)", logLevel: .debug)
+}
+
+func performLogRotation(logFolderPath: String, logFileBaseName: String, maxLogFiles: Int = 30) {
+    let fileManager = FileManager.default
+    let currentDay = Calendar.current.component(.day, from: Date())
+
+    // Check if the day has changed
+    let newestLogFile = logFolderPath + "/" + logFileBaseName
+    if fileManager.fileExists(atPath: newestLogFile) {
+        let fileCreationDate = try? fileManager.attributesOfItem(atPath: newestLogFile)[.creationDate] as? Date
+        if let creationDate = fileCreationDate {
+            let dayOfCreation = Calendar.current.component(.day, from: creationDate)
+            if dayOfCreation != currentDay {
+                // rotate files
+                for archivedLogFile in (1...maxLogFiles).reversed() {
+                    let sourcePath = logFolderPath + "/" + (archivedLogFile == 1 ? logFileBaseName : "\(logFileBaseName).\(archivedLogFile-1)")
+                    let destinationPath = logFolderPath + "/" + "\(logFileBaseName).\(archivedLogFile)"
+
+                    if fileManager.fileExists(atPath: sourcePath) {
+                        if archivedLogFile == maxLogFiles {
+                            // Delete the oldest log file if it exists
+                            try? fileManager.removeItem(atPath: sourcePath)
+                        } else {
+                            // Move the log file to the next number in the rotation
+                            try? fileManager.moveItem(atPath: sourcePath, toPath: destinationPath)
+                        }
+                    }
+                }
+                writeLog("Logrotate complete", logLevel: .debug)
+            }
+        }
+    }
 }

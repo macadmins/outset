@@ -7,42 +7,6 @@
 
 import Foundation
 
-func installPackage(pkg: String) -> Bool {
-    // Installs pkg onto boot drive
-    if isRoot() {
-        var pkgToInstall: String = ""
-        var dmgMount: String = ""
-
-        if pkg.lowercased().hasSuffix("dmg") {
-            dmgMount = mountDmg(dmg: pkg)
-            for files in folderContents(path: dmgMount) where ["pkg", "mpkg"].contains(files.lowercased().suffix(3)) {
-                pkgToInstall = dmgMount
-            }
-        } else if ["pkg", "mpkg"].contains(pkg.lowercased().suffix(3)) {
-            pkgToInstall = pkg
-        }
-        writeLog("Installing \(pkgToInstall)")
-        let cmd = "/usr/sbin/installer -pkg \(pkgToInstall) -target /"
-        let (output, error, status) = runShellCommand(cmd, verbose: true)
-        if status != 0 {
-            writeLog(error, logLevel: .error)
-        } else {
-            writeLog(output)
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
-            if !dmgMount.isEmpty {
-                writeLog(detachDmg(dmgMount: dmgMount))
-            }
-        }
-        return true
-    } else {
-        writeLog("Unable to process \(pkg)", logLevel: .error)
-        writeLog("Must be root to install packages", logLevel: .error)
-    }
-    return false
-}
-
 func ensureWorkingFolders() {
     // Ensures working folders are all present and creates them if necessary
     let workingDirectories = [
@@ -171,60 +135,4 @@ func deletePath(_ path: String) {
 
 func createTrigger(_ path: String) {
     FileManager.default.createFile(atPath: path, contents: nil)
-}
-
-func mountDmg(dmg: String) -> String {
-    // Attaches dmg and returns the path
-    let cmd = "/usr/bin/hdiutil attach -nobrowse -noverify -noautoopen \(dmg)"
-    writeLog("Attaching \(dmg)", logLevel: .debug)
-    let (output, error, status) = runShellCommand(cmd)
-    if status != 0 {
-        writeLog("Failed attaching \(dmg) with error \(error)", logLevel: .error)
-        return error
-    }
-    return output.trimmingCharacters(in: .whitespacesAndNewlines)
-}
-
-func detachDmg(dmgMount: String) -> String {
-    // Detaches dmg
-    writeLog("Detaching \(dmgMount)", logLevel: .debug)
-    let cmd = "/usr/bin/hdiutil detach -force \(dmgMount)"
-    let (output, error, status) = runShellCommand(cmd)
-    if status != 0 {
-        writeLog("Failed detaching \(dmgMount) with error \(error)", logLevel: .error)
-        return error
-    }
-    return output.trimmingCharacters(in: .whitespacesAndNewlines)
-}
-
-func performLogRotation(logFolderPath: String, logFileBaseName: String, maxLogFiles: Int = 30) {
-    let fileManager = FileManager.default
-    let currentDay = Calendar.current.component(.day, from: Date())
-
-    // Check if the day has changed
-    let newestLogFile = logFolderPath + "/" + logFileBaseName
-    if fileManager.fileExists(atPath: newestLogFile) {
-        let fileCreationDate = try? fileManager.attributesOfItem(atPath: newestLogFile)[.creationDate] as? Date
-        if let creationDate = fileCreationDate {
-            let dayOfCreation = Calendar.current.component(.day, from: creationDate)
-            if dayOfCreation != currentDay {
-                // rotate files
-                for archivedLogFile in (1...maxLogFiles).reversed() {
-                    let sourcePath = logFolderPath + "/" + (archivedLogFile == 1 ? logFileBaseName : "\(logFileBaseName).\(archivedLogFile-1)")
-                    let destinationPath = logFolderPath + "/" + "\(logFileBaseName).\(archivedLogFile)"
-
-                    if fileManager.fileExists(atPath: sourcePath) {
-                        if archivedLogFile == maxLogFiles {
-                            // Delete the oldest log file if it exists
-                            try? fileManager.removeItem(atPath: sourcePath)
-                        } else {
-                            // Move the log file to the next number in the rotation
-                            try? fileManager.moveItem(atPath: sourcePath, toPath: destinationPath)
-                        }
-                    }
-                }
-                writeLog("Logrotate complete", logLevel: .debug)
-            }
-        }
-    }
 }

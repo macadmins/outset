@@ -11,45 +11,6 @@ import Foundation
 import ArgumentParser
 import OSLog
 
-let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
-let outsetVersion: AnyObject = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject
-
-// Outset specific directories
-let outsetDirectory = "/usr/local/outset/"
-let bootEveryDir = outsetDirectory+"boot-every"
-let bootOnceDir = outsetDirectory+"boot-once"
-let loginWindowDir = outsetDirectory+"login-window"
-let loginEveryDir = outsetDirectory+"login-every"
-let loginOnceDir = outsetDirectory+"login-once"
-let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
-let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
-let onDemandDir = outsetDirectory+"on-demand"
-let shareDirectory = outsetDirectory+"share/"
-
-let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
-let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
-let cleanupTrigger = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
-
-// File permission defaults
-let requiredFilePermissions: NSNumber = 0o644
-let requiredExecutablePermissions: NSNumber = 0o755
-
-// Set some variables
-var debugMode: Bool = false
-var loginwindowState: Bool = true
-var consoleUser: String = getConsoleUserInfo().username
-var continueFirstBoot: Bool = true
-var prefs = loadOutsetPreferences()
-
-// Log Stuff
-let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
-let osLog = OSLog(subsystem: bundleID, category: "main")
-// We could make these availab as preferences perhaps
-let logFileName = "outset.log"
-let logFileMaxCount: Int = 30
-let logDirectory = outsetDirectory+"logs"
-let logFilePath = logDirectory+"/"+logFileName
-
 // Logic insertion point
 @main
 struct Outset: ParsableCommand {
@@ -74,6 +35,9 @@ struct Outset: ParsableCommand {
 
     @Flag(help: "Process scripts on demand")
     var onDemand = false
+
+    @Flag(help: "Process scripts on demand with elevated privileges")
+    var onDemandPrivileged = false
 
     @Flag(help: "Manually process scripts in login-every")
     var loginEvery = false
@@ -243,6 +207,28 @@ struct Outset: ParsableCommand {
                     }
                 } else {
                     writeLog("No current user session. Skipping on-demand run.")
+                }
+            }
+        }
+
+        if onDemandPrivileged {
+            writeLog("Processing on-demand-privileged", logLevel: .debug)
+            if !folderContents(path: onDemandPrivilegedDir).isEmpty {
+                if !["root", "loginwindow"].contains(consoleUser) {
+                    let currentUser = NSUserName()
+                    if consoleUser == currentUser {
+                        processItems(onDemandPrivilegedDir)
+                    } else {
+                        writeLog("User \(currentUser) is not the current console user. Skipping on-demand-privileged run.")
+                    }
+                } else {
+                    writeLog("No current user session. Skipping on-demand run.")
+                }
+                FileManager.default.createFile(atPath: cleanupTrigger, contents: nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if checkFileExists(path: cleanupTrigger) {
+                        pathCleanup(pathname: cleanupTrigger)
+                    }
                 }
             }
         }

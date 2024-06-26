@@ -16,6 +16,7 @@ class ServiceManager {
     let bootDaemon = SMAppService.daemon(plistName: "io.macadmins.Outset.boot.plist")
     let loginPrivilegedDaemon = SMAppService.daemon(plistName: "io.macadmins.Outset.login-privileged.plist")
     let cleanupDaemon = SMAppService.daemon(plistName: "io.macadmins.Outset.cleanup.plist")
+    let onDemandDaemon = SMAppService.agent(plistName: "io.macadmins.Outset.on-demand-privileged.plist")
 
     // LaunchAgent path: $APP.app/Contents/Library/LaunchAgents/
     let loginAgent = SMAppService.agent(plistName: "io.macadmins.Outset.login.plist")
@@ -100,6 +101,7 @@ class ServiceManager {
         register(cleanupDaemon)
         register(loginAgent)
         register(onDemandAgent)
+        register(onDemandDaemon)
         // Disabled for the time being until ServiceManagement and loginwindow agent issues are resolved
         // register(loginWindowAgent)
     }
@@ -111,6 +113,7 @@ class ServiceManager {
         unregister(cleanupDaemon)
         unregister(loginAgent)
         unregister(onDemandAgent)
+        unregister(onDemandDaemon)
         // Disabled for the time being until ServiceManagement and loginwindow agent issues are resolved
         // unregister(loginWindowAgent)
     }
@@ -122,6 +125,7 @@ class ServiceManager {
         status(cleanupDaemon)
         status(loginAgent)
         status(onDemandAgent)
+        status(onDemandDaemon)
         status(loginWindowAgent)
     }
 }
