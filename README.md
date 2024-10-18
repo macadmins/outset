@@ -5,7 +5,7 @@ Outset
 
 Outset is a utility application which automatically processes scripts and packages during the boot sequence, user logins, or on demand.
 
-[Check out the wiki](https://github.com/macadmins/outset/wiki) for more information on how to use Outset or find out [how it works](https://github.com/chilcote/outset/wiki/FAQ).
+[Check out the wiki](https://github.com/macadmins/outset/wiki) for more information on how to use Outset or find out [how it works](https://github.com/macadmins/outset/wiki/FAQ).
 
 ## Requirements
 + macOS 10.15+
