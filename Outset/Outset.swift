@@ -90,6 +90,10 @@ struct Outset: ParsableCommand {
     @Flag(help: .hidden)
     var serviceStatus = false
 
+    /// DEBUG CODE - remove me
+    @Flag(help: .hidden)
+    var payloads = false
+
     @Flag(help: "Show version number")
     var version = false
 
@@ -104,6 +108,11 @@ struct Outset: ParsableCommand {
             if debugMode {
                 writeSysReport()
             }
+        }
+
+        /// DEBUG CODE - remove me
+        if payloads {
+            processPayloadScripts()
         }
 
         if enableServices, #available(macOS 13.0, *) {

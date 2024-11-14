@@ -14,89 +14,158 @@ import Foundation
 //
 
 typealias ScriptEntry = [String: String]
-typealias ScriptDictionary = [String: [ScriptEntry]]
 
-struct ScriptPayload: Codable {
-    var loginWindow: ScriptDictionary = [:]
-    var loginOnce: ScriptDictionary = [:]
-    var loginEvery: ScriptDictionary = [:]
-    var loginPrivilegedOnce: ScriptDictionary = [:]
-    var loginPrivilegedEvery: ScriptDictionary = [:]
-    var bootOnce: ScriptDictionary = [:]
-    var bootEvery: ScriptDictionary = [:]
+struct ScriptPayloads: Codable {
+    var loginWindow: ScriptEntry?
+    var loginOnce: ScriptEntry?
+    var loginEvery: ScriptEntry?
+    var loginPrivilegedOnce: ScriptEntry?
+    var loginPrivilegedEvery: ScriptEntry?
+    var bootOnce: ScriptEntry?
+    var bootEvery: ScriptEntry?
 
     enum CodingKeys: String, CodingKey {
-        case loginWindow = "login-window"
-        case loginOnce = "login-once"
-        case loginEvery = "login-every"
-        case loginPrivilegedOnce = "login-privileged-once"
-        case loginPrivilegedEvery = "login-privileged-every"
-        case bootOnce = "boot-once"
-        case bootEvery = "boot-every"
+        case loginWindow = "login_window"
+        case loginOnce = "login_once"
+        case loginEvery = "login_every"
+        case loginPrivilegedOnce = "login_privileged_once"
+        case loginPrivilegedEvery = "login_privileged_every"
+        case bootOnce = "boot_once"
+        case bootEvery = "boot_every"
     }
-}
 
-func loadScriptPayload(forKey key: String) -> ScriptPayload? {
-    if let savedData = UserDefaults.standard.data(forKey: key) {
-        let decoder = JSONDecoder()
-        if let loadedPayload = try? decoder.decode(ScriptPayload.self, from: savedData) {
-            return loadedPayload
+    enum PayloadType {
+        case loginWindow
+        case loginOnce
+        case loginEvery
+        case loginPrivilegedOnce
+        case loginPrivilegedEvery
+        case bootOnce
+        case bootEvery
+    }
+
+    // Decodes base64 string into a script text
+    private func decodeBase64Script(base64String: String) -> String? {
+        if let data = Data(base64Encoded: base64String),
+           let script = String(data: data, encoding: .utf8) {
+            return script
         }
+        return nil
     }
-    return nil
-}
 
-func processScriptPayloads(payload: [ScriptEntry], once: Bool = false, override: [String: Date] = [:]) {
-    let permissions: NSNumber = 0o755
-    for scripts in payload {
-        for (scriptName, b64script) in scripts {
-            // Convert the script bundle from base64
-            if let scriptData = Data(base64Encoded: b64script, options: .ignoreUnknownCharacters) {
-                // write to temp location
-                let tempDirectory = URL(fileURLWithPath: payloadDirectory, isDirectory: true)
-                let tempFilePath = tempDirectory.appendingPathComponent(scriptName)
-                do {
-                    try scriptData.write(to: tempFilePath)
-                    writeLog("Data written to temporary file: \(tempFilePath)", logLevel: .debug)
-                } catch {
-                    writeLog("Failed to write data to temporary file: \(error)", logLevel: .error)
-                    return
+    func processScripts(ofType type: PayloadType? = nil) {
+        // Determine which payloads to process based on the specified type
+        let payloadsToProcess: [(String, [String: String]?)] = {
+            switch type {
+            case .loginWindow:
+                return [("login_once", loginWindow)]
+            case .loginOnce:
+                return [("login_once", loginOnce)]
+            case .loginEvery:
+                return [("login_every", loginEvery)]
+            case .loginPrivilegedOnce:
+                return [("login_once", loginPrivilegedOnce)]
+            case .loginPrivilegedEvery:
+                return [("login_once", loginPrivilegedEvery)]
+            case .bootOnce:
+                return [("boot_once", bootOnce)]
+            case .bootEvery:
+                return [("boot_every", bootEvery)]
+            default:
+                return []
+            }
+        }()
+
+        // Process each selected payload
+        for (context, scripts) in payloadsToProcess {
+            guard let scripts = scripts else {
+                print("No scripts found for context: \(context)")
+                continue
+            }
+            writeLog("Processing scripts for context: \(context)")
+            for (name, base64Data) in scripts {
+                if let script = decodeBase64Script(base64String: base64Data) {
+                    writeLog("Executing script: \(name)")
+                    executeScript(script)
+                } else {
+                    writeLog("Failed to decode script: \(name)", logLevel: .error)
                 }
-
-                // set file permissions
-                do {
-                    try FileManager.default.setAttributes([.posixPermissions: permissions], ofItemAtPath: tempFilePath.absoluteString)
-                    writeLog("Permissions set successfully to 755 for file: \(tempFilePath)", logLevel: .debug)
-                    processScripts(scripts: [tempFilePath.absoluteString], once: once, override: override)
-                } catch {
-                    writeLog("Failed to set permissions for file \(tempFilePath): \(error)", logLevel: .error)
-                    writeLog("Payload \(scriptName) will not be processed", logLevel: .error)
-                }
-
-                // remove temp script
-                deletePath(tempFilePath.absoluteString)
             }
         }
     }
-}
 
-func retrievePayload(forKey key: String) -> [ScriptEntry] {
-    let bundleID = Bundle.main.bundleIdentifier! as CFString
-    if CFPreferencesAppValueIsForced(key as CFString, bundleID) {
-        if let value = CFPreferencesCopyValue(key as CFString, bundleID, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [ScriptEntry] {
-            return value
+    private func executeScript(_ script: String) {
+        // Write script to a temporary file
+        let tempDir = FileManager.default.temporaryDirectory
+        let tempFileURL = tempDir.appendingPathComponent(UUID().uuidString)
+
+        do {
+            try script.write(to: tempFileURL, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempFileURL.path)
+            writeLog("Wrote payload to \(tempFileURL.path)", logLevel: .debug)
+        } catch {
+            writeLog("Failed to write script to temporary file: \(error)", logLevel: .error)
+            return
+        }
+
+        let (output, error, status) = runShellCommand(tempFileURL.path, args: [consoleUser], verbose: true)
+        if status != 0 {
+            writeLog(error, logLevel: .error)
+        } else {
+            writeLog(output)
+        }
+
+        // Clean up the temporary file
+        do {
+            try FileManager.default.removeItem(at: tempFileURL)
+            writeLog("Cleaned up \(tempFileURL.path)", logLevel: .debug)
+        } catch {
+            writeLog("Failed to clean up temporary file \(tempFileURL.path): \(error)", logLevel: .error)
         }
     }
-    return []
+
 }
 
-func retrieveScriptPayload() {
-    if !retrievePayload(forKey: "login-window").isEmpty {
+// Utility to load `ScriptPayloads` from UserDefaults
+class ScriptPayloadManager {
+    private let userDefaults: UserDefaults
 
+    init() {
+        self.userDefaults = UserDefaults.standard
+    }
+
+    // Loads and decodes ScriptPayloads from UserDefaults
+    func loadScriptPayloads() -> ScriptPayloads? {
+        guard let payloadDict = CFPreferencesCopyValue("script_payloads" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) else {
+        // guard let payloadData = userDefaults.data(forKey: "script_payloads") else {
+            writeLog("No script payloads found in UserDefaults.", logLevel: .debug)
+            return nil
+        }
+
+        print(payloadDict)
+
+        do {
+            // Convert dictionary to Data and decode with PropertyListDecoder
+            let payloadData = try PropertyListSerialization.data(fromPropertyList: payloadDict, format: .xml, options: 0)
+            let decoder = PropertyListDecoder()
+            return try decoder.decode(ScriptPayloads.self, from: payloadData)
+        } catch {
+            writeLog("Failed to decode script payloads: \(error)", logLevel: .debug)
+            return nil
+        }
     }
 }
 
-/*
+func processPayloadScripts() {
+    let manager = ScriptPayloadManager()
 
+    if let scriptPayloads = manager.loadScriptPayloads() {
+        // Process only `login_once` scripts
+        scriptPayloads.processScripts(ofType: .loginOnce)
 
-*/
+        // To process all scripts, call without arguments:
+        scriptPayloads.processScripts(ofType: .loginEvery)
+    } else {
+        writeLog("No payloads to process.", logLevel: .debug)
+    }
+}
