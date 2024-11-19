@@ -16,25 +16,7 @@ let outsetVersion: AnyObject = Bundle.main.infoDictionary!["CFBundleShortVersion
 
 // Outset specific directories
 let outsetDirectory = "/usr/local/outset/"
-let bootEveryDir = outsetDirectory+"boot-every"
-let bootOnceDir = outsetDirectory+"boot-once"
-let loginWindowDir = outsetDirectory+"login-window"
-let loginEveryDir = outsetDirectory+"login-every"
-let loginOnceDir = outsetDirectory+"login-once"
-let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
-let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
-let onDemandDir = outsetDirectory+"on-demand"
-let onDemandPrivilegedDir = outsetDirectory+"on-demand-privileged"
-let shareDirectory = outsetDirectory+"share/"
 let payloadDirectory = outsetDirectory+"payload/"
-
-let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
-let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
-let cleanupTrigger = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
-
-// File permission defaults
-let requiredFilePermissions: NSNumber = 0o644
-let requiredExecutablePermissions: NSNumber = 0o755
 
 // Set some variables
 var debugMode: Bool = false
@@ -51,5 +33,107 @@ let logFileName = "outset.log"
 let logFileMaxCount: Int = 30
 let logDirectory = outsetDirectory+"logs"
 let logFilePath = logDirectory+"/"+logFileName
+
+let scriptPayloads = getScriptPayloads()
+
+enum Trigger: String {
+    case onDemand = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
+    case loginPrivileged = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
+    case cleanup = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
+
+    var path: String {
+        return self.rawValue
+    }
+}
+
+enum FilePermissions: NSNumber {
+    case file = 0o644
+    case executable = 0o755
+
+    // Convenience property to access the raw value as an NSNumber
+    var asNSNumber: NSNumber {
+        return self.rawValue
+    }
+}
+
+enum PayloadKeys: String {
+    case loginWindow = "login-window"
+    case loginOnce = "login-once"
+    case loginEvery = "login-every"
+    case loginPrivilegedOnce = "login-privileged-once"
+    case loginPrivilegedEvery = "login-privileged-every"
+    case bootOnce = "boot-once"
+    case bootEvery = "boot-every"
+    case onDemand = "on-demand"
+    case onDemandPrivileged = "on-demand-privileged"
+    case shared = "share"
+
+    var key: String {
+        return self.rawValue
+    }
+}
+
+enum PayloadType {
+    case loginWindow
+    case loginOnce
+    case loginEvery
+    case loginPrivilegedOnce
+    case loginPrivilegedEvery
+    case bootOnce
+    case bootEvery
+    case onDemand
+    case onDemandPrivileged
+    case shared
+
+    // Static property for the base directory, allowing dynamic updates
+    private static var outsetDirectory: String {
+        get {
+            return UserDefaults.standard.string(forKey: "outsetDirectory") ?? "/usr/local/outset/"
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "outsetDirectory")
+        }
+    }
+
+    // Static method to update the base directory
+    static func updateOutsetDirectory(to newPath: String) {
+        PayloadType.outsetDirectory = newPath
+    }
+
+    // Computed property to get the full directory path for each case
+    var directoryPath: String {
+        switch self {
+        case .loginWindow:
+            return PayloadType.outsetDirectory + PayloadKeys.loginWindow.key
+        case .loginOnce:
+            return PayloadType.outsetDirectory + PayloadKeys.loginOnce.key
+        case .loginEvery:
+            return PayloadType.outsetDirectory + PayloadKeys.loginEvery.key
+        case .loginPrivilegedOnce:
+            return PayloadType.outsetDirectory + PayloadKeys.loginPrivilegedOnce.key
+        case .loginPrivilegedEvery:
+            return PayloadType.outsetDirectory + PayloadKeys.loginPrivilegedEvery.key
+        case .bootOnce:
+            return PayloadType.outsetDirectory + PayloadKeys.bootOnce.key
+        case .bootEvery:
+            return PayloadType.outsetDirectory + PayloadKeys.bootEvery.key
+        case .onDemand:
+            return PayloadType.outsetDirectory + PayloadKeys.onDemand.key
+        case .onDemandPrivileged:
+            return PayloadType.outsetDirectory + PayloadKeys.onDemandPrivileged.key
+        case .shared:
+            return PayloadType.outsetDirectory + PayloadKeys.shared.key
+        }
+    }
+
+    var once: Bool {
+        switch self {
+        case .loginOnce, .bootOnce, .loginPrivilegedOnce:
+            return true
+        default:
+            return false
+        }
+    }
+}
 
 // swiftlint:enable line_length

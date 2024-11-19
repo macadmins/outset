@@ -7,11 +7,13 @@
 
 import Foundation
 
+typealias RunOnce = [String: Date]
+
 struct OutsetPreferences: Codable {
     var waitForNetwork: Bool = false
     var networkTimeout: Int = 180
     var ignoredUsers: [String] = []
-    var overrideLoginOnce: [String: Date] = [String: Date]()
+    var overrideLoginOnce: RunOnce = RunOnce()
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
@@ -63,19 +65,19 @@ func loadOutsetPreferences() -> OutsetPreferences {
         // force preferences to be read from /Library/Preferences instead of root's preferences
         outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
-        outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String: Date] ?? [:]
+        outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
     } else {
         // load preferences for the current user, which includes /Library/Preferences
         outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
         outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
-        outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? [String: Date] ?? [:]
+        outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
     }
     return outsetPrefs
 }
 
-func loadRunOncePlist() -> [String: Date] {
+func loadRunOncePlist() -> RunOnce {
 
     if debugMode {
         showPrefrencePath("Load")
@@ -86,13 +88,13 @@ func loadRunOncePlist() -> [String: Date] {
 
     if isRoot() {
         runOnceKey += "-"+getConsoleUserInfo().username
-        return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String: Date] ?? [:]
+        return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
     } else {
-        return defaults.object(forKey: runOnceKey) as? [String: Date] ?? [:]
+        return defaults.object(forKey: runOnceKey) as? RunOnce ?? [:]
     }
 }
 
-func writeRunOncePlist(runOnceData: [String: Date]) {
+func writeRunOncePlist(runOnceData: RunOnce) {
 
     if debugMode {
         showPrefrencePath("Stor")

@@ -8,8 +8,9 @@
 
 import Foundation
 
-func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, override: [String: Date] = [:]) {
+func processItems(_ payloadType: PayloadType, deleteItems: Bool=false, once: Bool=false, override: RunOnce = [:]) {
     // Main processing logic
+    let path = payloadType.directoryPath
 
     if !checkFileExists(path: path) {
         writeLog("\(path) does not exist. Exiting")
@@ -50,7 +51,7 @@ func processItems(_ path: String, deleteItems: Bool=false, once: Bool=false, ove
 
 }
 
-func processPackages(packages: [String], once: Bool=false, override: [String: Date] = [:], deleteItems: Bool=false) {
+func processPackages(packages: [String], once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
     // load validation checks
     let checksumList = checksumLoadApprovedFiles()
     let checksumsAvailable = !checksumList.isEmpty
@@ -94,7 +95,7 @@ func processPackages(packages: [String], once: Bool=false, override: [String: Da
 
 }
 
-func processScripts(scripts: [String], once: Bool=false, override: [String: Date] = [:], deleteItems: Bool=false) {
+func processScripts(scripts: [String], altName: String = "", once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
     // load validation checks
     let checksumList = checksumLoadApprovedFiles()
     let checksumsAvailable = !checksumList.isEmpty
@@ -108,42 +109,44 @@ func processScripts(scripts: [String], once: Bool=false, override: [String: Date
             continue
         }
 
+        let scriptName = altName.isEmpty ? script : altName
+
         if once {
-            writeLog("Processing run-once \(script)", logLevel: .info)
+            writeLog("Processing run-once \(scriptName)", logLevel: .info)
             // If this is supposed to be a runonce item then we want to check to see if has an existing runonce entry
             // looks for a key with the full script path. Writes the full path and run date when done
-            if !runOnce.contains(where: {$0.key == script}) {
+            if !runOnce.contains(where: {$0.key == scriptName}) {
                 writeLog("run-once not yet processed. proceeding", logLevel: .debug)
                 let (output, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
                 if status != 0 {
                     writeLog(error, logLevel: .error)
                 } else {
-                    runOnce.updateValue(Date(), forKey: script)
+                    runOnce.updateValue(Date(), forKey: scriptName)
                     writeLog(output)
                 }
             } else {
                 // there's a run-once plist entry for this script. Check to see if there's an override
                 writeLog("checking for override", logLevel: .debug)
-                if override.contains(where: {$0.key == script}) {
-                    writeLog("override for \(script) dated \(override[script]!)", logLevel: .debug)
-                    if override[script]! > runOnce[script]! {
+                if override.contains(where: {$0.key == scriptName}) {
+                    writeLog("override for \(scriptName) dated \(override[scriptName]!)", logLevel: .debug)
+                    if override[scriptName]! > runOnce[scriptName]! {
                         writeLog("Actioning script override", logLevel: .debug)
                         let (output, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
                         if status != 0 {
                             writeLog(error, logLevel: .error)
                         } else {
-                            runOnce.updateValue(Date(), forKey: script)
+                            runOnce.updateValue(Date(), forKey: scriptName)
                             if !output.isEmpty {
                                 writeLog(output, logLevel: .debug)
                             }
                         }
                     }
                 } else {
-                    writeLog("no override for \(script)", logLevel: .debug)
+                    writeLog("no override for \(scriptName)", logLevel: .debug)
                 }
             }
         } else {
-            writeLog("Processing script \(script)", logLevel: .info)
+            writeLog("Processing script \(scriptName)", logLevel: .info)
             let (_, error, status) = runShellCommand(script, args: [consoleUser], verbose: true)
             if status != 0 {
                 writeLog(error, logLevel: .error)

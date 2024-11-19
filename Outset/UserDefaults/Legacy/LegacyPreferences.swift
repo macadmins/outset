@@ -10,10 +10,10 @@ import Foundation
 func migrateLegacyPreferences() {
     let newoldRootUserDefaults = "/var/root/Library/Preferences/io.macadmins.Outset.plist"
     // shared folder should not contain any executable content, iterate and update as required
-    if checkFileExists(path: shareDirectory) || checkFileExists(path: newoldRootUserDefaults) {
+    if checkFileExists(path: PayloadType.shared.directoryPath) || checkFileExists(path: newoldRootUserDefaults) {
         writeLog("Legacy preferences exist. Migrating to user defaults", logLevel: .debug)
 
-        let legacyOutsetPreferencesFile = "\(shareDirectory)com.chilcote.outset.plist"
+        let legacyOutsetPreferencesFile = "\(PayloadType.shared.directoryPath)com.chilcote.outset.plist"
         let legacyRootRunOncePlistFile = "com.github.outset.once.\(getConsoleUserInfo().userID).plist"
         let userHomeDirectory = FileManager.default.homeDirectoryForCurrentUser
         let userHomePath = userHomeDirectory.relativeString.replacingOccurrences(of: "file://", with: "")
@@ -82,8 +82,8 @@ func migrateLegacyPreferences() {
 
         }
 
-        if checkFileExists(path: shareDirectory) && folderContents(path: shareDirectory).isEmpty {
-            deletePath(shareDirectory)
+        if checkFileExists(path: PayloadType.shared.directoryPath) && folderContents(path: PayloadType.shared.directoryPath).isEmpty {
+            deletePath(PayloadType.shared.directoryPath)
         }
     }
 

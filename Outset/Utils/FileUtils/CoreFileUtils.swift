@@ -10,14 +10,14 @@ import Foundation
 func ensureWorkingFolders() {
     // Ensures working folders are all present and creates them if necessary
     let workingDirectories = [
-        bootEveryDir,
-        bootOnceDir,
-        loginWindowDir,
-        loginEveryDir,
-        loginOnceDir,
-        loginEveryPrivilegedDir,
-        loginOncePrivilegedDir,
-        onDemandDir,
+        PayloadType.bootEvery.directoryPath,
+        PayloadType.bootOnce.directoryPath,
+        PayloadType.loginWindow.directoryPath,
+        PayloadType.loginEvery.directoryPath,
+        PayloadType.loginOnce.directoryPath,
+        PayloadType.loginPrivilegedEvery.directoryPath,
+        PayloadType.loginPrivilegedOnce.directoryPath,
+        PayloadType.onDemand.directoryPath,
         logDirectory
     ]
 
@@ -71,13 +71,13 @@ func verifyPermissions(pathname: String) -> Bool {
     writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", logLevel: .debug)
 
     if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
-        if ownerID == 0 && mode == requiredFilePermissions {
+        if ownerID == 0 && mode == FilePermissions.file.asNSNumber {
             return true
         } else {
             writeLog("\(errorMessage) x644", logLevel: .error)
         }
     } else {
-        if ownerID == 0 && mode == requiredExecutablePermissions {
+        if ownerID == 0 && mode == FilePermissions.executable.asNSNumber {
             return true
         } else {
             writeLog("\(errorMessage) x755", logLevel: .error)
