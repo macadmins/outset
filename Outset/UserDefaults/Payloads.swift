@@ -120,32 +120,38 @@ struct ScriptPayloads: Codable {
 // Utility to load `ScriptPayloads` from UserDefaults
 class ScriptPayloadManager {
     private let userDefaults: UserDefaults
+    private let appBundle: CFString = Bundle.main.bundleIdentifier! as CFString
 
     init() {
         self.userDefaults = UserDefaults.standard
     }
 
+    private var allPreferenceKeys: [String] {
+        // Get the keys
+        guard let keys = CFPreferencesCopyKeyList(appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] else {
+            return []
+        }
+        return keys
+    }
+
     // Loads and decodes ScriptPayloads from UserDefaults
     func loadScriptPayloads() -> ScriptPayloads? {
-        let forced = CFPreferencesAppValueIsForced("script_payloads" as CFString, Bundle.main.bundleIdentifier! as CFString)
-        guard let payloadDict = CFPreferencesCopyValue("script_payloads" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) else {
-            writeLog("No script payloads found in UserDefaults.", logLevel: .debug)
-            return nil
-        }
-
-        // if !forced {
-            do {
-                // Convert dictionary to Data and decode with PropertyListDecoder
-                let payloadData = try PropertyListSerialization.data(fromPropertyList: payloadDict, format: .xml, options: 0)
-                let decoder = PropertyListDecoder()
-                return try decoder.decode(ScriptPayloads.self, from: payloadData)
-            } catch {
-                writeLog("Failed to decode script payloads: \(error)", logLevel: .debug)
+        let forced = CFPreferencesAppValueIsForced("script_payloads" as CFString, appBundle)
+        var currentPayload: ScriptPayloads = ScriptPayloads()
+        for key in allPreferenceKeys where key.starts(with: "script_payloads") {
+            print("found key \(key)")
+            if let payloadDict = CFPreferencesCopyValue(key as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) {
+                print(payloadDict)
+                do {
+                    let decoder = PropertyListDecoder()
+                    let payloadData = try PropertyListSerialization.data(fromPropertyList: payloadDict, format: .xml, options: 0)
+                    currentPayload = try decoder.decode(ScriptPayloads.self, from: payloadData)
+                } catch {
+                    writeLog("Failed to decode script payloads for \(key): \(error)", logLevel: .debug)
+                }
             }
-        // } else {
-        //    writeLog("Un-Managed payloads are not supported", logLevel: .debug)
-        // }
-        return nil
+        }
+        return currentPayload
     }
 }
 
@@ -154,4 +160,21 @@ func getScriptPayloads() -> ScriptPayloads {
         return scriptPayloads
     }
     return ScriptPayloads()
+}
+
+func appendContents(of propertyList: CFDictionary, to targetDictionary: inout ScriptPayloads) {
+    // Convert CFPropertyList to Swift Dictionary
+    guard let plistDictionary = propertyList as? [String: Any] else {
+        print("Error: CFPropertyList is not a dictionary")
+        return
+    }
+
+    // Append each key-value pair into the target dictionary
+    for (key, value) in plistDictionary {
+
+    }
+}
+
+public func +<K, V>(left: [K:V], right: [K:V]) -> [K:V] {
+    return left.merging(right) { $1 }
 }
