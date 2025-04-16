@@ -134,24 +134,61 @@ class ScriptPayloadManager {
         return keys
     }
 
+    private func mergeScriptPayloads(_ payloads: [ScriptPayloads]) -> ScriptPayloads {
+        func mergeEntries(_ keyPath: KeyPath<ScriptPayloads, ScriptEntry?>) -> ScriptEntry? {
+            var combined: ScriptEntry = [:]
+            for payload in payloads {
+                if let entry = payload[keyPath: keyPath] {
+                    for (key, value) in entry {
+                        combined[key] = value
+                    }
+                }
+            }
+            return combined.isEmpty ? nil : combined
+        }
+
+        return ScriptPayloads(
+            loginWindowScripts: mergeEntries(\.loginWindowScripts),
+            loginOnceScripts: mergeEntries(\.loginOnceScripts),
+            loginEveryScripts: mergeEntries(\.loginEveryScripts),
+            loginPrivilegedOnceScripts: mergeEntries(\.loginPrivilegedOnceScripts),
+            loginPrivilegedEveryScripts: mergeEntries(\.loginPrivilegedEveryScripts),
+            bootOnceScripts: mergeEntries(\.bootOnceScripts),
+            bootEveryScripts: mergeEntries(\.bootEveryScripts)
+        )
+    }
+
     // Loads and decodes ScriptPayloads from UserDefaults
     func loadScriptPayloads() -> ScriptPayloads? {
         let forced = CFPreferencesAppValueIsForced("script_payloads" as CFString, appBundle)
+        var payloads: [ScriptPayloads] = []
         var currentPayload: ScriptPayloads = ScriptPayloads()
+        // we will want to limit returning payloads to managed profiles only
+        // unless running in debug mode
+
         for key in allPreferenceKeys where key.starts(with: "script_payloads") {
             print("found key \(key)")
+            if CFPreferencesAppValueIsForced(key as CFString, appBundle) {
+                writeLog("Payload \(key) is forced")
+            } else {
+                writeLog("Payload \(key) is not forced")
+                if !debugMode {
+                    continue
+                }
+            }
             if let payloadDict = CFPreferencesCopyValue(key as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) {
                 print(payloadDict)
                 do {
                     let decoder = PropertyListDecoder()
                     let payloadData = try PropertyListSerialization.data(fromPropertyList: payloadDict, format: .xml, options: 0)
                     currentPayload = try decoder.decode(ScriptPayloads.self, from: payloadData)
+                    payloads.append(currentPayload)
                 } catch {
                     writeLog("Failed to decode script payloads for \(key): \(error)", logLevel: .debug)
                 }
             }
         }
-        return currentPayload
+        return mergeScriptPayloads(payloads)
     }
 }
 
@@ -171,10 +208,12 @@ func appendContents(of propertyList: CFDictionary, to targetDictionary: inout Sc
 
     // Append each key-value pair into the target dictionary
     for (key, value) in plistDictionary {
-
+        writeLog("key :\(key) - value : \(value)")
     }
 }
 
+// swiftlint:disable colon operator_whitespace
 public func +<K, V>(left: [K:V], right: [K:V]) -> [K:V] {
     return left.merging(right) { $1 }
 }
+// swiftlint:enable colon operator_whitespace

@@ -304,7 +304,9 @@ struct Outset: ParsableCommand {
             ensureRoot("add scripts to override list")
 
             for var override in addOverride {
-                if !override.contains(PayloadType.loginOnce.directoryPath) && !override.contains(PayloadType.loginPrivilegedOnce.directoryPath) {
+                if override.starts(with: "payload=") {
+                    override = override.components(separatedBy: "=").last ?? "nil"
+                } else if !override.contains(PayloadType.loginOnce.directoryPath) && !override.contains(PayloadType.loginPrivilegedOnce.directoryPath) {
                     override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
                 }
                 writeLog("Adding \(override) to override list", logLevel: .debug)
@@ -319,7 +321,9 @@ struct Outset: ParsableCommand {
             }
             ensureRoot("remove scripts to override list")
             for var override in removeOverride {
-                if !override.contains(PayloadType.loginOnce.directoryPath) {
+                if override.starts(with: "payload=") {
+                    override = override.components(separatedBy: "=").last ?? "nil"
+                } else if !override.contains(PayloadType.loginOnce.directoryPath) {
                     override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
                 }
                 writeLog("Removing \(override) from override list", logLevel: .debug)
