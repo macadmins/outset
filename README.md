@@ -1,7 +1,7 @@
 Outset
 ======
 
-![Outset Icon](https://github.com/bartreardon/outset/blob/master/outset/Assets.xcassets/AppIcon.appiconset/Outset.png_128x128.png?raw=true) 
+![Outset Icon](https://github.com/macadmins/outset/blob/78002def008bea2a51f793e0cd033fe71ff81c9b/Outset/Assets.xcassets/AppIcon.appiconset/Outset.png_128x128.png?raw=true) 
 
 Outset is a utility application which automatically processes scripts and packages during the boot sequence, user logins, or on demand.
 
@@ -36,7 +36,7 @@ Outset is a utility application which automatically processes scripts and packag
 
 ## Credits
 
-Outset 4 is a direct feature for feature (almost) update of outset by [Joseph Chilcote](https://github.com/chilcote) written in Swift.
+Outset 4 is a swift port of outset by [Joseph Chilcote](https://github.com/chilcote)
 
 Maintained by [MacAdmins Open Source](https://macadmins.io) and [Bart Reardon](https://github.com/bartreardon) 
 
@@ -51,16 +51,18 @@ Future releases may also remove the capability to install packages as this also 
 Classic outset is available if required [as a legacy release](https://github.com/macadmins/outset/tree/main/legacy)
 
 _Note: Classic outset, while available in this repository, is no longer maintained and there are no plans for any future updates_ 
-Apart from the `Outset` app, the pkg also includes some other files:
+
+---
 
 #### Agents
-`/Library/LaunchDaemons/` `/Library/LaunchAgents/`
 
-Updated with the `AssociatedBundleIdentifiers` key so under macOS 13, Login Items show everything under the 'Outset' title
+These are installed and operate Outset in its various modes of operation during boot or login.
+
+These include the `AssociatedBundleIdentifiers` key so under macOS 13 or later, Login Items will show the unified 'Outset' title and icon.
 
 #### Outset.app
 
-![Outset Icon](https://github.com/bartreardon/outset/blob/master/outset/Assets.xcassets/AppIcon.appiconset/Outset.png_32x32@2x.png?raw=true) 
+![Outset Icon](https://github.com/macadmins/outset/blob/78002def008bea2a51f793e0cd033fe71ff81c9b/Outset/Assets.xcassets/AppIcon.appiconset/Outset.png_32x32@2x.png?raw=true) 
 
 `/usr/local/outset/Outset.app`
 
@@ -72,7 +74,7 @@ Add your developer certificate in the signing and capabilities of the "Outset Ap
 
 ## License
 
-       Copyright 2023 Mac Admins Open Source
+       Copyright Mac Admins Open Source
 
        Licensed under the Apache License, Version 2.0 (the "License");
        you may not use this file except in compliance with the License.
