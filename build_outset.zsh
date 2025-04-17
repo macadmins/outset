@@ -3,8 +3,8 @@
 # Build script for Outset
 
 # Variables
-XCODE_PATH="/Applications/Xcode_14.2.app"
-XCODE_ORIGINAL_PATH="/Applications/Xcode_14.2.app"
+XCODE_PATH="/Applications/Xcode_16.2.app"
+XCODE_ORIGINAL_PATH="/Applications/Xcode_16.2.app"
 APP_SIGNING_IDENTITY="Developer ID Application: Mac Admins Open Source (T4SK8ZXCXG)"
 INSTALLER_SIGNING_IDENTITY="Developer ID Installer: Mac Admins Open Source (T4SK8ZXCXG)"
 MP_SHA="71c57fcfdf43692adcd41fa7305be08f66bae3e5"
