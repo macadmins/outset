@@ -18,6 +18,7 @@ func ensureWorkingFolders() {
         PayloadType.loginPrivilegedEvery.directoryPath,
         PayloadType.loginPrivilegedOnce.directoryPath,
         PayloadType.onDemand.directoryPath,
+        PayloadType.onDemandPrivileged.directoryPath,
         logDirectory
     ]
 
@@ -105,7 +106,7 @@ func getFileProperties(pathname: String) -> (ownerID: Int, permissions: NSNumber
     return (ownerID, mode)
 }
 
-func pathCleanup(pathname: String) {
+func pathCleanup(_ pathname: String) {
     // check if folder and clean all files in that folder
     // Deletes given script or cleans folder
     writeLog("Cleaning up \(pathname)", logLevel: .debug)

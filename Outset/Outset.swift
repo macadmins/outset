@@ -186,7 +186,7 @@ struct Outset: ParsableCommand {
         if loginPrivileged {
             writeLog("Processing scheduled runs for privileged login", logLevel: .info)
             if checkFileExists(path: Trigger.loginPrivileged.path) {
-                pathCleanup(pathname: Trigger.loginPrivileged.path)
+                pathCleanup(Trigger.loginPrivileged.path)
             }
             if !prefs.ignoredUsers.contains(consoleUser) {
                 if !scriptPayloads.processPayloadScripts(ofType: .loginPrivilegedOnce, runOnceData: prefs.overrideLoginOnce) &&
@@ -208,10 +208,8 @@ struct Outset: ParsableCommand {
                 if !["root", "loginwindow"].contains(consoleUser) {
                     let currentUser = NSUserName()
                     if consoleUser == currentUser {
-                        if !scriptPayloads.processPayloadScripts(ofType: .onDemand) {
-                            processItems(.onDemand)
-                        }
-                        createTrigger(Trigger.onDemand.path)
+                        processItems(.onDemand)
+                        createTrigger(Trigger.cleanup.path)
                     } else {
                         writeLog("User \(currentUser) is not the current console user. Skipping on-demand run.")
                     }
@@ -222,26 +220,16 @@ struct Outset: ParsableCommand {
         }
 
         if onDemandPrivileged {
+            ensureRoot("execute on-demand-privileged")
             writeLog("Processing on-demand-privileged", logLevel: .debug)
-            if !folderContents(path: PayloadType.onDemandPrivileged.directoryPath).isEmpty {
-                if !["root", "loginwindow"].contains(consoleUser) {
-                    let currentUser = NSUserName()
-                    if consoleUser == currentUser {
-                        if !scriptPayloads.processPayloadScripts(ofType: .onDemandPrivileged) {
-                            processItems(.onDemandPrivileged)
-                        }
-                    } else {
-                        writeLog("User \(currentUser) is not the current console user. Skipping on-demand-privileged run.")
-                    }
-                } else {
-                    writeLog("No current user session. Skipping on-demand run.")
+            if !["loginwindow"].contains(consoleUser) {
+                if !folderContents(path: PayloadType.onDemandPrivileged.directoryPath).isEmpty {
+                    processItems(.onDemandPrivileged)
+                    pathCleanup(Trigger.onDemandPrivileged.path)
+                    pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
                 }
-                FileManager.default.createFile(atPath: Trigger.onDemand.path, contents: nil)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    if checkFileExists(path: Trigger.onDemand.path) {
-                        pathCleanup(pathname: Trigger.onDemand.path)
-                    }
-                }
+            } else {
+                writeLog("No current user session. Skipping on-demand-privileged run.")
             }
         }
 
@@ -268,10 +256,12 @@ struct Outset: ParsableCommand {
         }
 
         if cleanup {
-            writeLog("Cleaning up on-demand directory.", logLevel: .info)
-            if checkFileExists(path: Trigger.onDemand.path) { pathCleanup(pathname: Trigger.onDemand.path) }
-            if checkFileExists(path: Trigger.cleanup.path) { pathCleanup(pathname: Trigger.cleanup.path) }
-            if !folderContents(path: PayloadType.onDemand.directoryPath).isEmpty { pathCleanup(pathname: PayloadType.onDemand.directoryPath) }
+            writeLog("Cleaning up on-demand directories.", logLevel: .info)
+            pathCleanup(Trigger.onDemand.path)
+            pathCleanup(Trigger.onDemandPrivileged.path)
+            pathCleanup(PayloadType.onDemand.directoryPath)
+            pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
+            pathCleanup(Trigger.cleanup.path)
         }
 
         if !addIgnoredUser.isEmpty {

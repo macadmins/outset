@@ -163,7 +163,7 @@ class ScriptPayloadManager {
 
     // Loads and decodes ScriptPayloads from UserDefaults
     func loadScriptPayloads() -> ScriptPayloads? {
-        let forced = CFPreferencesAppValueIsForced("script_payloads" as CFString, appBundle)
+        // let forced = CFPreferencesAppValueIsForced("script_payloads" as CFString, appBundle)
         var payloads: [ScriptPayloads] = []
         var currentPayload: ScriptPayloads = ScriptPayloads()
         // we will want to limit returning payloads to managed profiles only

@@ -38,6 +38,7 @@ let scriptPayloads = getScriptPayloads()
 
 enum Trigger: String {
     case onDemand = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
+    case onDemandPrivileged = "/private/tmp/.io.macadmins.outset.ondemand-privileged.launchd"
     case loginPrivileged = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
     case cleanup = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
 

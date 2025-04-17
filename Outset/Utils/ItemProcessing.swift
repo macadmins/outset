@@ -85,7 +85,7 @@ func processPackages(packages: [String], once: Bool=false, override: RunOnce = [
             _ = installPackage(pkg: package)
         }
         if deleteItems {
-            pathCleanup(pathname: package)
+            pathCleanup(package)
         }
     }
 
@@ -153,7 +153,7 @@ func processScripts(scripts: [String], altName: String = "", once: Bool=false, o
             }
         }
         if deleteItems {
-            pathCleanup(pathname: script)
+            pathCleanup(script)
         }
     }
 
