@@ -70,8 +70,9 @@ struct ScriptPayloads: Codable {
 
         // Process each selected payload
         for (context, scripts) in payloadsToProcess {
+            writeLog("Checking payloads for \(context)", logLevel: .debug)
             guard let scripts = scripts else {
-                writeLog("No scripts found for context: \(context)", logLevel: .debug)
+                writeLog("No payload scripts found for context: \(context)", logLevel: .debug)
                 return false
             }
             writeLog("Processing scripts for context: \(context)")
@@ -128,8 +129,10 @@ class ScriptPayloadManager {
 
     private var allPreferenceKeys: [String] {
         // Get the keys
-        guard let keys = CFPreferencesCopyKeyList(appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] else {
-            return []
+        var keys: [String] = []
+        // keys += CFPreferencesCopyKeyList(appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
+        for (key, _) in userDefaults.dictionaryRepresentation() where key.starts(with: "script_payloads") {
+            keys.append(key)
         }
         return keys
     }
@@ -167,17 +170,20 @@ class ScriptPayloadManager {
         // unless running in debug mode
 
         for key in allPreferenceKeys where key.starts(with: "script_payloads") {
-            print("found key \(key)")
+            writeLog("found key \(key)", logLevel: .debug)
             if CFPreferencesAppValueIsForced(key as CFString, appBundle) {
-                writeLog("Payload \(key) is forced")
+                writeLog("Payload \"\(key)\" is managed")
             } else {
-                writeLog("Payload \(key) is not forced")
+                writeLog("Payload \"\(key)\" is not managed")
                 if !debugMode {
+                    writeLog("Payloads in \"\(key)\" will not be processed")
                     continue
+                } else {
+                    writeLog("DEBUG is enabled. Payloads in \"\(key)\" will be processed")
                 }
             }
-            if let payloadDict = CFPreferencesCopyValue(key as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) {
-                print(payloadDict)
+            if let payloadDict = CFPreferencesCopyAppValue(key as CFString, appBundle) {
+                // writeLog("\(payloadDict)", logLevel: .debug)
                 do {
                     let decoder = PropertyListDecoder()
                     let payloadData = try PropertyListSerialization.data(fromPropertyList: payloadDict, format: .xml, options: 0)
@@ -202,7 +208,7 @@ func getScriptPayloads() -> ScriptPayloads {
 func appendContents(of propertyList: CFDictionary, to targetDictionary: inout ScriptPayloads) {
     // Convert CFPropertyList to Swift Dictionary
     guard let plistDictionary = propertyList as? [String: Any] else {
-        print("Error: CFPropertyList is not a dictionary")
+        writeLog("Error: CFPropertyList is not a dictionary", logLevel: .error)
         return
     }
 
