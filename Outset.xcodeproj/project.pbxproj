@@ -17,6 +17,7 @@
 		41E28EA429ACDCE3002ADBE5 /* ItemProcessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EFA4293B304B003B00F4 /* ItemProcessing.swift */; };
 		41E28EA529ACDCE3002ADBE5 /* SystemUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4124EF99293824C8003B00F4 /* SystemUtils.swift */; };
 		41E28EA729ACDD1F002ADBE5 /* ArgumentParser in Frameworks */ = {isa = PBXBuildFile; productRef = 41E28EA629ACDD1F002ADBE5 /* ArgumentParser */; };
+		CC0F11EA2E0D3884001418FE /* outset-payload.sh in Resources */ = {isa = PBXBuildFile; fileRef = CC0F11E92E0D3884001418FE /* outset-payload.sh */; };
 		CC3DC8222AA70B2D0050EE16 /* Logging.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3DC8212AA70B2D0050EE16 /* Logging.swift */; };
 		CC3DC8242AA70BD40050EE16 /* Preferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3DC8232AA70BD40050EE16 /* Preferences.swift */; };
 		CC3DC8262AA70D2D0050EE16 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC3DC8252AA70D2D0050EE16 /* Network.swift */; };
@@ -86,6 +87,7 @@
 		41A67A13296BF35F000BFFCE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		41ADC47C29AECB8B00C5B94C /* outset */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = outset; sourceTree = "<group>"; };
 		41ADC47E29AF649C00C5B94C /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
+		CC0F11E92E0D3884001418FE /* outset-payload.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "outset-payload.sh"; sourceTree = "<group>"; };
 		CC3DC8212AA70B2D0050EE16 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		CC3DC8232AA70BD40050EE16 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		CC3DC8252AA70D2D0050EE16 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
@@ -188,6 +190,7 @@
 				41A679FE2966479E000BFFCE /* generatePackage.zsh */,
 				41ADC47C29AECB8B00C5B94C /* outset */,
 				413833A229CC69800093319F /* outset-pkg */,
+				CC0F11E92E0D3884001418FE /* outset-payload.sh */,
 			);
 			path = Package;
 			sourceTree = "<group>";
@@ -328,6 +331,7 @@
 			files = (
 				4124EFB729414A5E003B00F4 /* Preview Assets.xcassets in Resources */,
 				4124EFB429414A5E003B00F4 /* Assets.xcassets in Resources */,
+				CC0F11EA2E0D3884001418FE /* outset-payload.sh in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
