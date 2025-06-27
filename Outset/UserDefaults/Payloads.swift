@@ -13,7 +13,7 @@ import Foundation
 // Should see if we can use dynamic naming or if we have to be specific
 //
 
-typealias ScriptEntry = [String: String]
+typealias ScriptEntry = [String: Data]
 
 struct ScriptPayloads: Codable {
     var loginWindowScripts: ScriptEntry?
@@ -35,8 +35,8 @@ struct ScriptPayloads: Codable {
     }
 
     // Decodes base64 string into a script text
-    private func decodeBase64Script(base64String: String) -> String? {
-        if let data = Data(base64Encoded: base64String),
+    private func decodeBase64Script(base64Data: Data) -> String? {
+        if let data = Data(base64Encoded: base64Data),
            let script = String(data: data, encoding: .utf8) {
             return script
         }
@@ -78,7 +78,7 @@ struct ScriptPayloads: Codable {
             writeLog("Processing scripts for context: \(context)")
             for (name, base64Data) in scripts {
                 writeLog("Processing \(context) payload script : \(name)")
-                if let script = decodeBase64Script(base64String: base64Data) {
+                if let script = decodeBase64Script(base64Data: base64Data) {
                     if let tempScript = saveTempFile(script) {
                         processScripts(scripts: [tempScript.path], altName: name, once: runOnceType, override: runOnceData)
                         cleanupTempFile(tempScript)

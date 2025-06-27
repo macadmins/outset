@@ -103,7 +103,7 @@ addPayload() {
 
     debug "Adding payload for identifier: script_payloads${identifier}, target: ${target}, key: ${payloadKey}, output: ${output}"
 
-    /usr/libexec/PlistBuddy -c "Add :script_payloads${identifier}:${target}:${payloadKey} string '${payload}'" "$output"
+    /usr/libexec/PlistBuddy -c "Add :script_payloads${identifier}:${target}:${payloadKey} data '${payload}'" "$output"
     if [[ $? -ne 0 ]]; then
         exitWithError "Failed to add payload to plist: $output"
     fi
