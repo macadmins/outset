@@ -3,9 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>Program</key>
-	<array>
-		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
-	</array>
+	<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
 	<key>Label</key>
 	<string>io.macadmins.Outset.login</string>
 	<key>AssociatedBundleIdentifiers</key>
