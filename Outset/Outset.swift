@@ -11,45 +11,6 @@ import Foundation
 import ArgumentParser
 import OSLog
 
-let author = "Bart Reardon - Adapted from outset by Joseph Chilcote (chilcote@gmail.com) https://github.com/chilcote/outset"
-let outsetVersion: AnyObject = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as AnyObject
-
-// Outset specific directories
-let outsetDirectory = "/usr/local/outset/"
-let bootEveryDir = outsetDirectory+"boot-every"
-let bootOnceDir = outsetDirectory+"boot-once"
-let loginWindowDir = outsetDirectory+"login-window"
-let loginEveryDir = outsetDirectory+"login-every"
-let loginOnceDir = outsetDirectory+"login-once"
-let loginEveryPrivilegedDir = outsetDirectory+"login-privileged-every"
-let loginOncePrivilegedDir = outsetDirectory+"login-privileged-once"
-let onDemandDir = outsetDirectory+"on-demand"
-let shareDirectory = outsetDirectory+"share/"
-
-let onDemandTrigger = "/private/tmp/.io.macadmins.outset.ondemand.launchd"
-let loginPrivilegedTrigger = "/private/tmp/.io.macadmins.outset.login-privileged.launchd"
-let cleanupTrigger = "/private/tmp/.io.macadmins.outset.cleanup.launchd"
-
-// File permission defaults
-let requiredFilePermissions: NSNumber = 0o644
-let requiredExecutablePermissions: NSNumber = 0o755
-
-// Set some variables
-var debugMode: Bool = false
-var loginwindowState: Bool = true
-var consoleUser: String = getConsoleUserInfo().username
-var continueFirstBoot: Bool = true
-var prefs = loadOutsetPreferences()
-
-// Log Stuff
-let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
-let osLog = OSLog(subsystem: bundleID, category: "main")
-// We could make these availab as preferences perhaps
-let logFileName = "outset.log"
-let logFileMaxCount: Int = 30
-let logDirectory = outsetDirectory+"logs"
-let logFilePath = logDirectory+"/"+logFileName
-
 // Logic insertion point
 @main
 struct Outset: ParsableCommand {
@@ -74,6 +35,9 @@ struct Outset: ParsableCommand {
 
     @Flag(help: "Process scripts on demand")
     var onDemand = false
+
+    @Flag(help: "Process scripts on demand with elevated privileges")
+    var onDemandPrivileged = false
 
     @Flag(help: "Manually process scripts in login-every")
     var loginEvery = false
@@ -166,14 +130,16 @@ struct Outset: ParsableCommand {
 
             writeOutsetPreferences(prefs: prefs)
 
-            if !folderContents(path: bootOnceDir).isEmpty {
+            if !folderContents(path: PayloadType.bootOnce.directoryPath).isEmpty {
                 if prefs.waitForNetwork {
                     loginwindowState = false
                     loginWindowUpdateState(.disable)
                     continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
                 }
                 if continueFirstBoot {
-                    processItems(bootOnceDir, deleteItems: true)
+                    if !scriptPayloads.processPayloadScripts(ofType: .bootOnce) {
+                        processItems(.bootOnce, deleteItems: true)
+                    }
                 } else {
                     writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
                 }
@@ -182,8 +148,9 @@ struct Outset: ParsableCommand {
                 }
             }
 
-            if !folderContents(path: bootEveryDir).isEmpty {
-                processItems(bootEveryDir)
+            if !scriptPayloads.processPayloadScripts(ofType: .bootEvery) &&
+                !folderContents(path: PayloadType.bootEvery.directoryPath).isEmpty {
+                processItems(.bootEvery)
             }
 
             writeLog("Boot processing complete")
@@ -192,22 +159,25 @@ struct Outset: ParsableCommand {
         if loginWindow {
             writeLog("Processing scheduled runs for login window", logLevel: .info)
 
-            if !folderContents(path: loginWindowDir).isEmpty {
-                processItems(loginWindowDir)
+            if !scriptPayloads.processPayloadScripts(ofType: .loginWindow) &&
+                !folderContents(path: PayloadType.loginWindow.directoryPath).isEmpty {
+                processItems(.loginWindow)
             }
         }
 
         if login {
             writeLog("Processing scheduled runs for login", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
-                if !folderContents(path: loginOnceDir).isEmpty {
-                    processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce) &&
+                    !folderContents(path: PayloadType.loginOnce.directoryPath).isEmpty {
+                    processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
                 }
-                if !folderContents(path: loginEveryDir).isEmpty {
-                    processItems(loginEveryDir)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginEvery) &&
+                    !folderContents(path: PayloadType.loginEvery.directoryPath).isEmpty {
+                    processItems(.loginEvery)
                 }
-                if !folderContents(path: loginOncePrivilegedDir).isEmpty || !folderContents(path: loginEveryPrivilegedDir).isEmpty {
-                    createTrigger(loginPrivilegedTrigger)
+                if !folderContents(path: PayloadType.loginPrivilegedOnce.directoryPath).isEmpty || !folderContents(path: PayloadType.loginPrivilegedEvery.directoryPath).isEmpty {
+                    createTrigger(Trigger.loginPrivileged.path)
                 }
             }
 
@@ -215,15 +185,17 @@ struct Outset: ParsableCommand {
 
         if loginPrivileged {
             writeLog("Processing scheduled runs for privileged login", logLevel: .info)
-            if checkFileExists(path: loginPrivilegedTrigger) {
-                pathCleanup(pathname: loginPrivilegedTrigger)
+            if checkFileExists(path: Trigger.loginPrivileged.path) {
+                pathCleanup(Trigger.loginPrivileged.path)
             }
             if !prefs.ignoredUsers.contains(consoleUser) {
-                if !folderContents(path: loginOncePrivilegedDir).isEmpty {
-                    processItems(loginOncePrivilegedDir, once: true, override: prefs.overrideLoginOnce)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginPrivilegedOnce, runOnceData: prefs.overrideLoginOnce) &&
+                    !folderContents(path: PayloadType.loginPrivilegedOnce.directoryPath).isEmpty {
+                    processItems(.loginPrivilegedOnce, once: true, override: prefs.overrideLoginOnce)
                 }
-                if !folderContents(path: loginEveryPrivilegedDir).isEmpty {
-                    processItems(loginEveryPrivilegedDir)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginPrivilegedEvery) &&
+                    !folderContents(path: PayloadType.loginPrivilegedEvery.directoryPath).isEmpty {
+                    processItems(.loginPrivilegedEvery)
                 }
             } else {
                 writeLog("Skipping login scripts for user \(consoleUser)")
@@ -232,12 +204,12 @@ struct Outset: ParsableCommand {
 
         if onDemand {
             writeLog("Processing on-demand", logLevel: .info)
-            if !folderContents(path: onDemandDir).isEmpty {
+            if !folderContents(path: PayloadType.onDemand.directoryPath).isEmpty {
                 if !["root", "loginwindow"].contains(consoleUser) {
                     let currentUser = NSUserName()
                     if consoleUser == currentUser {
-                        processItems(onDemandDir)
-                        createTrigger(cleanupTrigger)
+                        processItems(.onDemand)
+                        createTrigger(Trigger.cleanup.path)
                     } else {
                         writeLog("User \(currentUser) is not the current console user. Skipping on-demand run.")
                     }
@@ -247,11 +219,26 @@ struct Outset: ParsableCommand {
             }
         }
 
+        if onDemandPrivileged {
+            ensureRoot("execute on-demand-privileged")
+            writeLog("Processing on-demand-privileged", logLevel: .debug)
+            if !["loginwindow"].contains(consoleUser) {
+                if !folderContents(path: PayloadType.onDemandPrivileged.directoryPath).isEmpty {
+                    processItems(.onDemandPrivileged)
+                    pathCleanup(Trigger.onDemandPrivileged.path)
+                    pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
+                }
+            } else {
+                writeLog("No current user session. Skipping on-demand-privileged run.")
+            }
+        }
+
         if loginEvery {
             writeLog("Processing scripts in login-every", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
-                if !folderContents(path: loginEveryDir).isEmpty {
-                    processItems(loginEveryDir)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginEvery) &&
+                    !folderContents(path: PayloadType.loginEvery.directoryPath).isEmpty {
+                    processItems(.loginEvery)
                 }
             }
         }
@@ -259,8 +246,9 @@ struct Outset: ParsableCommand {
         if loginOnce {
             writeLog("Processing scripts in login-once", logLevel: .info)
             if !prefs.ignoredUsers.contains(consoleUser) {
-                if !folderContents(path: loginOnceDir).isEmpty {
-                    processItems(loginOnceDir, once: true, override: prefs.overrideLoginOnce)
+                if !scriptPayloads.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce) &&
+                    !folderContents(path: PayloadType.loginOnce.directoryPath).isEmpty {
+                    processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
                 }
             } else {
                 writeLog("user \(consoleUser) is in the ignored list. skipping", logLevel: .debug)
@@ -268,10 +256,12 @@ struct Outset: ParsableCommand {
         }
 
         if cleanup {
-            writeLog("Cleaning up on-demand directory.", logLevel: .info)
-            if checkFileExists(path: onDemandTrigger) { pathCleanup(pathname: onDemandTrigger) }
-            if checkFileExists(path: cleanupTrigger) { pathCleanup(pathname: cleanupTrigger) }
-            if !folderContents(path: onDemandDir).isEmpty { pathCleanup(pathname: onDemandDir) }
+            writeLog("Cleaning up on-demand directories.", logLevel: .info)
+            pathCleanup(Trigger.onDemand.path)
+            pathCleanup(Trigger.onDemandPrivileged.path)
+            pathCleanup(PayloadType.onDemand.directoryPath)
+            pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
+            pathCleanup(Trigger.cleanup.path)
         }
 
         if !addIgnoredUser.isEmpty {
@@ -304,8 +294,10 @@ struct Outset: ParsableCommand {
             ensureRoot("add scripts to override list")
 
             for var override in addOverride {
-                if !override.contains(loginOnceDir) && !override.contains(loginOncePrivilegedDir) {
-                    override = "\(loginOnceDir)/\(override)"
+                if override.starts(with: "payload=") {
+                    override = override.components(separatedBy: "=").last ?? "nil"
+                } else if !override.contains(PayloadType.loginOnce.directoryPath) && !override.contains(PayloadType.loginPrivilegedOnce.directoryPath) {
+                    override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
                 }
                 writeLog("Adding \(override) to override list", logLevel: .debug)
                 prefs.overrideLoginOnce[override] = Date()
@@ -319,8 +311,10 @@ struct Outset: ParsableCommand {
             }
             ensureRoot("remove scripts to override list")
             for var override in removeOverride {
-                if !override.contains(loginOnceDir) {
-                    override = "\(loginOnceDir)/\(override)"
+                if override.starts(with: "payload=") {
+                    override = override.components(separatedBy: "=").last ?? "nil"
+                } else if !override.contains(PayloadType.loginOnce.directoryPath) {
+                    override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
                 }
                 writeLog("Removing \(override) from override list", logLevel: .debug)
                 prefs.overrideLoginOnce.removeValue(forKey: override)

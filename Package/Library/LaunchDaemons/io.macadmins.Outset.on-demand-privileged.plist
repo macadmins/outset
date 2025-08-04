@@ -3,25 +3,27 @@
 <plist version="1.0">
 <dict>
 	<key>Program</key>
-	<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
+	<array>
+		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
+	</array>
 	<key>AssociatedBundleIdentifiers</key>
 	<string>io.macadmins.Outset</string>
 	<key>KeepAlive</key>
 	<dict>
 		<key>PathState</key>
 		<dict>
-			<key>/private/tmp/.io.macadmins.outset.cleanup.launchd</key>
+			<key>/private/tmp/.io.macadmins.outset.ondemand-privileged.launchd</key>
 			<true/>
 		</dict>
 	</dict>
 	<key>Label</key>
-	<string>io.macadmins.Outset.cleanup</string>
+	<string>io.macadmins.Outset.on-demand-privileged</string>
 	<key>OnDemand</key>
 	<true/>
 	<key>ProgramArguments</key>
 	<array>
 		<string>/usr/local/outset/Outset.app/Contents/MacOS/Outset</string>
-		<string>--cleanup</string>
+		<string>--on-demand-privileged</string>
 	</array>
 </dict>
 </plist>

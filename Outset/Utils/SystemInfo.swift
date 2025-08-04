@@ -7,14 +7,14 @@
 
 import Foundation
 
-func getOSVersion() -> String {
+public var osVersion: String {
     // Returns the OS version
     let osVersion = ProcessInfo().operatingSystemVersion
     let version = "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)"
     return version
 }
 
-func getOSBuildVersion() -> String {
+public var osBuildVersion: String {
     // Returns the current OS build from sysctl
     var size = 0
     sysctlbyname("kern.osversion", nil, &size, nil, 0)
@@ -24,7 +24,7 @@ func getOSBuildVersion() -> String {
 
 }
 
-func getDeviceSerialNumber() -> String {
+public var deviceSerialNumber: String {
     // Returns the current devices serial number
     let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice") )
       guard platformExpert > 0 else {
@@ -37,18 +37,48 @@ func getDeviceSerialNumber() -> String {
       return serialNumber
 }
 
-func getMarketingModel() -> String {
-    let appleSiliconProduct = IORegistryEntryFromPath(kIOMasterPortDefault, "IOService:/AppleARMPE/product")
+public var marketingModel: String {
+    return !marketingModelARM.isEmpty ? marketingModelARM : marketingModelIntel
+}
+
+public var marketingModelARM: String {
+    if #available(macOS 12.0, *) {
+        let appleSiliconProduct = IORegistryEntryFromPath(kIOMainPortDefault, "IOService:/AppleARMPE/product")
         let cfKeyValue = IORegistryEntryCreateCFProperty(appleSiliconProduct, "product-description" as CFString, kCFAllocatorDefault, 0)
         IOObjectRelease(appleSiliconProduct)
         let keyValue: AnyObject? = cfKeyValue?.takeUnretainedValue()
         if keyValue != nil, let data = keyValue as? Data {
             return String(data: data, encoding: String.Encoding.utf8)?.trimmingCharacters(in: CharacterSet(["\0"])) ?? ""
         }
-        return ""
+    } else {
+        return deviceHardwareModel
+    }
+    return ""
 }
 
-func getDeviceHardwareModel() -> String {
+public var marketingModelIntel: String {
+    guard let locale = Locale.current.languageCode else { return "en" }
+
+    let modelIdentifier = deviceHardwareModel
+
+    var path = "/System/Library/PrivateFrameworks/ServerInformation.framework/Versions/A/Resources/"
+    path += locale + ".lproj"
+    path += "/SIMachineAttributes.plist"
+
+    if let fileData = FileManager.default.contents(atPath: path) {
+        if let plistContents = try? PropertyListSerialization.propertyList(from: fileData, format: nil)
+            as? [String: Any] {
+            if let contents = plistContents[modelIdentifier] as? [String: Any],
+               let localizable = contents["_LOCALIZABLE_"] as? [String: String] {
+                let marketingModel = localizable["marketingModel"] ?? modelIdentifier
+                return marketingModel
+            }
+        }
+    }
+    return modelIdentifier
+}
+
+public var deviceHardwareModel: String {
     // Returns the current devices hardware model from sysctl
     var size = 0
     sysctlbyname("hw.model", nil, &size, nil, 0)

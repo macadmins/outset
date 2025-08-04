@@ -1,0 +1,207 @@
+#!/bin/zsh
+
+FILES_TO_PACKAGE=()
+ROOT_DIRECTORY=""
+PAYLOAD_TARGET="login-once"
+PAYLOAD_IDENTIFIER=""
+OUTPUT_FILE="outset-payload.plist"
+DEBUG=0
+ENCODE_COUNT=0
+
+OUTSET_ROOT="/usr/local/outset"
+
+printUsage() {
+    echo "OVERVIEW: outset-payload is a utility that package a script for use as an outset payload."
+    echo ""
+    echo "USAGE: outset-payload --directory <dirname> | --file <filename> [<options>]"
+    echo ""
+    echo "OPTIONS:"
+    echo "    -f, --file <filename>      Package the selected file"
+    echo "                                additional files can be specified by repeating this option"
+    echo "    -t, --target <type>        Target processing type (default 'login-once')"
+    echo "                                used with --file option to specify the target type"
+    echo "    -l, --list-targets         List all valid target types and exit"
+    echo "    -d, --directory <dirname>  Package all files in the specified directory"
+    echo "                                directory should contain all target types required"
+    echo "    -c, --create-payload-dirs <dirname>  Create the script_payloads directory structure in the"
+    echo "                                 specified directory and exit"
+    echo "    -i, --identifier <name>    Unique identifier for the script payload"
+    echo "    -o, --output <filename>    Output filename for the package (default 'outset-payload.plist')"
+    echo "    -h, --help                 Print this message"
+    echo "    --debug                    Enable debug output"
+    echo ""
+}
+
+printValidTargets() {
+    targetList=($(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*))
+    echo "Valid targets:"
+    for target in ${targetList[@]}; do
+        echo "  ${target##*/}"
+    done
+    exit 0
+}
+
+b64encodefile() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        debug "Encoding file: $file"
+        /usr/bin/base64 -i "$file"
+    fi
+}
+
+createPayloadPlist() {
+    local output="$1"
+    
+    # remove existing plist if it exists
+    if [[ -f "$output" ]]; then
+        /bin/rm -f "$output"
+    fi
+    
+    # Create an empty plist with top-level dict
+    /usr/bin/plutil -create xml1 -- "$output"
+    
+    if [[ $? -ne 0 ]]; then
+        exitWithError "Failed to create plist: $output"
+    fi
+
+    debug "Created plist: $output"
+}
+
+createPayloadDirs() {
+    local dir="$1"
+    local targetList=($(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*))
+
+    if [[ -z "$dir" ]]; then
+        exitWithError "No directory specified for payload creation.\n\nUsage: --create-payload-dirs <dirname>"
+    fi
+
+    debug "Creating payload directories in: $dir"
+    if [[ ! -d "$dir" ]]; then
+        /bin/mkdir -p "$dir"
+        if [[ $? -ne 0 ]]; then
+            exitWithError "Failed to create directory: $dir"
+        fi
+    fi
+    for target in "${targetList[@]}"; do
+        local targetName="${target##*/}"
+        local targetDir="$dir/${targetName}"
+        debug "Creating directory: $targetDir"
+        /bin/mkdir -p "$targetDir"
+        if [[ $? -ne 0 ]]; then
+            exitWithError "Failed to create directory: $targetDir"
+        fi
+    done
+    exitWithMessage "Payload directories created in: $dir\nPopulate these directories with your scripts and use the --directory option to package them."
+}
+
+addPayload() {
+    local output="$1"
+    local identifier="$2"
+    local target="$3"
+    local payloadKey="$4"
+    local payload="$5"
+
+    debug "Adding payload for identifier: script_payloads${identifier}, target: ${target}, key: ${payloadKey}, output: ${output}"
+
+    /usr/libexec/PlistBuddy -c "Add :script_payloads${identifier}:${target}:${payloadKey} data '${payload}'" "$output"
+    if [[ $? -ne 0 ]]; then
+        exitWithError "Failed to add payload to plist: $output"
+    fi
+    ENCODE_COUNT=$((ENCODE_COUNT + 1))
+}
+
+exitWithError() {
+    echo "[ERROR] $1\n"
+    exit 1
+}
+
+exitWithMessage() {
+    echo "$1"
+    exit 0
+}
+
+debug() {
+    # write debug messages to stderr
+    if [[ $DEBUG -eq 0 ]]; then
+        return
+    fi
+    datestamp=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "DEBUG: $datestamp: $1" >&2    
+}
+
+#printValidTargets
+
+#exit 0
+
+# if no arguments passed, print help and exit
+if [[ "$#" -eq 0 ]]; then
+    printUsage
+    exit 0
+fi
+
+# Loop through named arguments
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --file|-f) FILES_TO_PACKAGE+=("$2"); shift ;;
+        --directory|-d) ROOT_DIRECTORY="$2"; shift ;;
+        --target|-t) PAYLOAD_TARGET="$2"; shift ;;
+        --list-targets|-l) printValidTargets; exit 0 ;;
+        --identifier|-i) PAYLOAD_IDENTIFIER="_${2// /_}"; shift ;;
+        --output|-o) OUTPUT_FILE="$2"; shift ;;
+        --create-payload-dirs|-c) createPayloadDirs "$2"; exit 0 ;;
+        --help|-h|help) printUsage; exit 0 ;;
+        --debug) DEBUG=1 ;;
+        *) echo "Unknown argument: $1"; printUsage; exit 1 ;;
+    esac
+    shift
+done
+
+## Start processing:
+
+createPayloadPlist "$OUTPUT_FILE"
+
+# if --files is specified, loop through each, convert to base64 and add to plist
+if [[ ${#FILES_TO_PACKAGE[@]} -gt 0 ]]; then
+    debug "Files to package: ${FILES_TO_PACKAGE[@]}"
+    for file in "${FILES_TO_PACKAGE[@]}"; do
+        if [[ -f "$file" ]]; then
+            b64payload=$(b64encodefile "$file")
+            if [[ -n "$b64payload" ]]; then
+                addPayload "$OUTPUT_FILE" "$PAYLOAD_IDENTIFIER" "$PAYLOAD_TARGET" "$(basename "$file")" "$b64payload"
+            else
+                exitWithError "Failed to encode file: $file"
+            fi
+        else
+            exitWithError "File not found: $file"
+        fi
+    done
+    exitWithMessage "Plist created at $OUTPUT_FILE with $ENCODE_COUNT files encoded."
+fi
+    
+# if --directory is specified, loop through each file in the directory
+# this should contain all target types required
+targetList=($(ls -d ${OUTSET_ROOT}/login-* ${OUTSET_ROOT}/boot-* ${OUTSET_ROOT}/on-*))
+if [[ -n "$ROOT_DIRECTORY" && -d "$ROOT_DIRECTORY" ]]; then
+    for subDir in "${targetList[@]}"; do
+        targetName="${subDir##*/}"
+        debug "checking "$ROOT_DIRECTORY/$targetName""
+        if [[ -d "$ROOT_DIRECTORY/$targetName" ]]; then
+            for file in "$ROOT_DIRECTORY/$targetName"/*; do
+                debug "Processing file: $file"
+                if [[ -f "$file" ]]; then
+                    b64payload=$(b64encodefile "$file")
+                    if [[ -n "$b64payload" ]]; then
+                        addPayload "$OUTPUT_FILE" "$PAYLOAD_IDENTIFIER" "$targetName" "$(basename "$file")" "$b64payload"
+                    else
+                        exitWithError "Failed to encode file: $file"
+                    fi
+                else
+                    exitWithError "File not found: $file"
+                fi
+            done
+        else
+            debug "Source directory not found: $ROOT_DIRECTORY/$targetName"
+        fi
+    done
+    exitWithMessage "Plist created at $OUTPUT_FILE with $ENCODE_COUNT files encoded."
+fi
