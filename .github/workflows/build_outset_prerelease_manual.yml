@@ -41,14 +41,14 @@ jobs:
 
     - name: Generate changelog
       id: changelog
-      uses: metcalfc/changelog-generator@afdcb9470aebdb2252c0c95a1c130723c9e21f3a # v4.1
+      uses: metcalfc/changelog-generator@v4
       with:
         myToken: ${{ secrets.GITHUB_TOKEN }}
         reverse: 'true'
 
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v0.1.15
+      uses: softprops/action-gh-release@v2
       with:
         name: Outset ${{env.OUTSET_VERSION}}
         tag_name: v${{env.OUTSET_VERSION}}
