@@ -6,6 +6,14 @@ BUNDLE="Outset.app"
 AGENTS="Contents/Library/LaunchAgents"
 DAEMONS="Contents/Library/LaunchDaemons"
 
+# If the bundle or agents etc are missing then something is wrong
+if [[ ! -d "${ROOT_PATH}/${BUNDLE}/${AGENTS}" ]] || 
+    [[ ! -d "${ROOT_PATH}/${BUNDLE}/${DAEMONS}" ]] ||
+    [[ ! -d "${ROOT_PATH}" ]]; then
+    echo "<result>Missing</result>"
+    exit 0
+fi
+
 # Get a count of what we expect from the agents and daemons listed in the app bundle
 EXPECTED_AGENTS=$(ls ${ROOT_PATH}/${BUNDLE}/${AGENTS} | wc -l)
 EXPECTED_DAEMONS=$(ls ${ROOT_PATH}/${BUNDLE}/${DAEMONS} | wc -l)
