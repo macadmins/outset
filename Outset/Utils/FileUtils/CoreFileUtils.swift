@@ -45,6 +45,17 @@ func checkDirectoryExists(path: String) -> Bool {
 func folderContents(path: String) -> [String] {
     // Returns a array of strings containing the folder contents
     // Does not perform a recursive list
+    return getFolderContents(path: path)
+}
+
+func folderContents(type: PayloadType) -> [String] {
+    // Returns a array of strings containing the folder contents
+    // Does not perform a recursive list
+    let path = type.directoryPath
+    return getFolderContents(path: path)
+}
+
+func getFolderContents(path: String) -> [String] {
     var filelist: [String] = []
     do {
         let files = try FileManager.default.contentsOfDirectory(atPath: path)
