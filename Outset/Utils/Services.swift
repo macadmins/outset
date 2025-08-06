@@ -36,7 +36,7 @@ class ServiceManager {
     }
 
     private func register(_ service: SMAppService) {
-        if !isRoot() {
+        if !isRoot {
             writeLog("Must be root to register \(service.description)",
                      logLevel: .error)
             return
@@ -58,7 +58,7 @@ class ServiceManager {
     }
 
     private func unregister(_ service: SMAppService) {
-        if !isRoot() {
+        if !isRoot {
             writeLog("Must be root to unregister \(service.description)",
                      logLevel: .error)
             return

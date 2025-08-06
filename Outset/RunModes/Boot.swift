@@ -7,7 +7,7 @@
 
 import Foundation
 
-func processBootTasks() {
+func processBootTasks(prefs: OutsetPreferences) {
     // perform log file rotation
     performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)
 
@@ -16,6 +16,9 @@ func processBootTasks() {
 
     writeOutsetPreferences(prefs: prefs)
     
+    let bootOnceDir = PayloadType.bootOnce
+    let bootEveryDir = PayloadType.bootEvery
+    
     if prefs.waitForNetwork {
         loginwindowState = false
         loginWindowUpdateState(.disable)
@@ -23,11 +26,14 @@ func processBootTasks() {
     }
     
     if continueFirstBoot {
-        if !scriptPayloads.processPayloadScripts(ofType: .bootOnce) && folderContents(type: .bootOnce).isEmpty {
+        let ranBootOnce = scriptPayloads.processPayloadScripts(ofType: .bootOnce)
+        let ranBootEvery = scriptPayloads.processPayloadScripts(ofType: .bootEvery)
+        
+        if !(ranBootOnce || bootOnceDir.isEmpty) {
             processItems(.bootOnce, deleteItems: true)
         }
         
-        if !scriptPayloads.processPayloadScripts(ofType: .bootEvery) && !folderContents(type: .bootEvery).isEmpty {
+        if !(ranBootEvery || bootEveryDir.isEmpty) {
             processItems(.bootEvery)
         }
         

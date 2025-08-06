@@ -126,6 +126,10 @@ enum PayloadType {
             return PayloadType.outsetDirectory + PayloadKeys.shared.key
         }
     }
+    
+    var isEmpty: Bool {
+        return folderContents(type: self).isEmpty
+    }
 
     var once: Bool {
         switch self {

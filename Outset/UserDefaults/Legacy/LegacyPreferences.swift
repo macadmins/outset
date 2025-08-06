@@ -33,7 +33,7 @@ func migrateLegacyPreferences() {
                 switch filename {
 
                 case newoldRootUserDefaults:
-                    if isRoot() {
+                    if isRoot {
                         writeLog("\(newoldRootUserDefaults) migration", logLevel: .debug)
                         let legacyDefaultKeys = CFPreferencesCopyKeyList(Bundle.main.bundleIdentifier! as CFString, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
                         for key in legacyDefaultKeys as! [CFString] {
@@ -47,7 +47,7 @@ func migrateLegacyPreferences() {
                         deletePath(newoldRootUserDefaults)
                     }
                 case legacyOutsetPreferencesFile:
-                    if isRoot() {
+                    if isRoot {
                         writeLog("\(legacyOutsetPreferencesFile) migration", logLevel: .debug)
                         do {
                             let legacyPreferences = try PropertyListDecoder().decode(OutsetPreferences.self, from: data)
@@ -64,7 +64,7 @@ func migrateLegacyPreferences() {
                         let legacyRunOncePlistData = try PropertyListDecoder().decode([String: Date].self, from: data)
                         writeRunOncePlist(runOnceData: legacyRunOncePlistData)
                         writeLog("Migrated Legacy Runonce Data", logLevel: .debug)
-                        if isRoot() {
+                        if isRoot {
                             deletePath(legacyRootRunOncePlistFile)
                         } else {
                             deletePath(legacyUserRunOncePlistFile)

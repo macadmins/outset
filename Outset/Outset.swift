@@ -122,14 +122,17 @@ struct Outset: ParsableCommand {
         }
         
         // Shorthand instead of a block of if statements - bool ? (if true) : (if false)
-        boot ? processBootTasks() : ()
-        loginWindow ? processLoginWindowTasks() : ()
-        login ? processLoginTasks() : ()
-        loginPrivileged ? processLoginPrivilegedTasks() : ()
+        boot ? processBootTasks(prefs: prefs) : ()
+        
+        loginWindow ? processLoginWindowTasks(payload: scriptPayloads) : ()
+        
+        login ? processLoginTasks(payload: scriptPayloads, prefs: prefs) : ()
+        loginPrivileged ? processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) : ()
+        loginEvery ? processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) : ()
+        loginOnce ? processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) : ()
+        
         onDemand ? processOnDemandTasks() : ()
         onDemandPrivileged ? processOnDemandPrivilegedTasks() : ()
-        loginEvery ? processLoginEveryTasks() : ()
-        loginOnce ? processLoginOnceTasks() : ()
 
         addIgnoredUser.count > 0 ? addIgnoredUsers(addIgnoredUser, prefs: prefs) : ()
         removeIgnoredUser.count > 0 ? removeIgnoredUsers(removeIgnoredUser, prefs: prefs) : ()

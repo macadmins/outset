@@ -37,7 +37,7 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
         // Use the name of each property as the key, and save its value to UserDefaults
         if let propertyName = child.label {
             let key = propertyName.camelCaseToUnderscored()
-            if isRoot() {
+            if isRoot {
                 // write the preference to /Library/Preferences/
                 CFPreferencesSetValue(key as CFString,
                                       child.value as CFPropertyList,
@@ -61,7 +61,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
 
-    if isRoot() {
+    if isRoot {
         // force preferences to be read from /Library/Preferences instead of root's preferences
         outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
@@ -77,7 +77,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func loadRunOncePlist() -> RunOnce {
+func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 
     if debugMode {
         showPrefrencePath("Load")
@@ -86,15 +86,17 @@ func loadRunOncePlist() -> RunOnce {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
 
-    if isRoot() {
-        runOnceKey += "-"+getConsoleUserInfo().username
+    if isRoot {
+        if !bootOnce {
+            runOnceKey += "-"+getConsoleUserInfo().username
+        }
         return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
     } else {
         return defaults.object(forKey: runOnceKey) as? RunOnce ?? [:]
     }
 }
 
-func writeRunOncePlist(runOnceData: RunOnce) {
+func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
 
     if debugMode {
         showPrefrencePath("Stor")
@@ -103,7 +105,7 @@ func writeRunOncePlist(runOnceData: RunOnce) {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
 
-    if isRoot() {
+    if isRoot && !bootOnce {
         runOnceKey += "-"+getConsoleUserInfo().username
         CFPreferencesSetValue(runOnceKey as CFString,
                               runOnceData as CFPropertyList,
@@ -117,7 +119,7 @@ func writeRunOncePlist(runOnceData: RunOnce) {
 
 func showPrefrencePath(_ action: String) {
     var prefsPath: String
-    if isRoot() {
+    if isRoot {
         prefsPath = "/Library/Preferences".appending("/\(Bundle.main.bundleIdentifier!).plist")
     } else {
         let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)

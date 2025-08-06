@@ -16,13 +16,13 @@ enum Action {
 }
 
 func ensureRoot(_ reason: String) {
-    if !isRoot() {
+    if !isRoot {
         writeLog("Must be root to \(reason)", logLevel: .error)
         exit(1)
     }
 }
 
-func isRoot() -> Bool {
+var isRoot: Bool {
     return NSUserName() == "root"
 }
 
