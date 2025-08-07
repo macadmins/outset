@@ -86,7 +86,8 @@ struct ScriptPayloads: Codable {
                         // record runeonce data for boot-once payloads
                         if context == PayloadKeys.bootOnce.key {
                             writeLog("Writing run-once data for \(context)", logLevel: .debug)
-                            writeRunOncePlist(runOnceData: runOnceData, bootOnce: true)
+                            let bootOnceData: RunOnce = [name: Date()]
+                            writeRunOncePlist(runOnceData: bootOnceData, bootOnce: true)
                         }
                     }
                 } else {

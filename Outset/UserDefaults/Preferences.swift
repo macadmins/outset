@@ -105,8 +105,10 @@ func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
 
-    if isRoot && !bootOnce {
-        runOnceKey += "-"+getConsoleUserInfo().username
+    if isRoot {
+        if !bootOnce {
+            runOnceKey += "-"+getConsoleUserInfo().username
+        }
         CFPreferencesSetValue(runOnceKey as CFString,
                               runOnceData as CFPropertyList,
                               Bundle.main.bundleIdentifier! as CFString,
