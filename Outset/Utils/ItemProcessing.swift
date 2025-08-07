@@ -101,7 +101,8 @@ func processScripts(scripts: [String], altName: String = "", once: Bool=false, o
     let checksumsAvailable = !checksumList.isEmpty
 
     // load runonce data
-    var runOnce = loadRunOncePlist(bootOnce: once)
+    var runOnce = loadRunOncePlist(bootOnce: isRoot ? false : once)
+    writeLog("runOnce = \(runOnce)", logLevel: .debug)
 
     // loop through the scripts list and process.
     for script in scripts {
