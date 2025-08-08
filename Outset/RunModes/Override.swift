@@ -29,21 +29,20 @@ import Foundation
 ///
 /// - Important: Requires root privileges.
 /// - SeeAlso: `runRemoveOveride(_:prefs:)`
-func runAddOveride(_ overrides: [String] = [], prefs: OutsetPreferences) {
+func runAddOveride(_ overrides: [String] = [], prefs: inout OutsetPreferences) {
     ensureRoot("add scripts to override list")
-    
-    var overrideLoginOnce = prefs.overrideLoginOnce
     let loginOnce = PayloadType.loginOnce
     let loginPrivilegedOnce = PayloadType.loginPrivilegedOnce
-    
+
     for var override in overrides {
         if override.starts(with: "payload=") {
             override = override.components(separatedBy: "=").last ?? "nil"
-        } else if !override.contains(loginOnce.directoryPath) && !override.contains(loginPrivilegedOnce.directoryPath) {
+        } else if !override.contains(loginOnce.directoryPath) &&
+                  !override.contains(loginPrivilegedOnce.directoryPath) {
             override = "\(loginOnce.directoryPath)/\(override)"
         }
         writeLog("Adding \(override) to override list", logLevel: .debug)
-        overrideLoginOnce[override] = Date()
+        prefs.overrideLoginOnce[override] = Date()
     }
     writeOutsetPreferences(prefs: prefs)
 }
@@ -70,12 +69,10 @@ func runAddOveride(_ overrides: [String] = [], prefs: OutsetPreferences) {
 ///
 /// - Important: Requires root privileges.
 /// - SeeAlso: `runAddOveride(_:prefs:)`
-func runRemoveOveride(_ overrides: [String] = [], prefs: OutsetPreferences) {
+func runRemoveOveride(_ overrides: [String] = [], prefs: inout OutsetPreferences) {
     ensureRoot("remove scripts to override list")
-    
-    var overrideLoginOnce = prefs.overrideLoginOnce
     let loginOnce = PayloadType.loginOnce
-    
+
     for var override in overrides {
         if override.starts(with: "payload=") {
             override = override.components(separatedBy: "=").last ?? "nil"
@@ -83,7 +80,7 @@ func runRemoveOveride(_ overrides: [String] = [], prefs: OutsetPreferences) {
             override = "\(loginOnce.directoryPath)/\(override)"
         }
         writeLog("Removing \(override) from override list", logLevel: .debug)
-        overrideLoginOnce.removeValue(forKey: override)
+        prefs.overrideLoginOnce.removeValue(forKey: override)
     }
     writeOutsetPreferences(prefs: prefs)
 }

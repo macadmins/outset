@@ -24,33 +24,38 @@ struct OutsetPreferences: Codable {
 }
 
 func writeOutsetPreferences(prefs: OutsetPreferences) {
-
-    if debugMode {
-        showPrefrencePath("Stor")
-    }
+    if debugMode { showPrefrencePath("Stor") } // (typo?) showPreferencePath
 
     let defaults = UserDefaults.standard
+    let appID = Bundle.main.bundleIdentifier! as CFString
 
-    // Take the OutsetPreferences object and write it to UserDefaults
     let mirror = Mirror(reflecting: prefs)
     for child in mirror.children {
-        // Use the name of each property as the key, and save its value to UserDefaults
-        if let propertyName = child.label {
-            let key = propertyName.camelCaseToUnderscored()
-            if isRoot {
-                // write the preference to /Library/Preferences/
-                CFPreferencesSetValue(key as CFString,
-                                      child.value as CFPropertyList,
-                                      Bundle.main.bundleIdentifier! as CFString,
-                                      kCFPreferencesAnyUser,
-                                      kCFPreferencesAnyHost)
-            } else {
-                // write the preference to ~/Library/Preferences/
-                defaults.set(child.value, forKey: key)
-            }
+        guard let propertyName = child.label else { continue }
+        let key = propertyName.camelCaseToUnderscored()
+
+        if isRoot {
+            CFPreferencesSetValue(
+                key as CFString,
+                child.value as CFPropertyList,
+                appID,
+                kCFPreferencesAnyUser,
+                kCFPreferencesAnyHost
+            )
+        } else {
+            defaults.set(child.value, forKey: key)
         }
     }
+
+    if isRoot {
+        // Ensure values are written to /Library/Preferences
+        CFPreferencesSynchronize(appID, kCFPreferencesAnyUser, kCFPreferencesAnyHost)
+    } else {
+        // Usually not necessary, but harmless if you want immediate flush
+        defaults.synchronize()
+    }
 }
+
 
 func loadOutsetPreferences() -> OutsetPreferences {
 

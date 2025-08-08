@@ -26,15 +26,14 @@ import Foundation
 ///
 /// - Important: Requires root privileges.
 /// - SeeAlso: `removeIgnoredUsers(_:prefs:)`
-func addIgnoredUsers(_ userArray: [String] = [], prefs: OutsetPreferences) {
+func addIgnoredUsers(_ userArray: [String] = [], prefs: inout OutsetPreferences) {
     ensureRoot("add to ignored users")
-    var ignoredUsers = prefs.ignoredUsers
     for username in userArray {
-        if ignoredUsers.contains(username) {
+        if prefs.ignoredUsers.contains(username) {
             writeLog("User \"\(username)\" is already in the ignored users list", logLevel: .info)
         } else {
             writeLog("Adding \(username) to ignored users list", logLevel: .info)
-            ignoredUsers.append(username)
+            prefs.ignoredUsers.append(username)
         }
     }
     writeOutsetPreferences(prefs: prefs)
@@ -59,17 +58,16 @@ func addIgnoredUsers(_ userArray: [String] = [], prefs: OutsetPreferences) {
 ///
 /// - Important: Requires root privileges.
 /// - SeeAlso: `addIgnoredUsers(_:prefs:)`
-func removeIgnoredUsers(_ userArray: [String] = [], prefs: OutsetPreferences) {
+func removeIgnoredUsers(_ userArray: [String] = [], prefs: inout OutsetPreferences) {
     ensureRoot("remove ignored users")
-    var ignoredUsers = prefs.ignoredUsers
     for username in userArray {
-        if let index = ignoredUsers.firstIndex(of: username) {
+        if let index = prefs.ignoredUsers.firstIndex(of: username) {
             writeLog("Removing \(username) from ignored users list", logLevel: .info)
-            ignoredUsers.remove(at: index)
+            prefs.ignoredUsers.remove(at: index)
         } else {
             writeLog("User \"\(username)\" is not in the ignored users list", logLevel: .info)
         }
+
     }
     writeOutsetPreferences(prefs: prefs)
 }
-

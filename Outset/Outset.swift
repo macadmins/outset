@@ -136,10 +136,10 @@ struct Outset: ParsableCommand {
         runIf(loginOnce) { processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) }
         runIf(onDemand) { processOnDemandTasks() }
         runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks() }
-        runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: prefs) }
-        runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: prefs) }
-        runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: prefs) }
-        runIf(removeOveride.count > 0) { runRemoveOveride(removeOveride, prefs: prefs) }
+        runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: &prefs) }
+        runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: &prefs) }
+        runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: &prefs) }
+        runIf(removeOveride.count > 0) { runRemoveOveride(removeOveride, prefs: &prefs) }
         runIf(checksum.count > 0) { computeChecksum(checksum) }
         runIf(shasumReport || checksumReport) { printChecksumReport() }
         runIf(cleanup) { runCleanup() }
