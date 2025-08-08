@@ -56,7 +56,6 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
     }
 }
 
-
 func loadOutsetPreferences() -> OutsetPreferences {
 
     if debugMode {

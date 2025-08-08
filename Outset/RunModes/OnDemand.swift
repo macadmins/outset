@@ -2,7 +2,7 @@
 //  OnDemand.swift
 //  Outset
 //
-//  Created by Reardon, Bart (IM&T, Black Mountain) on 6/8/2025.
+//  Created by Bart Reardon on 6/8/2025.
 //
 
 import Foundation
@@ -68,4 +68,3 @@ func processOnDemandPrivilegedTasks() {
         writeLog("No current user session. Skipping on-demand-privileged run.", logLevel: .info)
     }
 }
-
