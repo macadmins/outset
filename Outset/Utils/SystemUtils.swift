@@ -49,3 +49,9 @@ func loginWindowUpdateState(_ action: Action) {
     }
         _ = runShellCommand(cmd)
 }
+
+@discardableResult
+func runIf(_ condition: Bool, _ action: () -> Void) -> Bool {
+    if condition { action() }
+    return condition
+}

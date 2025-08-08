@@ -7,6 +7,27 @@
 
 import Foundation
 
+/// Processes all scheduled tasks that run at system boot.
+///
+/// This function handles the complete boot-time workflow:
+/// - Rotates the log files to maintain the maximum number of boot logs.
+/// - Ensures required working folders exist.
+/// - Writes the current `OutsetPreferences` to disk.
+/// - Optionally waits for network connectivity before running scripts.
+/// - Runs `.bootOnce` and `.bootEvery` payload scripts as configured.
+/// - Restores login window state if it was modified during execution.
+///
+/// The function will skip running boot scripts if:
+/// - Network connectivity is required (`prefs.waitForNetwork == true`) but
+///   cannot be established within `prefs.networkTimeout` seconds.
+///
+/// - Parameter prefs: The `OutsetPreferences` object containing runtime
+///   configuration, including network wait settings and timeouts.
+///
+/// - Note: This function writes informational and error logs throughout the
+///   process, and may update the login window state temporarily during execution.
+///
+/// - SeeAlso: `processItems(_:)`, `scriptPayloads.processPayloadScripts(ofType:)`
 func processBootTasks(prefs: OutsetPreferences) {
     // perform log file rotation
     performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)

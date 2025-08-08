@@ -106,6 +106,7 @@ struct Outset: ParsableCommand {
             }
         }
 
+        // Service management
         if enableServices, #available(macOS 13.0, *) {
             let manager = ServiceManager()
             manager.registerDaemons()
@@ -121,31 +122,26 @@ struct Outset: ParsableCommand {
             manager.getStatus()
         }
         
-        // Shorthand instead of a block of if statements - bool ? (if true) : (if false)
-        boot ? processBootTasks(prefs: prefs) : ()
-        
-        loginWindow ? processLoginWindowTasks(payload: scriptPayloads) : ()
-        
-        login ? processLoginTasks(payload: scriptPayloads, prefs: prefs) : ()
-        loginPrivileged ? processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) : ()
-        loginEvery ? processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) : ()
-        loginOnce ? processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) : ()
-        
-        onDemand ? processOnDemandTasks() : ()
-        onDemandPrivileged ? processOnDemandPrivilegedTasks() : ()
-
-        addIgnoredUser.count > 0 ? addIgnoredUsers(addIgnoredUser, prefs: prefs) : ()
-        removeIgnoredUser.count > 0 ? removeIgnoredUsers(removeIgnoredUser, prefs: prefs) : ()
-        
+        // Combine arrays where names were changed (legacy)
         addOveride += addOverride
         removeOveride += removeOverride
-        addOveride.count > 0 ? runAddOveride(addOveride, prefs: prefs) : ()
-        removeOveride.count > 0 ? runRemoveOveride(removeOveride, prefs: prefs) : ()
-        
         checksum += computeSHA
-        checksum.count > 0 ? computeChecksum(checksum) : ()
-        shasumReport || checksumReport ? printChecksumReport() : ()
         
-        cleanup ? runCleanup() : ()
+        // Shorthand instead of a block of if statements using runIf()
+        runIf(boot) { processBootTasks(prefs: prefs) }
+        runIf(loginWindow) { processLoginWindowTasks(payload: scriptPayloads) }
+        runIf(login) { processLoginTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginPrivileged) { processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginEvery) { processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginOnce) { processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(onDemand) { processOnDemandTasks() }
+        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks() }
+        runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: prefs) }
+        runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: prefs) }
+        runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: prefs) }
+        runIf(removeOveride.count > 0) { runRemoveOveride(removeOveride, prefs: prefs) }
+        runIf(checksum.count > 0) { computeChecksum(checksum) }
+        runIf(shasumReport || checksumReport) { printChecksumReport() }
+        runIf(cleanup) { runCleanup() }
     }
 }
