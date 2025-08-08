@@ -106,6 +106,7 @@ struct Outset: ParsableCommand {
             }
         }
 
+        // Service management
         if enableServices, #available(macOS 13.0, *) {
             let manager = ServiceManager()
             manager.registerDaemons()
@@ -120,229 +121,27 @@ struct Outset: ParsableCommand {
             let manager = ServiceManager()
             manager.getStatus()
         }
-
-        if boot {
-            // perform log file rotation
-            performLogRotation(logFolderPath: logDirectory, logFileBaseName: logFileName, maxLogFiles: logFileMaxCount)
-
-            writeLog("Processing scheduled runs for boot", logLevel: .info)
-            ensureWorkingFolders()
-
-            writeOutsetPreferences(prefs: prefs)
-
-            if !folderContents(path: PayloadType.bootOnce.directoryPath).isEmpty {
-                if prefs.waitForNetwork {
-                    loginwindowState = false
-                    loginWindowUpdateState(.disable)
-                    continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
-                }
-                if continueFirstBoot {
-                    if !scriptPayloads.processPayloadScripts(ofType: .bootOnce) {
-                        processItems(.bootOnce, deleteItems: true)
-                    }
-                } else {
-                    writeLog("Unable to connect to network. Skipping boot-once scripts...", logLevel: .error)
-                }
-                if !loginwindowState {
-                    loginWindowUpdateState(.enable)
-                }
-            }
-
-            if !scriptPayloads.processPayloadScripts(ofType: .bootEvery) &&
-                !folderContents(path: PayloadType.bootEvery.directoryPath).isEmpty {
-                processItems(.bootEvery)
-            }
-
-            writeLog("Boot processing complete")
-        }
-
-        if loginWindow {
-            writeLog("Processing scheduled runs for login window", logLevel: .info)
-
-            if !scriptPayloads.processPayloadScripts(ofType: .loginWindow) &&
-                !folderContents(path: PayloadType.loginWindow.directoryPath).isEmpty {
-                processItems(.loginWindow)
-            }
-        }
-
-        if login {
-            writeLog("Processing scheduled runs for login", logLevel: .info)
-            if !prefs.ignoredUsers.contains(consoleUser) {
-                if !scriptPayloads.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce) &&
-                    !folderContents(path: PayloadType.loginOnce.directoryPath).isEmpty {
-                    processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
-                }
-                if !scriptPayloads.processPayloadScripts(ofType: .loginEvery) &&
-                    !folderContents(path: PayloadType.loginEvery.directoryPath).isEmpty {
-                    processItems(.loginEvery)
-                }
-                if !folderContents(path: PayloadType.loginPrivilegedOnce.directoryPath).isEmpty || !folderContents(path: PayloadType.loginPrivilegedEvery.directoryPath).isEmpty {
-                    createTrigger(Trigger.loginPrivileged.path)
-                }
-            }
-
-        }
-
-        if loginPrivileged {
-            writeLog("Processing scheduled runs for privileged login", logLevel: .info)
-            if checkFileExists(path: Trigger.loginPrivileged.path) {
-                pathCleanup(Trigger.loginPrivileged.path)
-            }
-            if !prefs.ignoredUsers.contains(consoleUser) {
-                if !scriptPayloads.processPayloadScripts(ofType: .loginPrivilegedOnce, runOnceData: prefs.overrideLoginOnce) &&
-                    !folderContents(path: PayloadType.loginPrivilegedOnce.directoryPath).isEmpty {
-                    processItems(.loginPrivilegedOnce, once: true, override: prefs.overrideLoginOnce)
-                }
-                if !scriptPayloads.processPayloadScripts(ofType: .loginPrivilegedEvery) &&
-                    !folderContents(path: PayloadType.loginPrivilegedEvery.directoryPath).isEmpty {
-                    processItems(.loginPrivilegedEvery)
-                }
-            } else {
-                writeLog("Skipping login scripts for user \(consoleUser)")
-            }
-        }
-
-        if onDemand {
-            writeLog("Processing on-demand", logLevel: .info)
-            if !folderContents(path: PayloadType.onDemand.directoryPath).isEmpty {
-                if !["root", "loginwindow"].contains(consoleUser) {
-                    let currentUser = NSUserName()
-                    if consoleUser == currentUser {
-                        processItems(.onDemand)
-                        createTrigger(Trigger.cleanup.path)
-                    } else {
-                        writeLog("User \(currentUser) is not the current console user. Skipping on-demand run.")
-                    }
-                } else {
-                    writeLog("No current user session. Skipping on-demand run.")
-                }
-            }
-        }
-
-        if onDemandPrivileged {
-            ensureRoot("execute on-demand-privileged")
-            writeLog("Processing on-demand-privileged", logLevel: .debug)
-            if !["loginwindow"].contains(consoleUser) {
-                if !folderContents(path: PayloadType.onDemandPrivileged.directoryPath).isEmpty {
-                    processItems(.onDemandPrivileged)
-                    pathCleanup(Trigger.onDemandPrivileged.path)
-                    pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
-                }
-            } else {
-                writeLog("No current user session. Skipping on-demand-privileged run.")
-            }
-        }
-
-        if loginEvery {
-            writeLog("Processing scripts in login-every", logLevel: .info)
-            if !prefs.ignoredUsers.contains(consoleUser) {
-                if !scriptPayloads.processPayloadScripts(ofType: .loginEvery) &&
-                    !folderContents(path: PayloadType.loginEvery.directoryPath).isEmpty {
-                    processItems(.loginEvery)
-                }
-            }
-        }
-
-        if loginOnce {
-            writeLog("Processing scripts in login-once", logLevel: .info)
-            if !prefs.ignoredUsers.contains(consoleUser) {
-                if !scriptPayloads.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce) &&
-                    !folderContents(path: PayloadType.loginOnce.directoryPath).isEmpty {
-                    processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
-                }
-            } else {
-                writeLog("user \(consoleUser) is in the ignored list. skipping", logLevel: .debug)
-            }
-        }
-
-        if cleanup {
-            writeLog("Cleaning up on-demand directories.", logLevel: .info)
-            pathCleanup(Trigger.onDemand.path)
-            pathCleanup(Trigger.onDemandPrivileged.path)
-            pathCleanup(PayloadType.onDemand.directoryPath)
-            pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
-            pathCleanup(Trigger.cleanup.path)
-        }
-
-        if !addIgnoredUser.isEmpty {
-            ensureRoot("add to ignored users")
-            for username in addIgnoredUser {
-                if prefs.ignoredUsers.contains(username) {
-                    writeLog("User \"\(username)\" is already in the ignored users list", logLevel: .info)
-                } else {
-                    writeLog("Adding \(username) to ignored users list", logLevel: .info)
-                    prefs.ignoredUsers.append(username)
-                }
-            }
-            writeOutsetPreferences(prefs: prefs)
-        }
-
-        if !removeIgnoredUser.isEmpty {
-            ensureRoot("remove ignored users")
-            for username in removeIgnoredUser {
-                if let index = prefs.ignoredUsers.firstIndex(of: username) {
-                    prefs.ignoredUsers.remove(at: index)
-                }
-            }
-            writeOutsetPreferences(prefs: prefs)
-        }
-
-        if !addOverride.isEmpty || !addOveride.isEmpty {
-            if !addOveride.isEmpty {
-                addOverride = addOveride
-            }
-            ensureRoot("add scripts to override list")
-
-            for var override in addOverride {
-                if override.starts(with: "payload=") {
-                    override = override.components(separatedBy: "=").last ?? "nil"
-                } else if !override.contains(PayloadType.loginOnce.directoryPath) && !override.contains(PayloadType.loginPrivilegedOnce.directoryPath) {
-                    override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
-                }
-                writeLog("Adding \(override) to override list", logLevel: .debug)
-                prefs.overrideLoginOnce[override] = Date()
-            }
-            writeOutsetPreferences(prefs: prefs)
-        }
-
-        if !removeOverride.isEmpty || !removeOveride.isEmpty {
-            if !removeOveride.isEmpty {
-                removeOverride = removeOveride
-            }
-            ensureRoot("remove scripts to override list")
-            for var override in removeOverride {
-                if override.starts(with: "payload=") {
-                    override = override.components(separatedBy: "=").last ?? "nil"
-                } else if !override.contains(PayloadType.loginOnce.directoryPath) {
-                    override = "\(PayloadType.loginOnce.directoryPath)/\(override)"
-                }
-                writeLog("Removing \(override) from override list", logLevel: .debug)
-                prefs.overrideLoginOnce.removeValue(forKey: override)
-            }
-            writeOutsetPreferences(prefs: prefs)
-        }
-
-        if !checksum.isEmpty || !computeSHA.isEmpty {
-            if checksum.isEmpty {
-                checksum = computeSHA
-            }
-            if checksum[0].lowercased() == "all" {
-                checksumAllFiles()
-            } else {
-                for fileToHash in checksum {
-                    let url = URL(fileURLWithPath: fileToHash)
-                    if let hash = sha256(for: url) {
-                        printStdOut("Checksum for file \(fileToHash): \(hash)")
-                    }
-                }
-            }
-        }
-
-        if shasumReport || checksumReport {
-            writeLog("Checksum report", logLevel: .info)
-            for (filename, checksum) in checksumLoadApprovedFiles() {
-                writeLog("\(filename) : \(checksum)", logLevel: .info)
-            }
-        }
+        
+        // Combine arrays where names were changed (legacy)
+        addOveride += addOverride
+        removeOveride += removeOverride
+        checksum += computeSHA
+        
+        // Shorthand instead of a block of if statements using runIf()
+        runIf(boot) { processBootTasks(prefs: prefs) }
+        runIf(loginWindow) { processLoginWindowTasks(payload: scriptPayloads) }
+        runIf(login) { processLoginTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginPrivileged) { processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginEvery) { processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(loginOnce) { processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) }
+        runIf(onDemand) { processOnDemandTasks() }
+        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks() }
+        runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: &prefs) }
+        runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: &prefs) }
+        runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: &prefs) }
+        runIf(removeOveride.count > 0) { runRemoveOveride(removeOveride, prefs: &prefs) }
+        runIf(checksum.count > 0) { computeChecksum(checksum) }
+        runIf(shasumReport || checksumReport) { printChecksumReport() }
+        runIf(cleanup) { runCleanup() }
     }
 }

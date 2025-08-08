@@ -24,31 +24,35 @@ struct OutsetPreferences: Codable {
 }
 
 func writeOutsetPreferences(prefs: OutsetPreferences) {
-
-    if debugMode {
-        showPrefrencePath("Stor")
-    }
+    if debugMode { showPrefrencePath("Stor") } // (typo?) showPreferencePath
 
     let defaults = UserDefaults.standard
+    let appID = Bundle.main.bundleIdentifier! as CFString
 
-    // Take the OutsetPreferences object and write it to UserDefaults
     let mirror = Mirror(reflecting: prefs)
     for child in mirror.children {
-        // Use the name of each property as the key, and save its value to UserDefaults
-        if let propertyName = child.label {
-            let key = propertyName.camelCaseToUnderscored()
-            if isRoot() {
-                // write the preference to /Library/Preferences/
-                CFPreferencesSetValue(key as CFString,
-                                      child.value as CFPropertyList,
-                                      Bundle.main.bundleIdentifier! as CFString,
-                                      kCFPreferencesAnyUser,
-                                      kCFPreferencesAnyHost)
-            } else {
-                // write the preference to ~/Library/Preferences/
-                defaults.set(child.value, forKey: key)
-            }
+        guard let propertyName = child.label else { continue }
+        let key = propertyName.camelCaseToUnderscored()
+
+        if isRoot {
+            CFPreferencesSetValue(
+                key as CFString,
+                child.value as CFPropertyList,
+                appID,
+                kCFPreferencesAnyUser,
+                kCFPreferencesAnyHost
+            )
+        } else {
+            defaults.set(child.value, forKey: key)
         }
+    }
+
+    if isRoot {
+        // Ensure values are written to /Library/Preferences
+        CFPreferencesSynchronize(appID, kCFPreferencesAnyUser, kCFPreferencesAnyHost)
+    } else {
+        // Usually not necessary, but harmless if you want immediate flush
+        defaults.synchronize()
     }
 }
 
@@ -61,7 +65,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
     let defaults = UserDefaults.standard
     var outsetPrefs = OutsetPreferences()
 
-    if isRoot() {
+    if isRoot {
         // force preferences to be read from /Library/Preferences instead of root's preferences
         outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
@@ -77,7 +81,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func loadRunOncePlist() -> RunOnce {
+func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 
     if debugMode {
         showPrefrencePath("Load")
@@ -86,15 +90,17 @@ func loadRunOncePlist() -> RunOnce {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
 
-    if isRoot() {
-        runOnceKey += "-"+getConsoleUserInfo().username
+    if isRoot {
+        if !bootOnce {
+            runOnceKey += "-"+getConsoleUserInfo().username
+        }
         return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
     } else {
         return defaults.object(forKey: runOnceKey) as? RunOnce ?? [:]
     }
 }
 
-func writeRunOncePlist(runOnceData: RunOnce) {
+func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
 
     if debugMode {
         showPrefrencePath("Stor")
@@ -103,8 +109,10 @@ func writeRunOncePlist(runOnceData: RunOnce) {
     let defaults = UserDefaults.standard
     var runOnceKey = "run_once"
 
-    if isRoot() {
-        runOnceKey += "-"+getConsoleUserInfo().username
+    if isRoot {
+        if !bootOnce {
+            runOnceKey += "-"+getConsoleUserInfo().username
+        }
         CFPreferencesSetValue(runOnceKey as CFString,
                               runOnceData as CFPropertyList,
                               Bundle.main.bundleIdentifier! as CFString,
@@ -117,7 +125,7 @@ func writeRunOncePlist(runOnceData: RunOnce) {
 
 func showPrefrencePath(_ action: String) {
     var prefsPath: String
-    if isRoot() {
+    if isRoot {
         prefsPath = "/Library/Preferences".appending("/\(Bundle.main.bundleIdentifier!).plist")
     } else {
         let path = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)

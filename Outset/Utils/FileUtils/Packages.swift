@@ -9,7 +9,7 @@ import Foundation
 
 func installPackage(pkg: String) -> Bool {
     // Installs pkg onto boot drive
-    if isRoot() {
+    if isRoot {
         var pkgToInstall: String = ""
         var dmgMount: String = ""
 

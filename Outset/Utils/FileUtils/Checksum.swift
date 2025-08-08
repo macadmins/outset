@@ -11,6 +11,27 @@ struct FileHashes: Codable {
     var sha256sum: [String: String] = [String: String]()
 }
 
+func computeChecksum(_ files: [String] = []) {
+    
+    if files[0].lowercased() == "all" {
+        checksumAllFiles()
+    } else {
+        for fileToHash in files {
+            let url = URL(fileURLWithPath: fileToHash)
+            if let hash = sha256(for: url) {
+                printStdOut("Checksum for file \(fileToHash): \(hash)")
+            }
+        }
+    }
+}
+
+func printChecksumReport() {
+    writeLog("Checksum report", logLevel: .info)
+    for (filename, checksum) in checksumLoadApprovedFiles() {
+        writeLog("\(filename) : \(checksum)", logLevel: .info)
+    }
+}
+
 func checksumLoadApprovedFiles() -> [String: String] {
     // imports the list of file hashes that are approved to run
     var outsetFileHashList = FileHashes()

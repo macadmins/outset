@@ -16,13 +16,13 @@ enum Action {
 }
 
 func ensureRoot(_ reason: String) {
-    if !isRoot() {
+    if !isRoot {
         writeLog("Must be root to \(reason)", logLevel: .error)
         exit(1)
     }
 }
 
-func isRoot() -> Bool {
+var isRoot: Bool {
     return NSUserName() == "root"
 }
 
@@ -48,4 +48,10 @@ func loginWindowUpdateState(_ action: Action) {
         cmd = "/bin/launchctl unload \(loginWindowPlist)"
     }
         _ = runShellCommand(cmd)
+}
+
+@discardableResult
+func runIf(_ condition: Bool, _ action: () -> Void) -> Bool {
+    if condition { action() }
+    return condition
 }

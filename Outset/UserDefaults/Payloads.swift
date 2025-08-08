@@ -82,6 +82,13 @@ struct ScriptPayloads: Codable {
                     if let tempScript = saveTempFile(script) {
                         processScripts(scripts: [tempScript.path], altName: name, once: runOnceType, override: runOnceData)
                         cleanupTempFile(tempScript)
+                        
+                        // record runeonce data for boot-once payloads
+                        if context == PayloadKeys.bootOnce.key {
+                            writeLog("Writing run-once data for \(context)", logLevel: .debug)
+                            let bootOnceData: RunOnce = [name: Date()]
+                            writeRunOncePlist(runOnceData: bootOnceData, bootOnce: true)
+                        }
                     }
                 } else {
                     writeLog("Failed to decode script: \(name)", logLevel: .error)
