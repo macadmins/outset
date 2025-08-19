@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -104,6 +104,10 @@
 		CC7DDBA32C2C1E8C000CBEC5 /* Payloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Payloads.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		41203F5F2E432D9F00572670 /* RunModes */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = RunModes; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		4124EFAA29414A5D003B00F4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -156,6 +160,7 @@
 			children = (
 				4124EF90293822F4003B00F4 /* Outset.swift */,
 				CC7DDB962C2C18E8000CBEC5 /* Globals.swift */,
+				41203F5F2E432D9F00572670 /* RunModes */,
 				CC3DC82B2AA70EC90050EE16 /* Extensions */,
 				CC7DDB9F2C2C1DB5000CBEC5 /* UserDefaults */,
 				4124EFA6293B30D6003B00F4 /* Utils */,
@@ -261,6 +266,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				41203F5F2E432D9F00572670 /* RunModes */,
 			);
 			name = Outset;
 			packageProductDependencies = (
@@ -560,7 +568,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -585,6 +593,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Outset/Preview Content\"";
 				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = N8GJ2Y5Z9T;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -597,7 +606,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.2.0;
+				MARKETING_VERSION = 4.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
