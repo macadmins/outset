@@ -43,7 +43,7 @@ func processBootTasks(prefs: OutsetPreferences) {
     if prefs.waitForNetwork {
         loginwindowState = false
         loginWindowUpdateState(.disable)
-        continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
+        continueFirstBoot = waitForNetworkUp(timeout: Double(prefs.networkTimeout))
     }
     
     if continueFirstBoot {
