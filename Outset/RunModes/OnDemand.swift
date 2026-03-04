@@ -23,13 +23,13 @@ import Foundation
 ///
 /// - Note: All decisions and actions are logged at `.info` level.
 /// - SeeAlso: `processOnDemandPrivilegedTasks()`
-func processOnDemandTasks() {
+func processOnDemandTasks(consoleUser: String) {
     writeLog("Processing on-demand", logLevel: .info)
     if !folderContents(type: .onDemand).isEmpty {
         if !["root", "loginwindow"].contains(consoleUser) {
             let currentUser = NSUserName()
             if consoleUser == currentUser {
-                processItems(.onDemand)
+                processItems(.onDemand, consoleUser: consoleUser)
                 createTrigger(Trigger.cleanup.path)
             } else {
                 writeLog("User \(currentUser) is not the current console user. Skipping on-demand run.", logLevel: .info)
@@ -55,12 +55,12 @@ func processOnDemandTasks() {
 ///
 /// - Note: All decisions are logged at `.info` level for visibility.
 /// - SeeAlso: `processOnDemandTasks()`
-func processOnDemandPrivilegedTasks() {
+func processOnDemandPrivilegedTasks(consoleUser: String) {
     ensureRoot("execute on-demand-privileged")
     writeLog("Processing on-demand-privileged", logLevel: .info)
     if !["loginwindow"].contains(consoleUser) {
         if !folderContents(type: .onDemandPrivileged).isEmpty {
-            processItems(.onDemandPrivileged)
+            processItems(.onDemandPrivileged, consoleUser: consoleUser)
             pathCleanup(Trigger.onDemandPrivileged.path)
             pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
         }

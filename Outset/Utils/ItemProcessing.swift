@@ -8,7 +8,7 @@
 
 import Foundation
 
-func processItems(_ payloadType: PayloadType, deleteItems: Bool=false, once: Bool=false, override: RunOnce = [:]) {
+func processItems(_ payloadType: PayloadType, consoleUser: String, deleteItems: Bool=false, once: Bool=false, override: RunOnce = [:]) {
     // Main processing logic
     let path = payloadType.directoryPath
 
@@ -47,7 +47,7 @@ func processItems(_ payloadType: PayloadType, deleteItems: Bool=false, once: Boo
     processPackages(packages: packages, once: once, override: override, deleteItems: deleteItems)
 
     // Process Scripts
-    processScripts(scripts: scripts, once: once, override: override, deleteItems: deleteItems)
+    processScripts(scripts: scripts, consoleUser: consoleUser, once: once, override: override, deleteItems: deleteItems)
 
 }
 
@@ -95,7 +95,7 @@ func processPackages(packages: [String], once: Bool=false, override: RunOnce = [
 
 }
 
-func processScripts(scripts: [String], altName: String = "", once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
+func processScripts(scripts: [String], consoleUser: String, altName: String = "", once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
     // load validation checks
     let checksumList = checksumLoadApprovedFiles()
     let checksumsAvailable = !checksumList.isEmpty

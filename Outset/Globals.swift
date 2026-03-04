@@ -20,9 +20,6 @@ let payloadDirectory = outsetDirectory+"payload/"
 
 // Set some variables
 var debugMode: Bool = false
-var loginwindowState: Bool = true
-var consoleUser: String = getConsoleUserInfo().username
-var continueFirstBoot: Bool = true
 var prefs = loadOutsetPreferences()
 
 // Log Stuff

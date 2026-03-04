@@ -14,7 +14,7 @@ import Foundation
 ///   - action: The closure to execute if the user is **not** ignored.
 /// - Returns: `true` if the action was run, `false` if skipped.
 @discardableResult
-func runIfNotIgnoredUser(prefs: OutsetPreferences, action: () -> Void) -> Bool {
+func runIfNotIgnoredUser(consoleUser: String, prefs: OutsetPreferences, action: () -> Void) -> Bool {
     if prefs.ignoredUsers.contains(consoleUser) {
         writeLog("User \(consoleUser) is in the ignored list. Skipping.", logLevel: .debug)
         return false
@@ -36,11 +36,11 @@ func runIfNotIgnoredUser(prefs: OutsetPreferences, action: () -> Void) -> Bool {
 /// - Note: All actions are logged at `.info` level.
 func processLoginWindowTasks(payload: ScriptPayloads) {
     writeLog("Processing scheduled runs for login window", logLevel: .info)
-    let processedLoginWindowPayloads = payload.processPayloadScripts(ofType: .loginWindow)
+    let processedLoginWindowPayloads = payload.processPayloadScripts(ofType: .loginWindow, consoleUser: "")
     let loginWindowDir = PayloadType.loginWindow
 
     if !(processedLoginWindowPayloads || loginWindowDir.isEmpty) {
-        processItems(.loginWindow)
+        processItems(.loginWindow, consoleUser: "")
     }
 }
 
@@ -60,7 +60,7 @@ func processLoginWindowTasks(payload: ScriptPayloads) {
 ///     override data, and other configuration.
 ///
 /// - Note: All actions are logged at `.info` level.
-func processLoginTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
+func processLoginTasks(consoleUser: String, payload: ScriptPayloads, prefs: OutsetPreferences) {
     writeLog("Processing scheduled runs for login", logLevel: .info)
     let onceDir = PayloadType.loginOnce
     let everyDir = PayloadType.loginEvery
@@ -71,15 +71,15 @@ func processLoginTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
     if ignoreUser {
         writeLog("\(consoleUser) is in the ignore list. Skipping.", logLevel: .debug)
     } else {
-        let processedLoginOncePayloads = payload.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce)
-        let processedLoginPayloads = payload.processPayloadScripts(ofType: .loginEvery)
+        let processedLoginOncePayloads = payload.processPayloadScripts(ofType: .loginOnce, consoleUser: consoleUser, runOnceData: prefs.overrideLoginOnce)
+        let processedLoginPayloads = payload.processPayloadScripts(ofType: .loginEvery, consoleUser: consoleUser)
         
         if !(processedLoginOncePayloads || onceDir.isEmpty) {
-            processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
+            processItems(.loginOnce, consoleUser: consoleUser, once: true, override: prefs.overrideLoginOnce)
         }
         
         if !(processedLoginPayloads || everyDir.isEmpty) {
-            processItems(.loginEvery)
+            processItems(.loginEvery, consoleUser: consoleUser)
         }
         
         if !(onceDirPrivileged.isEmpty && everyDirPrivileged.isEmpty) {
@@ -104,7 +104,7 @@ func processLoginTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
 ///     override data, and other configuration.
 ///
 /// - Note: All actions are logged at `.info` level.
-func processLoginPrivilegedTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
+func processLoginPrivilegedTasks(consoleUser: String, payload: ScriptPayloads, prefs: OutsetPreferences) {
     writeLog("Processing scheduled runs for privileged login", logLevel: .info)
     let onceDir = PayloadType.loginPrivilegedOnce
     let everyDir = PayloadType.loginPrivilegedEvery
@@ -113,16 +113,16 @@ func processLoginPrivilegedTasks(payload: ScriptPayloads, prefs: OutsetPreferenc
         pathCleanup(Trigger.loginPrivileged.path)
     }
     
-    runIfNotIgnoredUser(prefs: prefs) {
-        let processedLoginPrivilegedOncePayloads = payload.processPayloadScripts(ofType: .loginPrivilegedOnce, runOnceData: prefs.overrideLoginOnce)
-        let processedLoginPrivilegedEveryPayloads = payload.processPayloadScripts(ofType: .loginPrivilegedEvery)
+    runIfNotIgnoredUser(consoleUser: consoleUser, prefs: prefs) {
+        let processedLoginPrivilegedOncePayloads = payload.processPayloadScripts(ofType: .loginPrivilegedOnce, consoleUser: consoleUser, runOnceData: prefs.overrideLoginOnce)
+        let processedLoginPrivilegedEveryPayloads = payload.processPayloadScripts(ofType: .loginPrivilegedEvery, consoleUser: consoleUser)
         
         if !(processedLoginPrivilegedOncePayloads || onceDir.isEmpty) {
-            processItems(.loginPrivilegedOnce, once: true, override: prefs.overrideLoginOnce)
+            processItems(.loginPrivilegedOnce, consoleUser: consoleUser, once: true, override: prefs.overrideLoginOnce)
         }
         
         if !(processedLoginPrivilegedEveryPayloads || everyDir.isEmpty) {
-            processItems(.loginPrivilegedEvery)
+            processItems(.loginPrivilegedEvery, consoleUser: consoleUser)
         }
     }
 }
@@ -137,15 +137,15 @@ func processLoginPrivilegedTasks(payload: ScriptPayloads, prefs: OutsetPreferenc
 ///   - prefs: The `OutsetPreferences` object containing ignored user lists.
 ///
 /// - Note: All actions are logged at `.info` level.
-func processLoginEveryTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
+func processLoginEveryTasks(consoleUser: String, payload: ScriptPayloads, prefs: OutsetPreferences) {
     writeLog("Processing scripts in login-every", logLevel: .info)
     let everyDir = PayloadType.loginEvery
     
-    runIfNotIgnoredUser(prefs: prefs) {
-        let processedLogonPayloads = payload.processPayloadScripts(ofType: .loginEvery)
+    runIfNotIgnoredUser(consoleUser: consoleUser, prefs: prefs) {
+        let processedLogonPayloads = payload.processPayloadScripts(ofType: .loginEvery, consoleUser: consoleUser)
         
         if !(processedLogonPayloads || everyDir.isEmpty) {
-            processItems(.loginEvery)
+            processItems(.loginEvery, consoleUser: consoleUser)
         }
     }
 }
@@ -162,15 +162,15 @@ func processLoginEveryTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
 ///     and override data.
 ///
 /// - Note: All actions are logged at `.info` level.
-func processLoginOnceTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
+func processLoginOnceTasks(consoleUser: String, payload: ScriptPayloads, prefs: OutsetPreferences) {
     writeLog("Processing scripts in login-once", logLevel: .info)
     let onceDir = PayloadType.loginOnce
     
-    runIfNotIgnoredUser(prefs: prefs) {
-        let processedLogonPayloads = payload.processPayloadScripts(ofType: .loginOnce)
+    runIfNotIgnoredUser(consoleUser: consoleUser, prefs: prefs) {
+        let processedLogonPayloads = payload.processPayloadScripts(ofType: .loginOnce, consoleUser: consoleUser)
         
         if !(processedLogonPayloads || onceDir.isEmpty) {
-            processItems(.loginOnce, once: true, override: prefs.overrideLoginOnce)
+            processItems(.loginOnce, consoleUser: consoleUser, once: true, override: prefs.overrideLoginOnce)
         }
     }
 }

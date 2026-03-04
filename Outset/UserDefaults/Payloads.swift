@@ -43,7 +43,7 @@ struct ScriptPayloads: Codable {
         return nil
     }
 
-    func processPayloadScripts(ofType type: PayloadType? = nil, runOnceData: RunOnce = RunOnce()) -> Bool {
+    func processPayloadScripts(ofType type: PayloadType? = nil, consoleUser: String = "", runOnceData: RunOnce = RunOnce()) -> Bool {
         // Determine which payloads to process based on the specified type
         let payloadsToProcess: [(String, ScriptEntry?)] = {
             switch type {
@@ -80,7 +80,7 @@ struct ScriptPayloads: Codable {
                 writeLog("Processing \(context) payload script : \(name)")
                 if let script = decodeBase64Script(base64Data: base64Data) {
                     if let tempScript = saveTempFile(script) {
-                        processScripts(scripts: [tempScript.path], altName: name, once: runOnceType, override: runOnceData)
+                        processScripts(scripts: [tempScript.path], consoleUser: consoleUser, altName: name, once: runOnceType, override: runOnceData)
                         cleanupTempFile(tempScript)
                         
                         // record runeonce data for boot-once payloads

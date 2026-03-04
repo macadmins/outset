@@ -99,6 +99,8 @@ struct Outset: ParsableCommand {
             debugMode = true
         }
 
+        let consoleUser = getConsoleUserInfo().username
+
         if version {
             printStdOut("\(outsetVersion)")
             if debugMode {
@@ -130,12 +132,12 @@ struct Outset: ParsableCommand {
         // Shorthand instead of a block of if statements using runIf()
         runIf(boot) { processBootTasks(prefs: prefs) }
         runIf(loginWindow) { processLoginWindowTasks(payload: scriptPayloads) }
-        runIf(login) { processLoginTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginPrivileged) { processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginEvery) { processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginOnce) { processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(onDemand) { processOnDemandTasks() }
-        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks() }
+        runIf(login) { processLoginTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginPrivileged) { processLoginPrivilegedTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginEvery) { processLoginEveryTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginOnce) { processLoginOnceTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(onDemand) { processOnDemandTasks(consoleUser: consoleUser) }
+        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks(consoleUser: consoleUser) }
         runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: &prefs) }
         runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: &prefs) }
         runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: &prefs) }
