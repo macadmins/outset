@@ -69,7 +69,7 @@ func processLoginTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
     let ignoreUser = prefs.ignoredUsers.contains(consoleUser)
     
     if ignoreUser {
-        writeLog("\(consoleUser) is in the ignore list. slipping", logLevel: .debug)
+        writeLog("\(consoleUser) is in the ignore list. Skipping.", logLevel: .debug)
     } else {
         let processedLoginOncePayloads = payload.processPayloadScripts(ofType: .loginOnce, runOnceData: prefs.overrideLoginOnce)
         let processedLoginPayloads = payload.processPayloadScripts(ofType: .loginEvery)
@@ -82,7 +82,7 @@ func processLoginTasks(payload: ScriptPayloads, prefs: OutsetPreferences) {
             processItems(.loginEvery)
         }
         
-        if !(onceDirPrivileged.isEmpty || everyDirPrivileged.isEmpty) {
+        if !(onceDirPrivileged.isEmpty && everyDirPrivileged.isEmpty) {
             createTrigger(Trigger.loginPrivileged.path)
         }
     }
