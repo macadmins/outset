@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		05692A835279BAD786A2DF87 /* ChecksumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */; };
+		1D2B8C35F0205CC22CF631E4 /* UntestableFunctionality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487190D64300B83C50E471BD /* UntestableFunctionality.swift */; };
 		27347227FA3195F1EC1F0A12 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A35A45C8C7D98C519845ADE1 /* Cocoa.framework */; };
 		2CE8E007C64E2BBA0FF8F40E /* LoginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E52CFB2D81312A8F4FC70609 /* LoginTests.swift */; };
 		34564327C1085EEA0F7882EC /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41765AC929C97B6400D616BF /* Services.swift */; };
@@ -132,6 +133,7 @@
 		41ADC47C29AECB8B00C5B94C /* outset */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = outset; sourceTree = "<group>"; };
 		41ADC47E29AF649C00C5B94C /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		41DC78062E3C5B2500E67988 /* outset-payload */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "outset-payload"; sourceTree = "<group>"; };
+		487190D64300B83C50E471BD /* UntestableFunctionality.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UntestableFunctionality.swift; sourceTree = "<group>"; };
 		4899D544FA149CE2FD3514B7 /* CoreFileUtilsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoreFileUtilsTests.swift; path = CoreFileUtilsTests.swift; sourceTree = "<group>"; };
 		4B91721BDA63DB2BCF2AD592 /* OutsetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OutsetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		52661F37B03F3DD26C429929 /* OnDemand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnDemand.swift; sourceTree = "<group>"; };
@@ -300,6 +302,7 @@
 				B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */,
 				4899D544FA149CE2FD3514B7 /* CoreFileUtilsTests.swift */,
 				C329D81F86E5C3D1B8F12B27 /* PreferencesTests.swift */,
+				487190D64300B83C50E471BD /* UntestableFunctionality.swift */,
 			);
 			name = OutsetTests;
 			path = OutsetTests;
@@ -589,6 +592,7 @@
 				C23E661D025757D322651B7A /* Login.swift in Sources */,
 				3E56CF89F9029AF1F378DE7F /* OnDemand.swift in Sources */,
 				F5B650C0C1F0C388DB76906E /* Override.swift in Sources */,
+				1D2B8C35F0205CC22CF631E4 /* UntestableFunctionality.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
