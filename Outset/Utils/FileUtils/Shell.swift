@@ -37,8 +37,8 @@ func runShellCommand(_ command: String, args: [String] = [], verbose: Bool = fal
     let data = pipe.fileHandleForReading.readDataToEndOfFile()
     let errordata = errorpipe.fileHandleForReading.readDataToEndOfFile()
 
-    output.append(String(data: data, encoding: .utf8)!)
-    error.append(String(data: errordata, encoding: .utf8)!)
+    output.append(String(data: data, encoding: .utf8) ?? "")
+    error.append(String(data: errordata, encoding: .utf8) ?? "")
 
     task.waitUntilExit()
     let status = task.terminationStatus
