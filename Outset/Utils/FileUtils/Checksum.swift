@@ -12,7 +12,8 @@ struct FileHashes: Codable {
 }
 
 func computeChecksum(_ files: [String] = []) {
-    
+    guard !files.isEmpty else { return }
+
     if files[0].lowercased() == "all" {
         checksumAllFiles()
     } else {
