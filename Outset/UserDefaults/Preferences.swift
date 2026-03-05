@@ -14,12 +14,16 @@ struct OutsetPreferences: Codable {
     var networkTimeout: Int = 180
     var ignoredUsers: [String] = []
     var overrideLoginOnce: RunOnce = RunOnce()
+    // Optional timeout in seconds for background scripts. When nil, background
+    // scripts run until they exit naturally with no enforced limit.
+    var backgroundScriptTimeout: Int? = nil
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
         case networkTimeout = "network_timeout"
         case ignoredUsers = "ignored_users"
         case overrideLoginOnce = "override_login_once"
+        case backgroundScriptTimeout = "background_script_timeout"
     }
 }
 
@@ -71,12 +75,16 @@ func loadOutsetPreferences() -> OutsetPreferences {
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
         outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
+        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int
     } else {
         // load preferences for the current user, which includes /Library/Preferences
         outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
         outsetPrefs.ignoredUsers = defaults.array(forKey: "ignored_users") as? [String] ?? []
         outsetPrefs.overrideLoginOnce = defaults.object(forKey: "override_login_once") as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = defaults.bool(forKey: "wait_for_network")
+        if defaults.object(forKey: "background_script_timeout") != nil {
+            outsetPrefs.backgroundScriptTimeout = defaults.integer(forKey: "background_script_timeout")
+        }
     }
     return outsetPrefs
 }
