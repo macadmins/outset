@@ -82,7 +82,8 @@ func processLoginTasks(consoleUser: String, payload: ScriptPayloads, prefs: Outs
             processItems(.loginEvery, consoleUser: consoleUser)
         }
         
-        if !(onceDirPrivileged.isEmpty && everyDirPrivileged.isEmpty) {
+        let hasPrivilegedPayloads = payload.loginPrivilegedOnceScripts != nil || payload.loginPrivilegedEveryScripts != nil
+        if !(onceDirPrivileged.isEmpty && everyDirPrivileged.isEmpty) || hasPrivilegedPayloads {
             createTrigger(Trigger.loginPrivileged.path)
         }
     }
