@@ -57,7 +57,8 @@ deploy() {
     local dest="$destdir/$name"
 
     if [[ ! -d "$destdir" ]]; then
-        print "WARNING: Directory $destdir does not exist — skipping $name" >&2
+        print "WARNING: Directory $destdir does not exist — creating $destdir" >&2
+        mkdir -p $destdir
         return
     fi
 
