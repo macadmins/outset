@@ -134,13 +134,13 @@
 		41ADC47E29AF649C00C5B94C /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENSE.md; sourceTree = "<group>"; };
 		41DC78062E3C5B2500E67988 /* outset-payload */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "outset-payload"; sourceTree = "<group>"; };
 		487190D64300B83C50E471BD /* UntestableFunctionality.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = UntestableFunctionality.swift; sourceTree = "<group>"; };
-		4899D544FA149CE2FD3514B7 /* CoreFileUtilsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoreFileUtilsTests.swift; path = CoreFileUtilsTests.swift; sourceTree = "<group>"; };
+		4899D544FA149CE2FD3514B7 /* CoreFileUtilsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoreFileUtilsTests.swift; sourceTree = "<group>"; };
 		4B91721BDA63DB2BCF2AD592 /* OutsetTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OutsetTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		52661F37B03F3DD26C429929 /* OnDemand.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnDemand.swift; sourceTree = "<group>"; };
 		7E875D7EB7A715C3EEC0311A /* IgnoredUser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IgnoredUser.swift; sourceTree = "<group>"; };
 		A35A45C8C7D98C519845ADE1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.0.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
-		B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ChecksumTests.swift; path = ChecksumTests.swift; sourceTree = "<group>"; };
-		C329D81F86E5C3D1B8F12B27 /* PreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PreferencesTests.swift; path = PreferencesTests.swift; sourceTree = "<group>"; };
+		B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChecksumTests.swift; sourceTree = "<group>"; };
+		C329D81F86E5C3D1B8F12B27 /* PreferencesTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PreferencesTests.swift; sourceTree = "<group>"; };
 		CC3DC8212AA70B2D0050EE16 /* Logging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logging.swift; sourceTree = "<group>"; };
 		CC3DC8232AA70BD40050EE16 /* Preferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Preferences.swift; sourceTree = "<group>"; };
 		CC3DC8252AA70D2D0050EE16 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
@@ -156,22 +156,12 @@
 		CC7DDBA12C2C1E3C000CBEC5 /* LegacyPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyPreferences.swift; sourceTree = "<group>"; };
 		CC7DDBA32C2C1E8C000CBEC5 /* Payloads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Payloads.swift; sourceTree = "<group>"; };
 		E45F7810804CAB01F21FBF0F /* Boot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Boot.swift; sourceTree = "<group>"; };
-		E52CFB2D81312A8F4FC70609 /* LoginTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LoginTests.swift; path = LoginTests.swift; sourceTree = "<group>"; };
+		E52CFB2D81312A8F4FC70609 /* LoginTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LoginTests.swift; sourceTree = "<group>"; };
 		EEEEAC27BA0BE6AF0B022609 /* Login.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Login.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		41203F5F2E432D9F00572670 /* RunModes */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = RunModes;
-			sourceTree = "<group>";
-		};
+		41203F5F2E432D9F00572670 /* RunModes */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = RunModes; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -304,7 +294,6 @@
 				C329D81F86E5C3D1B8F12B27 /* PreferencesTests.swift */,
 				487190D64300B83C50E471BD /* UntestableFunctionality.swift */,
 			);
-			name = OutsetTests;
 			path = OutsetTests;
 			sourceTree = "<group>";
 		};
@@ -358,7 +347,6 @@
 				52661F37B03F3DD26C429929 /* OnDemand.swift */,
 				3F905B0AA2F3BF8062321964 /* Override.swift */,
 			);
-			name = RunModes;
 			path = RunModes;
 			sourceTree = "<group>";
 		};
@@ -772,7 +760,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.2.1;
+				MARKETING_VERSION = 4.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -810,7 +798,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 4.2.1;
+				MARKETING_VERSION = 4.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = io.macadmins.Outset;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
