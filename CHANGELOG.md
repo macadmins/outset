@@ -35,6 +35,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Test coverage documentation** (`UntestableFunctionality.swift`): a source file in the test target documents every function not covered by automated tests, with a specific reason for each exclusion (`REQUIRES_ROOT`, `REQUIRES_FILESYSTEM_FIXTURE`, `REQUIRES_REAL_SHELL`, `REQUIRES_SYSTEM_STATE`, `REQUIRES_MDM`, `SIDE_EFFECTS_ONLY`).
 
+- **Background script execution** (`ItemProcessing.swift`, `Shell.swift`, `Preferences.swift`): scripts whose filename begins with an underscore (e.g. `_my-task.sh`) are now dispatched concurrently on background threads while the remaining foreground scripts continue to execute sequentially. Outset waits for all background tasks to finish before it exits, so the overall run is not complete until every script has returned. Key details:
+  - Background scripts are dispatched before foreground scripts begin, so they start immediately.
+  - All log output from background scripts is tagged `[BG:pid=N]` and streamed line-by-line in real time, allowing background and foreground log lines to interleave naturally.
+  - Run-once semantics are fully supported for background scripts; the run-once record is written only on successful exit, with thread-safe access via a serial dispatch queue.
+  - A per-script timeout watchdog terminates a background script that exceeds the configured limit and logs an error.
+  - A new optional preference key `background_script_timeout` (integer, seconds, no default) sets the per-script timeout. When not set, Outset waits indefinitely for background scripts to exit.
+
 ## [4.0] - 2023-03-23
 ### Added
 - Initial automated build of Outset
