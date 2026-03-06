@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - A per-script timeout watchdog terminates a background script that exceeds the configured limit and logs an error.
   - A new optional preference key `background_script_timeout` (integer, seconds, no default) sets the per-script timeout. When not set, Outset waits indefinitely for background scripts to exit.
 
+- **Ed25519 script signing** (`Checksum.swift`, `ItemProcessing.swift`, `Preferences.swift`, `Outset.swift`): scripts can now be signed with an Ed25519 private key, with the signature embedded directly in the script as a `# ed25519: <base64sig>` comment. When an MDM-delivered public key (`manifest_signing_key` preference) is present, every script must carry a valid embedded signature — scripts without a valid signature are refused with an error log. Key details:
+  - The signed payload is the script content with any existing `# ed25519:` comment line stripped, so the signature is stable across re-signing.
+  - The public key is delivered via MDM only (as a base64-encoded 32-byte raw Ed25519 key in `manifest_signing_key`). The private key never leaves the admin workstation.
+  - Signing is fully self-contained: scripts with embedded signatures are version-control friendly and require no separate manifest file.
+  - Applies to all script processing paths including MDM payload scripts (which carry their embedded signature in the base64-encoded script body).
+  - New CLI commands: `--generate-keypair` generates a fresh Ed25519 keypair and prints both keys; `--sign-script-file <path> --signing-key <private-key-base64>` signs one or more scripts in place.
+
 ## [4.0] - 2023-03-23
 ### Added
 - Initial automated build of Outset

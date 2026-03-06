@@ -17,6 +17,10 @@ struct OutsetPreferences: Codable {
     // Optional timeout in seconds for background scripts. When nil, background
     // scripts run until they exit naturally with no enforced limit.
     var backgroundScriptTimeout: Int? = nil
+    // Optional base64-encoded Ed25519 public key. When present (typically delivered
+    // via MDM), every script must carry a valid embedded `# ed25519: <sig>` comment.
+    // Scripts without a valid signature are refused.
+    var manifestSigningKey: String? = nil
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
@@ -24,6 +28,7 @@ struct OutsetPreferences: Codable {
         case ignoredUsers = "ignored_users"
         case overrideLoginOnce = "override_login_once"
         case backgroundScriptTimeout = "background_script_timeout"
+        case manifestSigningKey = "manifest_signing_key"
     }
 }
 
@@ -76,6 +81,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
         outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int
+        outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String
     } else {
         // load preferences for the current user, which includes /Library/Preferences
         outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
@@ -85,6 +91,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         if defaults.object(forKey: "background_script_timeout") != nil {
             outsetPrefs.backgroundScriptTimeout = defaults.integer(forKey: "background_script_timeout")
         }
+        outsetPrefs.manifestSigningKey = defaults.string(forKey: "manifest_signing_key")
     }
     return outsetPrefs
 }

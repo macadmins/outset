@@ -93,6 +93,15 @@ struct Outset: ParsableCommand {
     @Flag(help: "Show version number")
     var version = false
 
+    @Flag(help: "Generate a new Ed25519 signing keypair for script signature verification")
+    var generateKeypair = false
+
+    @Option(help: ArgumentHelp("Sign one or more script files with the given private key (base64). Embeds the signature as a '# ed25519: <sig>' comment.", valueName: "file"), completion: .file())
+    var signScriptFile: [String] = []
+
+    @Option(help: ArgumentHelp("Base64-encoded Ed25519 private key used with --sign-script-file", valueName: "key"))
+    var signingKey: String = ""
+
     mutating func run() throws {
 
         if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
@@ -145,5 +154,17 @@ struct Outset: ParsableCommand {
         runIf(checksum.count > 0) { computeChecksum(checksum) }
         runIf(shasumReport || checksumReport) { printChecksumReport() }
         runIf(cleanup) { runCleanup() }
+        runIf(generateKeypair) { generateSigningKeypair() }
+        if signScriptFile.count > 0 {
+            guard !signingKey.isEmpty else {
+                printStdErr("--sign-script-file requires --signing-key <private-key-base64>")
+                throw ExitCode.failure
+            }
+            for path in signScriptFile {
+                if !signScript(path: path, privateKeyBase64: signingKey) {
+                    throw ExitCode.failure
+                }
+            }
+        }
     }
 }
