@@ -99,8 +99,14 @@ struct Outset: ParsableCommand {
     @Option(help: ArgumentHelp("Sign one or more script files with the given private key (base64). Embeds the signature as a '# ed25519: <sig>' comment.", valueName: "file"), completion: .file())
     var signScriptFile: [String] = []
 
-    @Option(help: ArgumentHelp("Base64-encoded Ed25519 private key used with --sign-script-file", valueName: "key"))
+    @Option(help: ArgumentHelp("Verify the embedded Ed25519 signature of one or more script files against the given public key (base64). Does not execute the script.", valueName: "file"), completion: .file())
+    var verifyScript: [String] = []
+
+    @Option(help: ArgumentHelp("Base64-encoded Ed25519 private key for use with --sign-script-file", valueName: "key"))
     var signingKey: String = ""
+
+    @Option(help: ArgumentHelp("Base64-encoded Ed25519 public key for use with --verify-script", valueName: "key"))
+    var publicKey: String = ""
 
     mutating func run() throws {
 
@@ -164,6 +170,21 @@ struct Outset: ParsableCommand {
                 if !signScript(path: path, privateKeyBase64: signingKey) {
                     throw ExitCode.failure
                 }
+            }
+        }
+        if verifyScript.count > 0 {
+            guard !publicKey.isEmpty else {
+                printStdErr("--verify-script requires --public-key <public-key-base64>")
+                throw ExitCode.failure
+            }
+            var allValid = true
+            for path in verifyScript {
+                let valid = verifyScriptSignature(path: path, publicKeyBase64: publicKey)
+                printStdOut("\(path): \(valid ? "OK" : "INVALID")")
+                if !valid { allValid = false }
+            }
+            if !allValid {
+                throw ExitCode.failure
             }
         }
     }
