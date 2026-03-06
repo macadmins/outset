@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Force unwraps** (`writeFileLog`, `runShellCommand`): force-unwrapped `String(data:encoding:)` and `Data(string.utf8)` calls have been replaced with nil-coalescing fallbacks, removing potential crash points if encoding unexpectedly fails.
 
+- **LaunchDaemon `Program` key** (`io.macadmins.Outset.on-demand-privileged.plist`, closes #72): the `Program` key was incorrectly typed as an `<array>` instead of a `<string>`. All LaunchDaemon plists now use the correct `<string>` type for the `Program` key as required by launchd.
+
 ### Changed
 
 - **Console user is no longer a global variable**: `consoleUser` was previously stored as a mutable global, making it difficult to reason about and impossible to substitute in tests. It is now captured once at startup in `Outset.run()` and passed explicitly through the call chain to all functions that require it (`processLoginTasks`, `processLoginPrivilegedTasks`, `processLoginEveryTasks`, `processLoginOnceTasks`, `processOnDemandTasks`, `processOnDemandPrivilegedTasks`, `processItems`, `processScripts`, `processPayloadScripts`). Two additional globals that were only ever used inside `Boot.swift` (`loginwindowState`, `continueFirstBoot`) have been moved to local variables in that file.
@@ -47,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - The public key is delivered via MDM only (as a base64-encoded 32-byte raw Ed25519 key in `manifest_signing_key`). The private key never leaves the admin workstation.
   - Signing is fully self-contained: scripts with embedded signatures are version-control friendly and require no separate manifest file.
   - Applies to all script processing paths including MDM payload scripts (which carry their embedded signature in the base64-encoded script body).
-  - New CLI commands: `--generate-keypair` generates a fresh Ed25519 keypair and prints both keys; `--sign-script-file <path> --signing-key <private-key-base64>` signs one or more scripts in place.
+  - New CLI commands: `--generate-keypair` generates a fresh Ed25519 keypair and prints both keys; `--sign-script-file <path> --signing-key <private-key-base64>` signs one or more scripts in place; `--verify-script <path> --public-key <public-key-base64>` verifies embedded signatures without executing the script (exits non-zero if any file fails, suitable for CI).
 
 ## [4.0] - 2023-03-23
 ### Added
