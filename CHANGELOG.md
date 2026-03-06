@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Array bounds crash** (`computeChecksum`): accessing `files[0]` before checking whether the array was empty could cause an index-out-of-bounds crash when called with an empty argument list. An early return guard has been added.
 
-- **Log file permissions** (`writeFileLog`): newly created log files were given world-writable permissions (`0o666`). Permissions are now `0o644`.
+- **Log file path is now context-aware** (`Globals.swift`, `writeFileLog`): Outset runs in both root context (boot, login-privileged, on-demand-privileged) and user context (login-every, login-once, on-demand). The previous single log path (`/usr/local/outset/logs/outset.log`) is in a root-owned directory, so user-context runs could not write to it. The log path is now determined at runtime: root context continues to log to `/usr/local/outset/logs/outset.log`; user-context runs log to `~/Library/Logs/outset.log`. Log file permissions are `0o644` in both cases (previously `0o666`).
 
 - **Force unwraps** (`writeFileLog`, `runShellCommand`): force-unwrapped `String(data:encoding:)` and `Data(string.utf8)` calls have been replaced with nil-coalescing fallbacks, removing potential crash points if encoding unexpectedly fails.
 
