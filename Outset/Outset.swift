@@ -93,11 +93,28 @@ struct Outset: ParsableCommand {
     @Flag(help: "Show version number")
     var version = false
 
+    @Flag(help: "Generate a new Ed25519 signing keypair for script signature verification")
+    var generateKeypair = false
+
+    @Option(help: ArgumentHelp("Sign one or more script files with the given private key (base64). Embeds the signature as a '# ed25519: <sig>' comment.", valueName: "file"), completion: .file())
+    var signScriptFile: [String] = []
+
+    @Option(help: ArgumentHelp("Verify the embedded Ed25519 signature of one or more script files against the given public key (base64). Does not execute the script.", valueName: "file"), completion: .file())
+    var verifyScript: [String] = []
+
+    @Option(help: ArgumentHelp("Base64-encoded Ed25519 private key for use with --sign-script-file", valueName: "key"))
+    var signingKey: String = ""
+
+    @Option(help: ArgumentHelp("Base64-encoded Ed25519 public key for use with --verify-script", valueName: "key"))
+    var publicKey: String = ""
+
     mutating func run() throws {
 
         if debug || UserDefaults.standard.bool(forKey: "verbose_logging") {
             debugMode = true
         }
+
+        let consoleUser = getConsoleUserInfo().username
 
         if version {
             printStdOut("\(outsetVersion)")
@@ -130,12 +147,12 @@ struct Outset: ParsableCommand {
         // Shorthand instead of a block of if statements using runIf()
         runIf(boot) { processBootTasks(prefs: prefs) }
         runIf(loginWindow) { processLoginWindowTasks(payload: scriptPayloads) }
-        runIf(login) { processLoginTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginPrivileged) { processLoginPrivilegedTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginEvery) { processLoginEveryTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(loginOnce) { processLoginOnceTasks(payload: scriptPayloads, prefs: prefs) }
-        runIf(onDemand) { processOnDemandTasks() }
-        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks() }
+        runIf(login) { processLoginTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginPrivileged) { processLoginPrivilegedTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginEvery) { processLoginEveryTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(loginOnce) { processLoginOnceTasks(consoleUser: consoleUser, payload: scriptPayloads, prefs: prefs) }
+        runIf(onDemand) { processOnDemandTasks(consoleUser: consoleUser) }
+        runIf(onDemandPrivileged) { processOnDemandPrivilegedTasks(consoleUser: consoleUser) }
         runIf(addIgnoredUser.count > 0) { addIgnoredUsers(addIgnoredUser, prefs: &prefs) }
         runIf(removeIgnoredUser.count > 0) { removeIgnoredUsers(removeIgnoredUser, prefs: &prefs) }
         runIf(addOveride.count > 0) { runAddOveride(addOveride, prefs: &prefs) }
@@ -143,5 +160,32 @@ struct Outset: ParsableCommand {
         runIf(checksum.count > 0) { computeChecksum(checksum) }
         runIf(shasumReport || checksumReport) { printChecksumReport() }
         runIf(cleanup) { runCleanup() }
+        runIf(generateKeypair) { generateSigningKeypair() }
+        if signScriptFile.count > 0 {
+            guard !signingKey.isEmpty else {
+                printStdErr("--sign-script-file requires --signing-key <private-key-base64>")
+                throw ExitCode.failure
+            }
+            for path in signScriptFile {
+                if !signScript(path: path, privateKeyBase64: signingKey) {
+                    throw ExitCode.failure
+                }
+            }
+        }
+        if verifyScript.count > 0 {
+            guard !publicKey.isEmpty else {
+                printStdErr("--verify-script requires --public-key <public-key-base64>")
+                throw ExitCode.failure
+            }
+            var allValid = true
+            for path in verifyScript {
+                let valid = verifyScriptSignature(path: path, publicKeyBase64: publicKey)
+                printStdOut("\(path): \(valid ? "OK" : "INVALID")")
+                if !valid { allValid = false }
+            }
+            if !allValid {
+                throw ExitCode.failure
+            }
+        }
     }
 }

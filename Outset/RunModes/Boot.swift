@@ -39,26 +39,29 @@ func processBootTasks(prefs: OutsetPreferences) {
     
     let bootOnceDir = PayloadType.bootOnce
     let bootEveryDir = PayloadType.bootEvery
-    
+
+    var loginWindowDisabled = false
+    var continueFirstBoot = true
+
     if prefs.waitForNetwork {
-        loginwindowState = false
         loginWindowUpdateState(.disable)
-        continueFirstBoot = waitForNetworkUp(timeout: floor(Double(prefs.networkTimeout) / 10))
+        loginWindowDisabled = true
+        continueFirstBoot = waitForNetworkUp(timeout: Double(prefs.networkTimeout))
     }
     
     if continueFirstBoot {
-        let ranBootOnce = scriptPayloads.processPayloadScripts(ofType: .bootOnce)
-        let ranBootEvery = scriptPayloads.processPayloadScripts(ofType: .bootEvery)
+        let ranBootOnce = scriptPayloads.processPayloadScripts(ofType: .bootOnce, consoleUser: "")
+        let ranBootEvery = scriptPayloads.processPayloadScripts(ofType: .bootEvery, consoleUser: "")
         
         if !(ranBootOnce || bootOnceDir.isEmpty) {
-            processItems(.bootOnce, deleteItems: true)
+            processItems(.bootOnce, consoleUser: "", deleteItems: true)
         }
         
         if !(ranBootEvery || bootEveryDir.isEmpty) {
-            processItems(.bootEvery)
+            processItems(.bootEvery, consoleUser: "")
         }
         
-        if !loginwindowState {
+        if loginWindowDisabled {
             loginWindowUpdateState(.enable)
         }
         

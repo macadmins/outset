@@ -43,7 +43,7 @@ struct ScriptPayloads: Codable {
         return nil
     }
 
-    func processPayloadScripts(ofType type: PayloadType? = nil, runOnceData: RunOnce = RunOnce()) -> Bool {
+    func processPayloadScripts(ofType type: PayloadType? = nil, consoleUser: String = "", runOnceData: RunOnce = RunOnce()) -> Bool {
         // Determine which payloads to process based on the specified type
         let payloadsToProcess: [(String, ScriptEntry?)] = {
             switch type {
@@ -69,33 +69,28 @@ struct ScriptPayloads: Codable {
         let runOnceType = type?.once ?? false
 
         // Process each selected payload
+        var didProcess = false
         for (context, scripts) in payloadsToProcess {
             writeLog("Checking payloads for \(context)", logLevel: .debug)
-            guard let scripts = scripts else {
+            guard let scripts = scripts, !scripts.isEmpty else {
                 writeLog("No payload scripts found for context: \(context)", logLevel: .debug)
-                return false
+                continue
             }
             writeLog("Processing scripts for context: \(context)")
+            didProcess = true
             for (name, base64Data) in scripts {
                 writeLog("Processing \(context) payload script : \(name)")
                 if let script = decodeBase64Script(base64Data: base64Data) {
                     if let tempScript = saveTempFile(script) {
-                        processScripts(scripts: [tempScript.path], altName: name, once: runOnceType, override: runOnceData)
+                        processScripts(scripts: [tempScript.path], consoleUser: consoleUser, altName: name, once: runOnceType, override: runOnceData)
                         cleanupTempFile(tempScript)
-                        
-                        // record runeonce data for boot-once payloads
-                        if context == PayloadKeys.bootOnce.key {
-                            writeLog("Writing run-once data for \(context)", logLevel: .debug)
-                            let bootOnceData: RunOnce = [name: Date()]
-                            writeRunOncePlist(runOnceData: bootOnceData, bootOnce: true)
-                        }
                     }
                 } else {
                     writeLog("Failed to decode script: \(name)", logLevel: .error)
                 }
             }
         }
-        return true
+        return didProcess
     }
 
     private func saveTempFile(_ base64: String) -> URL? {

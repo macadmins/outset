@@ -20,9 +20,6 @@ let payloadDirectory = outsetDirectory+"payload/"
 
 // Set some variables
 var debugMode: Bool = false
-var loginwindowState: Bool = true
-var consoleUser: String = getConsoleUserInfo().username
-var continueFirstBoot: Bool = true
 var prefs = loadOutsetPreferences()
 
 // Log Stuff
@@ -31,8 +28,20 @@ let osLog = OSLog(subsystem: bundleID, category: "main")
 // We could make these availab as preferences perhaps
 let logFileName = "outset.log"
 let logFileMaxCount: Int = 30
-let logDirectory = outsetDirectory+"logs"
-let logFilePath = logDirectory+"/"+logFileName
+// Root context writes to the shared system log directory; user context writes to ~/Library/Logs
+// so that user-launched Outset agents can always write their log file.
+var logDirectory: String {
+    if getuid() == 0 {
+        return outsetDirectory + "logs"
+    } else {
+        return FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Logs")
+            .path
+    }
+}
+var logFilePath: String {
+    return logDirectory + "/" + logFileName
+}
 
 let scriptPayloads = getScriptPayloads()
 

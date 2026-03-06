@@ -7,7 +7,7 @@ on: [workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-latest
 
     steps:
     - name: Checkout outset repo
@@ -61,9 +61,6 @@ jobs:
             Outset.app has been signed and notarized. The package has been signed, notarized and stapled.
 
             # Changelog
-            ${{ steps.changelog_reader.outputs.changes }}
-
-            # Changes
             ${{ steps.changelog.outputs.changelog }}
         files: ${{github.workspace}}/outputs/*.pkg
 

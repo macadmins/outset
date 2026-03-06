@@ -68,7 +68,7 @@ func writeFileLog(message: String, logLevel: OSLogType) {
     let logFileURL = URL(fileURLWithPath: logFilePath)
     if !checkFileExists(path: logFilePath) {
         FileManager.default.createFile(atPath: logFileURL.path, contents: nil, attributes: nil)
-        let attributes = [FileAttributeKey.posixPermissions: 0o666]
+        let attributes = [FileAttributeKey.posixPermissions: 0o644]
         do {
             try FileManager.default.setAttributes(attributes, ofItemAtPath: logFileURL.path)
         } catch {
@@ -88,7 +88,7 @@ func writeFileLog(message: String, logLevel: OSLogType) {
         let logEntry = "\(date) \(oslogTypeToString(logLevel).uppercased()): \(message)\n"
 
         fileHandle.seekToEndOfFile()
-        fileHandle.write(logEntry.data(using: .utf8)!)
+        fileHandle.write(logEntry.data(using: .utf8) ?? Data())
     } catch {
         printStdErr("\(oslogTypeToString(.error).uppercased()): Unable to read log file at \(logFilePath)")
         printStdErr(error.localizedDescription)

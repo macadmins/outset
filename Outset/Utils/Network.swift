@@ -39,7 +39,7 @@ func waitForNetworkUp(timeout: Double) -> Bool {
     var networkUp = false
     let deadline = DispatchTime.now() + timeout
     while !networkUp && DispatchTime.now() < deadline {
-        writeLog("Waiting for network: \(timeout) seconds", logLevel: .debug)
+        writeLog("Waiting for network...", logLevel: .debug)
         networkUp = isNetworkUp()
         if !networkUp {
             writeLog("Waiting...", logLevel: .debug)
