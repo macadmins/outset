@@ -10,17 +10,18 @@ import Foundation
 typealias RunOnce = [String: Date]
 
 struct OutsetPreferences: Codable {
-    var waitForNetwork: Bool = false
-    var networkTimeout: Int = 180
+    var waitForNetwork: Bool = defaultWaitForNetwork
+    var networkTimeout: Int = defaultNetworkTimeout
     var ignoredUsers: [String] = []
     var overrideLoginOnce: RunOnce = RunOnce()
     // Optional timeout in seconds for background scripts. When nil, background
     // scripts run until they exit naturally with no enforced limit.
-    var backgroundScriptTimeout: Int? = nil
+
+    var backgroundScriptTimeout: Int = defaultBackgroundScriptTimeout
     // Optional base64-encoded Ed25519 public key. When present (typically delivered
     // via MDM), every script must carry a valid embedded `# ed25519: <sig>` comment.
     // Scripts without a valid signature are refused.
-    var manifestSigningKey: String? = nil
+    var manifestSigningKey: String = ""
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
@@ -33,7 +34,7 @@ struct OutsetPreferences: Codable {
 }
 
 func writeOutsetPreferences(prefs: OutsetPreferences) {
-    if debugMode { showPrefrencePath("Stor") } // (typo?) showPreferencePath
+    if debugMode { showPreferencePath("Stor") }
 
     let defaults = UserDefaults.standard
     let appID = Bundle.main.bundleIdentifier! as CFString
@@ -68,7 +69,7 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
 func loadOutsetPreferences() -> OutsetPreferences {
 
     if debugMode {
-        showPrefrencePath("Load")
+        showPreferencePath("Load")
     }
 
     let defaults = UserDefaults.standard
@@ -80,7 +81,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
         outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
-        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int
+        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? defaultBackgroundScriptTimeout
         // manifest_signing_key is only honoured when MDM-managed (forced). A locally
         // written key could be used to disable script processing without detection,
         // so we ignore it unless it comes from a managed profile. In debug mode a
@@ -88,7 +89,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         let appBundle = Bundle.main.bundleIdentifier! as CFString
         let signingKeyManaged = CFPreferencesAppValueIsForced("manifest_signing_key" as CFString, appBundle)
         if signingKeyManaged || debugMode {
-            outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String
+            outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String ?? ""
             if !signingKeyManaged {
                 writeLog("manifest_signing_key is not MDM-managed — accepted in debug mode only", logLevel: .debug)
             }
@@ -104,7 +105,9 @@ func loadOutsetPreferences() -> OutsetPreferences {
         if defaults.object(forKey: "background_script_timeout") != nil {
             outsetPrefs.backgroundScriptTimeout = defaults.integer(forKey: "background_script_timeout")
         }
-        outsetPrefs.manifestSigningKey = defaults.string(forKey: "manifest_signing_key")
+
+        outsetPrefs.manifestSigningKey = defaults.string(forKey: "manifest_signing_key") ?? ""
+
     }
     return outsetPrefs
 }
@@ -112,7 +115,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
 func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 
     if debugMode {
-        showPrefrencePath("Load")
+        showPreferencePath("Load")
     }
 
     let defaults = UserDefaults.standard
@@ -131,7 +134,7 @@ func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
 
     if debugMode {
-        showPrefrencePath("Stor")
+        showPreferencePath("Stor")
     }
 
     let defaults = UserDefaults.standard
@@ -151,7 +154,7 @@ func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
     }
 }
 
-func showPrefrencePath(_ action: String) {
+func showPreferencePath(_ action: String) {
     var prefsPath: String
     if isRoot {
         prefsPath = "/Library/Preferences".appending("/\(Bundle.main.bundleIdentifier!).plist")
