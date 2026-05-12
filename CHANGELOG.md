@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Managed profile payload processing** (`Login.swift`, `Payloads.swift`, closes #64): three related bugs prevented scripts delivered via MDM managed profiles from running correctly when local Outset directories were empty. (1) The `login-privileged` trigger was only created when the local `login-privileged-once`/`every` directories were non-empty, so privileged scripts delivered exclusively via payload were silently skipped. The condition now also checks whether the payload itself contains privileged scripts. (2) `processPayloadScripts()` returned `true` (suppressing local directory fallback) even when the scripts dictionary was present but empty; it now tracks whether any script was actually dispatched. (3) Boot-once run-once tracking was written via a redundant manual `writeRunOncePlist` call after `processScripts()`, bypassing the deduplication check inside `processScripts`; the redundant call has been removed.
+
 - **DMG package installation** (`installPackage`): corrected a variable assignment bug where the DMG mount path was used as the package path instead of the actual `.pkg`/`.mpkg` file path. Also fixed a loop that overwrote a single variable on each iteration, meaning only the last package in a DMG was ever installed. Packages found inside a mounted DMG are now collected into an array and each is installed in turn. The DMG is detached synchronously after all packages have been processed (no change in behaviour — `runShellCommand` has always been synchronous).
 
 - **Network timeout** (`Boot.swift`): the configured `network_timeout` preference value was being divided by 10 before being passed to `waitForNetworkUp`, causing the actual wait to be ten times shorter than configured. For example, a configured value of 300 seconds would only wait 30 seconds. The value is now passed directly.
@@ -16,9 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Array bounds crash** (`computeChecksum`): accessing `files[0]` before checking whether the array was empty could cause an index-out-of-bounds crash when called with an empty argument list. An early return guard has been added.
 
+
 - **Log file permissions** (`writeFileLog`): newly created log files were given world-writable permissions (`0o666`). Permissions are now `0o644`.
 
+- **Log file path is now context-aware** (`Globals.swift`, `writeFileLog`): Outset runs in both root context (boot, login-privileged, on-demand-privileged) and user context (login-every, login-once, on-demand). The previous single log path (`/usr/local/outset/logs/outset.log`) is in a root-owned directory, so user-context runs could not write to it. The log path is now determined at runtime: root context continues to log to `/usr/local/outset/logs/outset.log`; user-context runs log to `~/Library/Logs/outset.log`. Log file permissions are `0o644` in both cases (previously `0o666`).
+
 - **Force unwraps** (`writeFileLog`, `runShellCommand`): force-unwrapped `String(data:encoding:)` and `Data(string.utf8)` calls have been replaced with nil-coalescing fallbacks, removing potential crash points if encoding unexpectedly fails.
+
+- **LaunchDaemon `Program` key** (`io.macadmins.Outset.on-demand-privileged.plist`, closes #72): the `Program` key was incorrectly typed as an `<array>` instead of a `<string>`. All LaunchDaemon plists now use the correct `<string>` type for the `Program` key as required by launchd.
 
 ### Changed
 
@@ -41,6 +48,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Run-once semantics are fully supported for background scripts; the run-once record is written only on successful exit, with thread-safe access via a serial dispatch queue.
   - A per-script timeout watchdog terminates a background script that exceeds the configured limit and logs an error.
   - A new optional preference key `background_script_timeout` (integer, seconds, no default) sets the per-script timeout. When not set, Outset waits indefinitely for background scripts to exit.
+
+- **Ed25519 script signing** (`Checksum.swift`, `ItemProcessing.swift`, `Preferences.swift`, `Outset.swift`): scripts can now be signed with an Ed25519 private key, with the signature embedded directly in the script as a `# ed25519: <base64sig>` comment. When an MDM-delivered public key (`manifest_signing_key` preference) is present, every script must carry a valid embedded signature — scripts without a valid signature are refused with an error log. Key details:
+  - The signed payload is the script content with any existing `# ed25519:` comment line stripped, so the signature is stable across re-signing.
+  - The public key is delivered via MDM only (as a base64-encoded 32-byte raw Ed25519 key in `manifest_signing_key`). The private key never leaves the admin workstation.
+  - Signing is fully self-contained: scripts with embedded signatures are version-control friendly and require no separate manifest file.
+  - Applies to all script processing paths including MDM payload scripts (which carry their embedded signature in the base64-encoded script body).
+  - New CLI commands: `--generate-keypair` generates a fresh Ed25519 keypair and prints both keys; `--sign-script-file <path> --signing-key <private-key-base64>` signs one or more scripts in place; `--verify-script <path> --public-key <public-key-base64>` verifies embedded signatures without executing the script (exits non-zero if any file fails, suitable for CI).
 
 ## [4.0] - 2023-03-23
 ### Added

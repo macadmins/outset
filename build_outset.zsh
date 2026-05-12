@@ -3,8 +3,7 @@
 # Build script for Outset
 
 # Variables
-XCODE_PATH="/Applications/Xcode_16.2.app"
-XCODE_ORIGINAL_PATH="/Applications/Xcode_16.2.app"
+XCODE_PATH="$(xcode-select -p | sed 's|/Contents/Developer||')"
 APP_SIGNING_IDENTITY="Developer ID Application: Mac Admins Open Source (T4SK8ZXCXG)"
 INSTALLER_SIGNING_IDENTITY="Developer ID Installer: Mac Admins Open Source (T4SK8ZXCXG)"
 MP_SHA="71c57fcfdf43692adcd41fa7305be08f66bae3e5"
@@ -28,9 +27,6 @@ AUTOMATED_OUTSET_BUILD="$CURRENT_OUTSET_MAIN_BUILD_VERSION.$NEWSUBBUILD"
 # Create files to use for build process info
 echo "$AUTOMATED_OUTSET_BUILD" > $TOOLSDIR/build_info.txt
 echo "$CURRENT_OUTSET_MAIN_BUILD_VERSION" > $TOOLSDIR/build_info_main.txt
-
-# Ensure Xcode is set to run-time
-sudo xcode-select -s "$XCODE_PATH"
 
 if [ -e $XCODE_BUILD_PATH ]; then
   XCODE_BUILD="$XCODE_BUILD_PATH"
