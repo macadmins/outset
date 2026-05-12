@@ -112,15 +112,15 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
 
     // If a signing key is configured, every script must carry a valid embedded signature.
     let signingKey = prefs.manifestSigningKey
-    let signingRequired = signingKey != nil
+    let signingRequired = !signingKey.isEmpty
 
     for script in scripts {
         if checksumsAvailable && !verifySHASUMForFile(filename: script, shasumArray: checksumList) {
             continue
         }
 
-        if signingRequired, let key = signingKey {
-            if !verifyScriptSignature(path: script, publicKeyBase64: key) {
+        if signingRequired {
+            if !verifyScriptSignature(path: script, publicKeyBase64: signingKey) {
                 writeLog("Skipping \(script): signature verification failed or signature absent", logLevel: .error)
                 continue
             }

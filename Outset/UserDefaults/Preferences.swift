@@ -21,7 +21,7 @@ struct OutsetPreferences: Codable {
     // Optional base64-encoded Ed25519 public key. When present (typically delivered
     // via MDM), every script must carry a valid embedded `# ed25519: <sig>` comment.
     // Scripts without a valid signature are refused.
-    var manifestSigningKey: String? = nil
+    var manifestSigningKey: String = ""
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
@@ -89,7 +89,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         let appBundle = Bundle.main.bundleIdentifier! as CFString
         let signingKeyManaged = CFPreferencesAppValueIsForced("manifest_signing_key" as CFString, appBundle)
         if signingKeyManaged || debugMode {
-            outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String
+            outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String ?? ""
             if !signingKeyManaged {
                 writeLog("manifest_signing_key is not MDM-managed — accepted in debug mode only", logLevel: .debug)
             }
@@ -106,7 +106,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
             outsetPrefs.backgroundScriptTimeout = defaults.integer(forKey: "background_script_timeout")
         }
 
-        outsetPrefs.manifestSigningKey = defaults.string(forKey: "manifest_signing_key")
+        outsetPrefs.manifestSigningKey = defaults.string(forKey: "manifest_signing_key") ?? ""
 
     }
     return outsetPrefs
