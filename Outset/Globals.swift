@@ -22,6 +22,11 @@ let payloadDirectory = outsetDirectory+"payload/"
 var debugMode: Bool = false
 var prefs = loadOutsetPreferences()
 
+// Set Some Defaults
+let defaultBackgroundScriptTimeout: Int = 30
+let defaultWaitForNetwork: Bool = false
+let defaultNetworkTimeout: Int = 180
+
 // Log Stuff
 let bundleID = Bundle.main.bundleIdentifier ?? "io.macadmins.Outset"
 let osLog = OSLog(subsystem: bundleID, category: "main")

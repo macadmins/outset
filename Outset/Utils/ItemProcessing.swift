@@ -126,7 +126,7 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
     // in parallel with the foreground scripts that follow on the current thread.
     if !backgroundScripts.isEmpty {
         let group = DispatchGroup()
-        let timeout = prefs.backgroundScriptTimeout   // nil = no limit
+        let backgroundScriptTimeoutSeconds = prefs.backgroundScriptTimeout   // nil = no limit
         // Serialise run-once writes from background tasks to avoid data races
         let runOnceLock = DispatchQueue(label: "io.macadmins.outset.runonce")
 
@@ -170,15 +170,15 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
 
                 // Set up timeout watchdog before launching
                 var timeoutItem: DispatchWorkItem?
-                if let seconds = timeout {
+                if backgroundScriptTimeoutSeconds > 0 {
                     let item = DispatchWorkItem {
-                        if let p = taskProcess, p.isRunning {
-                            writeLog("[BG:pid=\(p.processIdentifier)] Background script \(scriptName) timed out after \(seconds)s — terminating", logLevel: .error)
-                            p.terminate()
+                        if let proc = taskProcess, proc.isRunning {
+                            writeLog("[BG:pid=\(proc.processIdentifier)] Background script \(scriptName) timed out after \(backgroundScriptTimeoutSeconds)s — terminating", logLevel: .error)
+                            proc.terminate()
                         }
                     }
                     timeoutItem = item
-                    DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(seconds), execute: item)
+                    DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(backgroundScriptTimeoutSeconds), execute: item)
                 }
 
                 // bgTag is set once the process launches and we have its PID.
@@ -229,8 +229,8 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
         // Wait for all background tasks before returning so outset can exit cleanly.
         // With no timeout configured we wait indefinitely — the scripts themselves
         // are responsible for their own termination.
-        if let seconds = timeout {
-            let result = group.wait(timeout: .now() + .seconds(seconds + 5))
+        if backgroundScriptTimeoutSeconds > 0 {
+            let result = group.wait(timeout: .now() + .seconds(backgroundScriptTimeoutSeconds + 5))
             if result == .timedOut {
                 writeLog("Background script group wait timed out — some tasks may still be running", logLevel: .error)
             }

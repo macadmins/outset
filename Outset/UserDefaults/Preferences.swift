@@ -10,13 +10,13 @@ import Foundation
 typealias RunOnce = [String: Date]
 
 struct OutsetPreferences: Codable {
-    var waitForNetwork: Bool = false
-    var networkTimeout: Int = 180
+    var waitForNetwork: Bool = defaultWaitForNetwork
+    var networkTimeout: Int = defaultNetworkTimeout
     var ignoredUsers: [String] = []
     var overrideLoginOnce: RunOnce = RunOnce()
     // Optional timeout in seconds for background scripts. When nil, background
     // scripts run until they exit naturally with no enforced limit.
-    var backgroundScriptTimeout: Int? = nil
+    var backgroundScriptTimeout: Int = defaultBackgroundScriptTimeout
 
     enum CodingKeys: String, CodingKey {
         case waitForNetwork = "wait_for_network"
@@ -28,7 +28,7 @@ struct OutsetPreferences: Codable {
 }
 
 func writeOutsetPreferences(prefs: OutsetPreferences) {
-    if debugMode { showPrefrencePath("Stor") } // (typo?) showPreferencePath
+    if debugMode { showPreferencePath("Stor") }
 
     let defaults = UserDefaults.standard
     let appID = Bundle.main.bundleIdentifier! as CFString
@@ -63,7 +63,7 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
 func loadOutsetPreferences() -> OutsetPreferences {
 
     if debugMode {
-        showPrefrencePath("Load")
+        showPreferencePath("Load")
     }
 
     let defaults = UserDefaults.standard
@@ -75,7 +75,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
         outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
         outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
-        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int
+        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? defaultBackgroundScriptTimeout
     } else {
         // load preferences for the current user, which includes /Library/Preferences
         outsetPrefs.networkTimeout = defaults.integer(forKey: "network_timeout")
@@ -92,7 +92,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
 func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 
     if debugMode {
-        showPrefrencePath("Load")
+        showPreferencePath("Load")
     }
 
     let defaults = UserDefaults.standard
@@ -111,7 +111,7 @@ func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
 func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
 
     if debugMode {
-        showPrefrencePath("Stor")
+        showPreferencePath("Stor")
     }
 
     let defaults = UserDefaults.standard
@@ -131,7 +131,7 @@ func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
     }
 }
 
-func showPrefrencePath(_ action: String) {
+func showPreferencePath(_ action: String) {
     var prefsPath: String
     if isRoot {
         prefsPath = "/Library/Preferences".appending("/\(Bundle.main.bundleIdentifier!).plist")
