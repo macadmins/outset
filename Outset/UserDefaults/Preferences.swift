@@ -65,6 +65,13 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
     }
 }
 
+// Interprets a raw CFPreferences value as a boolean. Key presence alone must
+// never be treated as true: writeOutsetPreferences persists every key on boot,
+// so the key exists on all installations regardless of its value.
+func boolPreference(_ rawValue: Any?, defaultValue: Bool) -> Bool {
+    return rawValue as? Bool ?? defaultValue
+}
+
 func loadOutsetPreferences() -> OutsetPreferences {
 
     if debugMode {
@@ -79,7 +86,7 @@ func loadOutsetPreferences() -> OutsetPreferences {
         outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
         outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
         outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
-        outsetPrefs.waitForNetwork = (CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil)
+        outsetPrefs.waitForNetwork = boolPreference(CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost), defaultValue: defaultWaitForNetwork)
         outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? defaultBackgroundScriptTimeout
         // manifest_signing_key is only honoured when MDM-managed (forced). A locally
         // written key could be used to disable script processing without detection,

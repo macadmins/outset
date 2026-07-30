@@ -131,7 +131,9 @@
 //
 // mountDmg(dmg:) / detachDmg(dmgMount:)
 //   REQUIRES_REAL_SHELL
-//   Invokes /usr/bin/hdiutil. Requires a real disk image file.
+//   Invokes /usr/bin/hdiutil. Requires a real disk image file. The parsing of
+//   the `hdiutil attach -plist` output is extracted into
+//   dmgMountPoint(fromHdiutilPlist:) and covered in DMGTests.swift.
 //
 // ─────────────────────────────────────────────────────────────────────────────
 //
@@ -168,8 +170,9 @@
 //   The root path writes to /Library/Preferences via CFPreferences with
 //   kCFPreferencesAnyUser/kCFPreferencesAnyHost, requiring uid 0. The non-root
 //   path writes to UserDefaults in the app bundle domain, which will pollute the
-//   test environment's preferences. The struct encoding/decoding is covered
-//   separately in PreferencesTests.swift.
+//   test environment's preferences. The struct encoding/decoding and the
+//   boolean value interpretation (boolPreference) are covered separately in
+//   PreferencesTests.swift.
 //
 // loadRunOncePlist(machineScoped:) / writeRunOncePlist(runOnceData:machineScoped:)
 //   REQUIRES_ROOT (for boot-once path)
