@@ -44,20 +44,23 @@ func processItems(_ payloadType: PayloadType, consoleUser: String, deleteItems: 
     }
 
     // Process Packages
-    processPackages(packages: packages, once: once, override: override, deleteItems: deleteItems)
+    processPackages(packages: packages, once: once, override: override, deleteItems: deleteItems,
+                    machineScoped: payloadType.machineScoped)
 
     // Process Scripts
-    processScripts(scripts: scripts, consoleUser: consoleUser, once: once, override: override, deleteItems: deleteItems)
+    processScripts(scripts: scripts, consoleUser: consoleUser, once: once, override: override, deleteItems: deleteItems,
+                   machineScoped: payloadType.machineScoped)
 
 }
 
-func processPackages(packages: [String], once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
+func processPackages(packages: [String], once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false,
+                     machineScoped: Bool=false) {
     // load validation checks
     let checksumList = checksumLoadApprovedFiles()
     let checksumsAvailable = !checksumList.isEmpty
 
     // load runonce data
-    var runOnce = loadRunOncePlist()
+    var runOnce = loadRunOncePlist(machineScoped: machineScoped)
 
     // loop through the packages list and process installs.
     for package in packages {
@@ -90,18 +93,19 @@ func processPackages(packages: [String], once: Bool=false, override: RunOnce = [
     }
 
     if !runOnce.isEmpty {
-        writeRunOncePlist(runOnceData: runOnce)
+        writeRunOncePlist(runOnceData: runOnce, machineScoped: machineScoped)
     }
 
 }
 
-func processScripts(scripts: [String], consoleUser: String, altName: String = "", once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false) {
+func processScripts(scripts: [String], consoleUser: String, altName: String = "", once: Bool=false, override: RunOnce = [:], deleteItems: Bool=false,
+                    machineScoped: Bool=false) {
     // load validation checks
     let checksumList = checksumLoadApprovedFiles()
     let checksumsAvailable = !checksumList.isEmpty
 
     // load runonce data
-    var runOnce = loadRunOncePlist(bootOnce: isRoot ? true : once)
+    var runOnce = loadRunOncePlist(machineScoped: machineScoped)
     writeLog("runOnce = \(runOnce)", logLevel: .debug)
 
     // Separate scripts into foreground (normal) and background (_-prefixed) lists.
@@ -264,7 +268,7 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
 
     // ── Persist run-once records (includes any written by background tasks) ────
     if !runOnce.isEmpty {
-        writeRunOncePlist(runOnceData: runOnce, bootOnce: isRoot)
+        writeRunOncePlist(runOnceData: runOnce, machineScoped: machineScoped)
     }
 }
 

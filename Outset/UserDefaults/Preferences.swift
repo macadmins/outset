@@ -112,7 +112,15 @@ func loadOutsetPreferences() -> OutsetPreferences {
     return outsetPrefs
 }
 
-func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
+/// Loads the run-once records for the current context.
+///
+/// - Parameter machineScoped: `true` for contexts whose records apply to the
+///   machine as a whole (the boot contexts), which use the bare `run_once` key.
+///   `false` - the default - scopes records to the console user under
+///   `run_once-<username>`. This must reflect the payload context, not merely
+///   whether the process is running as root: the privileged login contexts also
+///   run as root but record per-user.
+func loadRunOncePlist(machineScoped: Bool = false) -> RunOnce {
 
     if debugMode {
         showPreferencePath("Load")
@@ -122,7 +130,7 @@ func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
     var runOnceKey = "run_once"
 
     if isRoot {
-        if !bootOnce {
+        if !machineScoped {
             runOnceKey += "-"+getConsoleUserInfo().username
         }
         return CFPreferencesCopyValue(runOnceKey as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
@@ -131,7 +139,12 @@ func loadRunOncePlist(bootOnce: Bool = false) -> RunOnce {
     }
 }
 
-func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
+/// Persists the run-once records for the current context.
+///
+/// - Parameter machineScoped: see `loadRunOncePlist(machineScoped:)`. Loads and
+///   writes for the same context must always agree, or records are written to a
+///   key that is never read back.
+func writeRunOncePlist(runOnceData: RunOnce, machineScoped: Bool = false) {
 
     if debugMode {
         showPreferencePath("Stor")
@@ -141,7 +154,7 @@ func writeRunOncePlist(runOnceData: RunOnce, bootOnce: Bool = false) {
     var runOnceKey = "run_once"
 
     if isRoot {
-        if !bootOnce {
+        if !machineScoped {
             runOnceKey += "-"+getConsoleUserInfo().username
         }
         CFPreferencesSetValue(runOnceKey as CFString,

@@ -82,7 +82,8 @@ struct ScriptPayloads: Codable {
                 writeLog("Processing \(context) payload script : \(name)")
                 if let script = decodeBase64Script(base64Data: base64Data) {
                     if let tempScript = saveTempFile(script) {
-                        processScripts(scripts: [tempScript.path], consoleUser: consoleUser, altName: name, once: runOnceType, override: runOnceData)
+                        processScripts(scripts: [tempScript.path], consoleUser: consoleUser, altName: name, once: runOnceType, override: runOnceData,
+                                       machineScoped: type?.machineScoped ?? false)
                         cleanupTempFile(tempScript)
                     }
                 } else {
