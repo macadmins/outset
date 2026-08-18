@@ -171,7 +171,7 @@
 //   test environment's preferences. The struct encoding/decoding is covered
 //   separately in PreferencesTests.swift.
 //
-// loadRunOncePlist(bootOnce:) / writeRunOncePlist(runOnceData:bootOnce:)
+// loadRunOncePlist(machineScoped:) / writeRunOncePlist(runOnceData:machineScoped:)
 //   REQUIRES_ROOT (for boot-once path)
 //   The non-root path writes to UserDefaults and would leave persistent state
 //   between test runs. The boot-once path requires root for CFPreferences.
