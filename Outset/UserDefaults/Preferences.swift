@@ -14,9 +14,8 @@ struct OutsetPreferences: Codable {
     var networkTimeout: Int = defaultNetworkTimeout
     var ignoredUsers: [String] = []
     var overrideLoginOnce: RunOnce = RunOnce()
-    // Optional timeout in seconds for background scripts. When nil, background
-    // scripts run until they exit naturally with no enforced limit.
-
+    // Timeout in seconds for background scripts (default 30). A value of 0
+    // disables the limit and background scripts run until they exit naturally.
     var backgroundScriptTimeout: Int = defaultBackgroundScriptTimeout
     // Optional base64-encoded Ed25519 public key. When present (typically delivered
     // via MDM), every script must carry a valid embedded `# ed25519: <sig>` comment.

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Background script timeout documentation** (`CHANGELOG.md`, `Preferences.swift`, `ItemProcessing.swift`, closes #79): the 4.3.0 notes and code comments said `background_script_timeout` had no default and that Outset waits indefinitely when it is unset. The actual default is 30 seconds; set the key to `0` to disable the timeout. Behaviour is unchanged — only the documentation has been corrected.
+
 ## [4.3.0] - 2026-03-05
 
 ### Fixed
@@ -47,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All log output from background scripts is tagged `[BG:pid=N]` and streamed line-by-line in real time, allowing background and foreground log lines to interleave naturally.
   - Run-once semantics are fully supported for background scripts; the run-once record is written only on successful exit, with thread-safe access via a serial dispatch queue.
   - A per-script timeout watchdog terminates a background script that exceeds the configured limit and logs an error.
-  - A new optional preference key `background_script_timeout` (integer, seconds, no default) sets the per-script timeout. When not set, Outset waits indefinitely for background scripts to exit.
+  - A new optional preference key `background_script_timeout` (integer, seconds, default 30) sets the per-script timeout. Set it to `0` to wait indefinitely for background scripts to exit.
 
 - **Ed25519 script signing** (`Checksum.swift`, `ItemProcessing.swift`, `Preferences.swift`, `Outset.swift`): scripts can now be signed with an Ed25519 private key, with the signature embedded directly in the script as a `# ed25519: <base64sig>` comment. When an MDM-delivered public key (`manifest_signing_key` preference) is present, every script must carry a valid embedded signature — scripts without a valid signature are refused with an error log. Key details:
   - The signed payload is the script content with any existing `# ed25519:` comment line stripped, so the signature is stable across re-signing.

@@ -143,7 +143,7 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
     if !backgroundScripts.isEmpty {
         let group = DispatchGroup()
 
-        let backgroundScriptTimeoutSeconds = prefs.backgroundScriptTimeout   // nil = no limit
+        let backgroundScriptTimeoutSeconds = prefs.backgroundScriptTimeout   // 0 = no limit
 
         // Serialise run-once writes from background tasks to avoid data races
         let runOnceLock = DispatchQueue(label: "io.macadmins.outset.runonce")
@@ -246,7 +246,7 @@ func processScripts(scripts: [String], consoleUser: String, altName: String = ""
         }
 
         // Wait for all background tasks before returning so outset can exit cleanly.
-        // With no timeout configured we wait indefinitely — the scripts themselves
+        // With a timeout of 0 we wait indefinitely — the scripts themselves
         // are responsible for their own termination.
         if backgroundScriptTimeoutSeconds > 0 {
             let result = group.wait(timeout: .now() + .seconds(backgroundScriptTimeoutSeconds + 5))
