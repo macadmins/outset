@@ -87,3 +87,37 @@ struct RunOnceScopeTests {
         #expect(PayloadType.bootEvery.machineScoped == true)
     }
 }
+
+@Suite("Boolean preference interpretation")
+struct BoolPreferenceTests {
+
+    // Regression: loadOutsetPreferences once treated key *presence* as true.
+    // Because writeOutsetPreferences persists every key on boot, that made
+    // wait_for_network effectively always-on, which disabled auto-login on
+    // every installation.
+    @Test("A stored false loads as false even though the key is present")
+    func storedFalseLoadsAsFalse() {
+        #expect(boolPreference(false, defaultValue: false) == false)
+        #expect(boolPreference(false, defaultValue: true) == false)
+        // CFPreferencesCopyValue returns CF types, which bridge to NSNumber
+        #expect(boolPreference(kCFBooleanFalse as Any, defaultValue: true) == false)
+        #expect(boolPreference(NSNumber(value: false), defaultValue: true) == false)
+    }
+
+    @Test("A stored true loads as true")
+    func storedTrueLoadsAsTrue() {
+        #expect(boolPreference(true, defaultValue: false) == true)
+        #expect(boolPreference(kCFBooleanTrue as Any, defaultValue: false) == true)
+    }
+
+    @Test("A missing key falls back to the default")
+    func missingKeyUsesDefault() {
+        #expect(boolPreference(nil, defaultValue: false) == false)
+        #expect(boolPreference(nil, defaultValue: true) == true)
+    }
+
+    @Test("A non-boolean value falls back to the default")
+    func nonBooleanValueUsesDefault() {
+        #expect(boolPreference("true", defaultValue: false) == false)
+    }
+}

@@ -15,6 +15,10 @@ func installPackage(pkg: String) -> Bool {
 
         if pkg.lowercased().hasSuffix("dmg") {
             dmgMount = mountDmg(dmg: pkg)
+            if dmgMount.isEmpty {
+                writeLog("Skipping \(pkg) as it could not be mounted", logLevel: .error)
+                return false
+            }
             for file in folderContents(path: dmgMount) where ["pkg", "mpkg"].contains(file.lowercased().suffix(3)) {
                 pkgsToInstall.append(file)
             }
@@ -24,8 +28,8 @@ func installPackage(pkg: String) -> Bool {
 
         for pkgToInstall in pkgsToInstall {
             writeLog("Installing \(pkgToInstall)")
-            let cmd = "/usr/sbin/installer -pkg \(pkgToInstall) -target /"
-            let (output, error, status) = runShellCommand(cmd, verbose: true)
+            let cmd = "/usr/sbin/installer -target / -pkg"
+            let (output, error, status) = runShellCommand(cmd, args: [pkgToInstall], verbose: true)
             if status != 0 {
                 writeLog(error, logLevel: .error)
             } else {
