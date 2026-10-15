@@ -121,3 +121,62 @@ struct BoolPreferenceTests {
         #expect(boolPreference("true", defaultValue: false) == false)
     }
 }
+
+@Suite("Root preference precedence")
+struct RootPreferencePrecedenceTests {
+    @Test("A managed value wins over a conflicting system value")
+    func managedWins() {
+        let value = resolvePreferenceValue(isManaged: true, managedValue: { 600 }, systemValue: { 180 })
+        #expect(value as? Int == 600)
+    }
+
+    @Test("An unmanaged key never reads the merged app domain")
+    func unmanagedReadsSystem() {
+        let value = resolvePreferenceValue(isManaged: false, managedValue: {
+            Issue.record("Unmanaged keys must not read the merged domain")
+            return 999
+        }, systemValue: { 180 })
+        #expect(value as? Int == 180)
+    }
+
+    @Test("A missing managed value falls back to the system value")
+    func missingManagedValue() {
+        #expect(resolvePreferenceValue(isManaged: true, managedValue: { nil }, systemValue: { 180 }) as? Int == 180)
+    }
+
+    @Test("An absent value preserves the caller's default")
+    func missingValue() {
+        let value = resolvePreferenceValue(isManaged: false, managedValue: { nil }, systemValue: { nil })
+        #expect(value == nil)
+        #expect(boolPreference(value, defaultValue: defaultWaitForNetwork) == false)
+    }
+
+    @Test("A managed false overrides a local true")
+    func managedFalse() {
+        let value = resolvePreferenceValue(isManaged: true, managedValue: { false }, systemValue: { true })
+        #expect(boolPreference(value, defaultValue: true) == false)
+    }
+}
+
+@Suite("Local preference persistence")
+struct LocalPreferencePersistenceTests {
+    @Test("Managed values are not persisted over existing local values")
+    func profileRemovalRevealsLocalValue() {
+        var local: [String: Any] = ["network_timeout": 180]
+        var effective = OutsetPreferences()
+        effective.networkTimeout = 600
+        effective.waitForNetwork = true
+        let values = localPreferenceValues(prefs: effective, isManaged: { $0 == "network_timeout" })
+        for (key, value) in values { local[key] = value }
+        #expect(local["network_timeout"] as? Int == 180)
+        #expect(local["wait_for_network"] as? Bool == true)
+    }
+
+    @Test("A managed key without a local value stays absent")
+    func managedKeyStaysAbsent() {
+        let values = localPreferenceValues(prefs: OutsetPreferences(), isManaged: { $0 == "network_timeout" })
+        #expect(values["network_timeout"] == nil)
+        #expect(values["background_script_timeout"] as? Int == 30)
+        #expect(values["manifest_signing_key"] as? String == "")
+    }
+}

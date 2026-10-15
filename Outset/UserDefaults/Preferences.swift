@@ -38,21 +38,18 @@ func writeOutsetPreferences(prefs: OutsetPreferences) {
     let defaults = UserDefaults.standard
     let appID = Bundle.main.bundleIdentifier! as CFString
 
-    let mirror = Mirror(reflecting: prefs)
-    for child in mirror.children {
-        guard let propertyName = child.label else { continue }
-        let key = propertyName.camelCaseToUnderscored()
-
+    let values = localPreferenceValues(prefs: prefs, isManaged: isRoot ? preferenceIsManaged : { _ in false })
+    for (key, value) in values {
         if isRoot {
             CFPreferencesSetValue(
                 key as CFString,
-                child.value as CFPropertyList,
+                value as CFPropertyList,
                 appID,
                 kCFPreferencesAnyUser,
                 kCFPreferencesAnyHost
             )
         } else {
-            defaults.set(child.value, forKey: key)
+            defaults.set(value, forKey: key)
         }
     }
 
@@ -82,24 +79,23 @@ func loadOutsetPreferences() -> OutsetPreferences {
     var outsetPrefs = OutsetPreferences()
 
     if isRoot {
-        // force preferences to be read from /Library/Preferences instead of root's preferences
-        outsetPrefs.networkTimeout = CFPreferencesCopyValue("network_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? 180
-        outsetPrefs.ignoredUsers = CFPreferencesCopyValue("ignored_users" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? [String] ?? []
-        outsetPrefs.overrideLoginOnce = CFPreferencesCopyValue("override_login_once" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? RunOnce ?? [:]
-        outsetPrefs.waitForNetwork = boolPreference(CFPreferencesCopyValue("wait_for_network" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost), defaultValue: defaultWaitForNetwork)
-        outsetPrefs.backgroundScriptTimeout = CFPreferencesCopyValue("background_script_timeout" as CFString, Bundle.main.bundleIdentifier! as CFString, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? Int ?? defaultBackgroundScriptTimeout
+        // Managed values take precedence over /Library/Preferences, never root's private domain.
+        outsetPrefs.networkTimeout = rootPreferenceValue("network_timeout") as? Int ?? 180
+        outsetPrefs.ignoredUsers = rootPreferenceValue("ignored_users") as? [String] ?? []
+        outsetPrefs.overrideLoginOnce = rootPreferenceValue("override_login_once") as? RunOnce ?? [:]
+        outsetPrefs.waitForNetwork = boolPreference(rootPreferenceValue("wait_for_network"), defaultValue: defaultWaitForNetwork)
+        outsetPrefs.backgroundScriptTimeout = rootPreferenceValue("background_script_timeout") as? Int ?? defaultBackgroundScriptTimeout
         // manifest_signing_key is only honoured when MDM-managed (forced). A locally
         // written key could be used to disable script processing without detection,
         // so we ignore it unless it comes from a managed profile. In debug mode a
         // local value is accepted to allow workflow testing without an MDM enrolment.
-        let appBundle = Bundle.main.bundleIdentifier! as CFString
-        let signingKeyManaged = CFPreferencesAppValueIsForced("manifest_signing_key" as CFString, appBundle)
+        let signingKeyManaged = preferenceIsManaged("manifest_signing_key")
         if signingKeyManaged || debugMode {
-            outsetPrefs.manifestSigningKey = CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) as? String ?? ""
+            outsetPrefs.manifestSigningKey = rootPreferenceValue("manifest_signing_key") as? String ?? ""
             if !signingKeyManaged {
                 writeLog("manifest_signing_key is not MDM-managed — accepted in debug mode only", logLevel: .debug)
             }
-        } else if CFPreferencesCopyValue("manifest_signing_key" as CFString, appBundle, kCFPreferencesAnyUser, kCFPreferencesAnyHost) != nil {
+        } else if rootPreferenceValue("manifest_signing_key") != nil {
             writeLog("manifest_signing_key is present but not MDM-managed — ignoring to prevent tampering", logLevel: .error)
         }
     } else {
@@ -116,6 +112,37 @@ func loadOutsetPreferences() -> OutsetPreferences {
 
     }
     return outsetPrefs
+}
+
+// Do not materialize managed values in the local domain: they must disappear
+// when the profile is removed, revealing the original local value or default.
+func localPreferenceValues(prefs: OutsetPreferences, isManaged: (String) -> Bool) -> [String: Any] {
+    var values: [String: Any] = [:]
+    for child in Mirror(reflecting: prefs).children {
+        guard let propertyName = child.label else { continue }
+        let key = propertyName.camelCaseToUnderscored()
+        if !isManaged(key) { values[key] = child.value }
+    }
+    return values
+}
+
+func preferenceIsManaged(_ key: String) -> Bool {
+    CFPreferencesAppValueIsForced(key as CFString, Bundle.main.bundleIdentifier! as CFString)
+}
+
+func rootPreferenceValue(_ key: String) -> Any? {
+    let appID = Bundle.main.bundleIdentifier! as CFString
+    return resolvePreferenceValue(
+        isManaged: preferenceIsManaged(key),
+        managedValue: { CFPreferencesCopyAppValue(key as CFString, appID) },
+        systemValue: { CFPreferencesCopyValue(key as CFString, appID, kCFPreferencesAnyUser, kCFPreferencesAnyHost) }
+    )
+}
+
+// Keep unmanaged reads out of root's private preference domain.
+func resolvePreferenceValue(isManaged: Bool, managedValue: () -> Any?, systemValue: () -> Any?) -> Any? {
+    if isManaged, let value = managedValue() { return value }
+    return systemValue()
 }
 
 /// Loads the run-once records for the current context.
