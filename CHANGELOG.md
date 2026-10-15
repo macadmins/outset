@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Compare complete calendar dates during log rotation so logs from the same day number in an earlier month or year rotate correctly.
+
 - **Background script timeout documentation** (`CHANGELOG.md`, `Preferences.swift`, `ItemProcessing.swift`, closes #79): the 4.3.0 notes and code comments said `background_script_timeout` had no default and that Outset waits indefinitely when it is unset. The actual default is 30 seconds; set the key to `0` to disable the timeout. Behaviour is unchanged — only the documentation has been corrected.
 
 - **DMG-delivered packages were never installed** (`DMG.swift`, `Packages.swift`): `mountDmg` returned the entire multi-line output of `hdiutil attach` (device nodes and content hints) as if it were the mount point, so the DMG's contents were never found and no packages inside it were installed. This persisted after the 4.3.0 DMG fix. The image is now attached with `-plist` and the mount point is read from the `system-entities` array. If an image cannot be mounted, the item is logged and skipped instead of being processed with an invalid path. Image and package paths are now passed as arguments rather than interpolated into the command string, so paths containing spaces work.

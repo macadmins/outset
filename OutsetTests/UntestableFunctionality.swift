@@ -229,12 +229,6 @@
 //   is /usr/local/outset/logs/outset.log which requires root to write to in a
 //   production environment.
 //
-// performLogRotation(logFolderPath:logFileBaseName:maxLogFiles:)
-//   SIDE_EFFECTS_ONLY, REQUIRES_ROOT (for production path)
-//   Could be tested with a temp directory but the observable outcome is only
-//   file existence/absence, providing limited signal over what folderContents
-//   tests already cover.
-//
 // ─────────────────────────────────────────────────────────────────────────────
 //
 // LEGACY

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AC8200000000000000000001 /* LoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8200000000000000000002 /* LoggingTests.swift */; };
 		05692A835279BAD786A2DF87 /* ChecksumTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */; };
 		DD00DD00DD00DD00DD00DD01 /* DMGTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00DD00DD00DD00DD00DD02 /* DMGTests.swift */; };
 		1D2B8C35F0205CC22CF631E4 /* UntestableFunctionality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487190D64300B83C50E471BD /* UntestableFunctionality.swift */; };
@@ -112,6 +113,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		AC8200000000000000000002 /* LoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoggingTests.swift; sourceTree = "<group>"; };
 		2BF7F8A73028EED231E98FEE /* Cleanup.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Cleanup.swift; sourceTree = "<group>"; };
 		3F905B0AA2F3BF8062321964 /* Override.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Override.swift; sourceTree = "<group>"; };
 		4124EF90293822F4003B00F4 /* Outset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outset.swift; sourceTree = "<group>"; };
@@ -293,6 +295,7 @@
 				E52CFB2D81312A8F4FC70609 /* LoginTests.swift */,
 				B4FAC66593AC5EDAE9B60EDC /* ChecksumTests.swift */,
 				4899D544FA149CE2FD3514B7 /* CoreFileUtilsTests.swift */,
+				AC8200000000000000000002 /* LoggingTests.swift */,
 				DD00DD00DD00DD00DD00DD02 /* DMGTests.swift */,
 				C329D81F86E5C3D1B8F12B27 /* PreferencesTests.swift */,
 				487190D64300B83C50E471BD /* UntestableFunctionality.swift */,
@@ -558,6 +561,7 @@
 				2CE8E007C64E2BBA0FF8F40E /* LoginTests.swift in Sources */,
 				05692A835279BAD786A2DF87 /* ChecksumTests.swift in Sources */,
 				F45C6C11C2063A6698AB8227 /* CoreFileUtilsTests.swift in Sources */,
+				AC8200000000000000000001 /* LoggingTests.swift in Sources */,
 				DD00DD00DD00DD00DD00DD01 /* DMGTests.swift in Sources */,
 				6E9C052EE3EA36956A263ACF /* PreferencesTests.swift in Sources */,
 				34564327C1085EEA0F7882EC /* Services.swift in Sources */,
