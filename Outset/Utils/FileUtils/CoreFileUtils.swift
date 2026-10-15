@@ -69,52 +69,104 @@ func getFolderContents(path: String) -> [String] {
     return filelist
 }
 
-func verifyPermissions(pathname: String) -> Bool {
-    // Files should be owned by root
-    // Files that are not scripts should have permissions 644 (-rw-r--r--)
-    // Files that are scripts should have permissions 755 (-rwxr-xr-x)
-    // If the permission for the request file is not correct then return fals to indicate it should not be processed
+func verifyPermissions(pathname: String, trustedOwners: Set<uid_t> = [0]) -> Bool {
+    // An item runs only when no account other than root could have changed it:
+    // - it is a regular file, never a symlink, so a root-owned link cannot point elsewhere
+    // - it is owned by root, mode 644 for packages and profiles, 755 for scripts
+    // - every directory above it is root-owned and writable by no group or other,
+    //   to reject replacement paths writable through POSIX mode bits
+    // trustedOwners exists for tests; outset itself always trusts root only.
 
-    let (ownerID, mode) = getFileProperties(pathname: pathname)
-    let posixPermissions = String(mode.intValue, radix: 8, uppercase: false)
-    let errorMessage = "Permissions for \(pathname) are incorrect. Should be owned by root and with mode"
-
-    writeLog("ownerID for \(pathname) : \(String(describing: ownerID))", logLevel: .debug)
-    writeLog("posixPermissions for \(pathname) : \(String(describing: posixPermissions))", logLevel: .debug)
-
-    if ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last) {
-        if ownerID == 0 && mode == FilePermissions.file.asNSNumber {
-            return true
-        } else {
-            writeLog("\(errorMessage) x644", logLevel: .error)
-        }
-    } else {
-        if ownerID == 0 && mode == FilePermissions.executable.asNSNumber {
-            return true
-        } else {
-            writeLog("\(errorMessage) x755", logLevel: .error)
-        }
+    var info = stat()
+    guard lstat(pathname, &info) == 0 else {
+        writeLog("Could not read file at path \(pathname)", logLevel: .error)
+        return false
     }
-    return false
+
+    guard info.st_mode & S_IFMT == S_IFREG else {
+        writeLog("\(pathname) is not a regular file. Symlinks and folders are not run", logLevel: .error)
+        return false
+    }
+
+    let isPackage = ["pkg", "mpkg", "dmg", "mobileconfig"].contains(pathname.lowercased().split(separator: ".").last)
+    let required = isPackage ? FilePermissions.file : FilePermissions.executable
+    let mode = info.st_mode & 0o7777
+
+    writeLog("ownerID for \(pathname) : \(info.st_uid)", logLevel: .debug)
+    writeLog("posixPermissions for \(pathname) : \(String(mode, radix: 8))", logLevel: .debug)
+
+    guard trustedOwners.contains(info.st_uid), mode == required.rawValue.uint16Value else {
+        writeLog("Permissions for \(pathname) are incorrect. Should be owned by root and with mode x\(String(required.rawValue.intValue, radix: 8))", logLevel: .error)
+        return false
+    }
+
+    return verifyParentChain(of: pathname, trustedOwners: trustedOwners)
 }
 
-func getFileProperties(pathname: String) -> (ownerID: Int, permissions: NSNumber) {
-    // returns the ID and permissions of the specified file
-    var fileAttributes: [FileAttributeKey: Any]
-    var ownerID: Int = 0
-    var mode: NSNumber = 0
-    do {
-        fileAttributes = try FileManager.default.attributesOfItem(atPath: pathname)
-        if let ownerProperty = fileAttributes[.ownerAccountID] as? Int {
-            ownerID = ownerProperty
-        }
-        if let modeProperty = fileAttributes[.posixPermissions] as? NSNumber {
-            mode = modeProperty
-        }
-    } catch {
-        writeLog("Could not read file at path \(pathname)", logLevel: .error)
+func verifyParentChain(of pathname: String, trustedOwners: Set<uid_t> = [0]) -> Bool {
+    // Resolves the item's folder one component at a time, the way the kernel will when
+    // outset runs it, and checks every folder the lookup passes through, including the
+    // folders that hold each symlink hop. Each folder must be owned by a trusted owner and
+    // not writable by group or other, so no other account can redirect the lookup.
+    let parent = (pathname as NSString).deletingLastPathComponent
+    guard parent.hasPrefix("/") else {
+        writeLog("\(pathname) is not an absolute path", logLevel: .error)
+        return false
     }
-    return (ownerID, mode)
+
+    func folderIsLocked(_ path: String) -> Bool {
+        var info = stat()
+        guard lstat(path, &info) == 0, info.st_mode & S_IFMT == S_IFDIR else {
+            writeLog("\(path) above \(pathname) is not a readable folder. Skipping", logLevel: .error)
+            return false
+        }
+        guard trustedOwners.contains(info.st_uid), info.st_mode & (S_IWGRP | S_IWOTH) == 0 else {
+            writeLog("Folder \(path) above \(pathname) must be owned by root and writable only by root. Skipping", logLevel: .error)
+            return false
+        }
+        return true
+    }
+
+    guard folderIsLocked("/") else { return false }
+    var current = "/"
+    var remaining = Array(parent.split(separator: "/").map(String.init).reversed())
+    var hops = 0
+
+    while let component = remaining.popLast() {
+        switch component {
+        case ".":
+            continue
+        case "..":
+            current = (current as NSString).deletingLastPathComponent
+            continue
+        default:
+            break
+        }
+
+        let next = (current as NSString).appendingPathComponent(component)
+        var info = stat()
+        guard lstat(next, &info) == 0 else {
+            writeLog("Could not read \(next) above \(pathname)", logLevel: .error)
+            return false
+        }
+
+        if info.st_mode & S_IFMT == S_IFLNK {
+            // The link sits in `current`, which is already verified, so only root can change it.
+            hops += 1
+            guard hops <= 32, trustedOwners.contains(info.st_uid),
+                  let target = try? FileManager.default.destinationOfSymbolicLink(atPath: next) else {
+                writeLog("Could not follow \(next) above \(pathname). Skipping", logLevel: .error)
+                return false
+            }
+            if target.hasPrefix("/") { current = "/" }
+            remaining.append(contentsOf: target.split(separator: "/").map(String.init).reversed())
+            continue
+        }
+
+        guard folderIsLocked(next) else { return false }
+        current = next
+    }
+    return true
 }
 
 func pathCleanup(_ pathname: String) {
