@@ -61,7 +61,10 @@ func processOnDemandPrivilegedTasks(consoleUser: String) {
     if !["loginwindow"].contains(consoleUser) {
         if !folderContents(type: .onDemandPrivileged).isEmpty {
             processItems(.onDemandPrivileged, consoleUser: consoleUser)
-            pathCleanup(Trigger.onDemandPrivileged.path)
+            // Manual invocations do not create a launchd trigger.
+            if checkFileExists(path: Trigger.onDemandPrivileged.path) {
+                pathCleanup(Trigger.onDemandPrivileged.path)
+            }
             pathCleanup(PayloadType.onDemandPrivileged.directoryPath)
         }
     } else {
